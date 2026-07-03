@@ -140,19 +140,26 @@ ops-monitor/
 ├── nginx/
 │   └── default.conf
 ├── docs/
-│   ├── infra-architecture.md
-│   ├── operation-log.md
-│   └── trouble-shooting.md
-├── .github/
-│   └── workflows/
-│       └── ci.yml
+│   ├── 01_srs.md
+│   ├── 02_architecture.md
+│   ├── 03_api_spec.md
+│   ├── 04_erd.md
+│   ├── 05_docker_compose_design.md
+│   ├── 06_nginx_design.md
+│   ├── 07_github_actions.md
+│   ├── 08_troubleshooting.md
+│   └── operation-log.md
 ├── study/
 │   ├── day01-project-setup.md
 │   ├── git-basic.md
 │   └── fastapi-basic.md
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt
+├── .env.example
 ├── .gitignore
 └── README.md
 ```
@@ -160,6 +167,8 @@ ops-monitor/
 ---
 
 ## 8. Failure Recovery Scenario
+
+8. Failure Recovery Scenario
 
 이 프로젝트에서는 PostgreSQL 장애 상황을 직접 생성하고, 로그 확인과 컨테이너 재시작을 통해 복구하는 흐름을 실습합니다.
 
@@ -176,7 +185,7 @@ ops-monitor/
 8. 장애 원인과 복구 과정을 문서화
 ```
 
-장애 대응 기록은 `docs/trouble-shooting.md`와 `docs/operation-log.md`에 정리합니다.
+장애 대응 기록은 `docs/08_troubleshooting.md`와 `docs/operation-log.md`에 정리합니다.
 
 ---
 
@@ -184,12 +193,17 @@ ops-monitor/
 
 운영 과정에서 확인한 내용을 문서로 남겨 프로젝트의 흐름을 정리합니다.
 
-| Document                     | Description             |
-| ---------------------------- | ----------------------- |
-| `docs/infra-architecture.md` | 서비스 구성 구조와 요청 흐름 정리     |
-| `docs/operation-log.md`      | 실행, 점검, 장애 복구 과정 기록     |
-| `docs/trouble-shooting.md`   | 장애 상황별 원인 확인 및 복구 방법 정리 |
-
+| Document | Description |
+|---|---|
+| `docs/01_srs.md` | 기능 요구사항, 비기능 요구사항, 장애 대응 요구사항 정의 |
+| `docs/02_architecture.md` | 현재 구성과 목표 아키텍처, 요청 흐름 정리 |
+| `docs/03_api_spec.md` | API 엔드포인트와 응답 구조 정의 |
+| `docs/04_erd.md` | 사용자, 로그, 장애 이력 테이블 설계 |
+| `docs/05_docker_compose_design.md` | Docker Compose 서비스 구성 설계 |
+| `docs/06_nginx_design.md` | Nginx Reverse Proxy 설정 방향 정리 |
+| `docs/07_github_actions.md` | GitHub Actions 자동화 흐름 정리 |
+| `docs/08_troubleshooting.md` | 프로젝트 진행 중 발생한 문제와 해결 과정 기록 |
+| `docs/operation-log.md` | 날짜별 작업 내용과 운영 확인 결과 기록 |
 ---
 
 ## 10. Learning Points
@@ -227,7 +241,7 @@ chore: 기타 설정 변경
 init: create FastAPI health check server
 chore: add gitignore
 docs: add initial README
-feat: add database health check logic
+feat: add database status check logic
 infra: configure docker-compose
 infra: configure Nginx reverse proxy
 docs: add database failure recovery scenario
