@@ -168,8 +168,6 @@ ops-monitor/
 
 ## 8. Failure Recovery Scenario
 
-8. Failure Recovery Scenario
-
 이 프로젝트에서는 PostgreSQL 장애 상황을 직접 생성하고, 로그 확인과 컨테이너 재시작을 통해 복구하는 흐름을 실습합니다.
 
 예정된 장애 대응 흐름은 다음과 같습니다.
