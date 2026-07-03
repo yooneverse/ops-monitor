@@ -146,6 +146,10 @@ ops-monitor/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml
+├── study/
+│   ├── day01-project-setup.md
+│   ├── git-basic.md
+│   └── fastapi-basic.md
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt
