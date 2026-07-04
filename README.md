@@ -189,8 +189,6 @@ ops-monitor/
 
 ## 9. Operation Documentation
 
-운영 과정에서 확인한 내용을 문서로 남겨 프로젝트의 흐름을 정리합니다.
-
 | Document | Description |
 |---|---|
 | `docs/01_srs.md` | 기능 요구사항, 비기능 요구사항, 장애 대응 요구사항 정의 |
@@ -198,9 +196,7 @@ ops-monitor/
 | `docs/03_api_spec.md` | API 엔드포인트와 응답 구조 정의 |
 | `docs/04_erd.md` | 사용자, 로그, 장애 이력 테이블 설계 |
 | `docs/05_docker_compose_design.md` | Docker Compose 서비스 구성 설계 |
-| `docs/06_nginx_design.md` | Nginx Reverse Proxy 설정 방향 정리 |
-| `docs/07_github_actions.md` | GitHub Actions 자동화 흐름 정리 |
-| `docs/08_troubleshooting.md` | 프로젝트 진행 중 발생한 문제와 해결 과정 기록 |
+| `docs/06_troubleshooting.md` | 프로젝트 진행 중 발생한 문제와 해결 과정 기록 |
 | `docs/operation-log.md` | 날짜별 작업 내용과 운영 확인 결과 기록 |
 ---
 
