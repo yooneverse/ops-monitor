@@ -1,4 +1,4 @@
-# FastAPI Basic
+# FastAPI Base
 
 ## 학습 목적
 
