@@ -1,6 +1,8 @@
 import os
-from sqlalchemy import create_engine, text
+
 from dotenv import load_dotenv
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
 
 load_dotenv()
 
@@ -16,6 +18,7 @@ def check_database_connection():
 
     try:
         engine = create_engine(DATABASE_URL)
+
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
 
@@ -24,8 +27,8 @@ def check_database_connection():
             "message": "Database connection successful"
         }
 
-    except Exception as error:
+    except SQLAlchemyError:
         return {
             "status": "disconnected",
-            "message": str(error)
+            "message": "Database connection failed"
         }
