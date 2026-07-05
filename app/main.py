@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from app.api.dashboard import router as dashboard_router
+
 from fastapi import FastAPI
 
 from app.services.db_check import check_database_connection
@@ -7,6 +9,8 @@ from app.services.db_check import check_database_connection
 from app.services.system_check import check_system_status
 
 app = FastAPI(title="Ops Monitor")
+
+app.include_router(dashboard_router)
 
 
 @app.get("/")
