@@ -4,6 +4,8 @@ from fastapi import FastAPI
 
 from app.services.db_check import check_database_connection
 
+from app.services.system_check import check_system_status
+
 app = FastAPI(title="Ops Monitor")
 
 
@@ -23,3 +25,7 @@ def health_check():
         "database": database_status,
         "timestamp": datetime.now().isoformat()
     }
+    
+@app.get("/system")
+def system_status():
+    return check_system_status()
