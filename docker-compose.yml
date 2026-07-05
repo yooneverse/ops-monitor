@@ -1,12 +1,22 @@
 services:
+
+  app:
+    build: .
+    container_name: ops-monitor-app
+    restart: always
+    env_file:
+      - .env
+    ports:
+    - "8000:8000"
+    depends_on:
+    - db
+
   db:
     image: postgres:16
     container_name: ops-monitor-db
     restart: always
-    environment:
-      POSTGRES_USER: ops_user
-      POSTGRES_PASSWORD: ops_password
-      POSTGRES_DB: ops_monitor
+    env_file:
+    - .env
     ports:
       - "5432:5432"
     volumes:
