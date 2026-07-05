@@ -4,7 +4,7 @@
 
 | 항목 | 내용 |
 |---|---|
-| 문서명 | Security Settings |
+| 문서명 | 보안 설정 문서 |
 | 프로젝트명 | Ops Monitor |
 | 작성 목적 | 기본 보안 설정 기준과 적용 범위를 정리 |
 | 적용 범위 | 환경변수 관리, API 접근 제한, Nginx 보안 헤더, 로그 보안 |
@@ -46,10 +46,10 @@
 ### 3.2 예시 형식
 
 ```env
-POSTGRES_USER=your_db_user
-POSTGRES_PASSWORD=your_db_password
-POSTGRES_DB=your_db_name
-DATABASE_URL=postgresql://your_db_user:your_db_password@db:5432/your_db_name
+POSTGRES_USER=<DB_USER>
+POSTGRES_PASSWORD=<DB_PASSWORD>
+POSTGRES_DB=<DB_NAME>
+DATABASE_URL=postgresql://<DB_USER>:<DB_PASSWORD>@db:5432/<DB_NAME>
 ```
 
 ---
