@@ -36,7 +36,12 @@ jobs:
         run: python -c "from app.main import app; print(app.title)"
 
       - name: Validate Docker Compose config
-        run: docker-compose config
+        run: |
+          if command -v docker-compose >/dev/null 2>&1; then
+            docker-compose config
+          else
+            docker compose config
+          fi
 
       - name: Build Docker image
         run: docker build -t ops-monitor-ci .
