@@ -123,3 +123,50 @@ Docker Desktop을 실행한 뒤 Docker Engine 상태를 확인하고, 새 Git Ba
 - FastAPI를 Docker Compose 서비스에 추가
 - Nginx Reverse Proxy 구성
 - Docker Compose 설계서 및 API 명세서 업데이트
+
+---
+
+## 2026-07-05
+
+### Type
+
+`FEATURE`, `INFRA`, `CHECK`, `DOCS`
+
+### Summary
+
+FastAPI 애플리케이션을 컨테이너로 실행할 수 있도록 Dockerfile과 Docker Compose 구성을 확장했다.  
+`/system` API와 `/dashboard` 페이지를 추가하고, Nginx Reverse Proxy 및 기본 보안 설정 문서를 정리했다.
+
+### Commands
+
+```bash
+docker compose up --build -d
+docker ps
+uvicorn app.main:app --reload
+git status
+git log --oneline
+```
+
+### Check
+
+```text
+GET /
+GET /health
+GET /system
+GET /dashboard
+```
+
+### Result
+
+- FastAPI 컨테이너 실행 구조와 Docker Compose 멀티 서비스 구성을 정리
+- `/system` API에서 메모리, 디스크 사용량 반환 구조 확인
+- `/dashboard` 페이지에서 상태 조회 흐름 구성 완료
+- Nginx가 `app:8000`으로 요청을 전달하는 Reverse Proxy 설정 반영
+- CORS 제한과 Nginx 보안 헤더 적용
+- 보안 설정 문서와 제출용 README 정리 완료
+
+### Next
+
+- 로그 조회 API와 장애 이력 API 설계
+- Dashboard 데이터 구조 확장
+- HTTPS 및 인증/인가 적용 범위 검토
