@@ -1,7 +1,7 @@
 # Ops Monitor
 
 Ops Monitor는 FastAPI, PostgreSQL, Docker Compose, Nginx를 기반으로 구성한 운영 모니터링 프로젝트입니다.  
-서비스 상태 확인, DB 연결 점검, 시스템 자원 조회, 기본 보안 기준 적용 결과를 제출용 문서 형태로 정리했습니다.
+서비스 상태 확인, DB 연결 점검, 시스템 자원 조회, Discord 웹훅 기반 알림, 기본 보안 기준 적용 결과를 제출용 문서 형태로 정리했습니다.
 
 ---
 
@@ -12,7 +12,7 @@ Ops Monitor는 FastAPI, PostgreSQL, Docker Compose, Nginx를 기반으로 구성
 | 프로젝트명 | Ops Monitor |
 | 목적 | API, DB, 시스템 자원 상태를 통합 점검하는 운영 모니터링 구성 구현 |
 | 구성 | Nginx, FastAPI, PostgreSQL, Docker Compose |
-| 주요 산출물 | API, 대시보드, 인프라 설정, 설계 문서, 보안 문서 |
+| 주요 산출물 | API, 대시보드, 인프라 설정, 모니터링 알림, 설계 문서, 보안 문서 |
 
 ---
 
@@ -24,7 +24,12 @@ Ops Monitor는 FastAPI, PostgreSQL, Docker Compose, Nginx를 기반으로 구성
 | DB 상태 확인 | `/health`로 DB 연결 상태 확인 | 완료 |
 | 시스템 자원 조회 | `/system`으로 메모리/디스크 사용량 조회 | 완료 |
 | 운영 대시보드 | `/dashboard`에서 주요 상태 시각화 | 완료 |
+| 알림 이력 조회 | `/alerts`로 최근 알림 목록 조회 | 완료 |
+| 모니터링 상태 조회 | `/monitoring/status`로 백그라운드 점검 상태 조회 | 완료 |
+| Discord 알림 | 장애/복구/임계치 이벤트를 웹훅으로 전송 | 완료 |
 | Reverse Proxy | Nginx를 통한 요청 전달 | 완료 |
+| 백그라운드 모니터링 | 주기 점검 루프 기반 상태 전이 감지 | 완료 |
+| CI 검증 | GitHub Actions 기반 기본 검증 워크플로 구성 | 완료 |
 | 기본 보안 설정 | CORS 제한, 보안 헤더, 민감정보 분리 | 완료 |
 
 ---
@@ -46,6 +51,8 @@ PostgreSQL Container
 | Nginx | 외부 요청 수신, Reverse Proxy, 보안 헤더 적용 |
 | FastAPI | 상태 점검 API 및 대시보드 제공 |
 | PostgreSQL | DB 연결 상태 점검 대상 |
+| Monitoring Loop | 백그라운드 점검, 상태 전이 감지, 알림 트리거 |
+| Discord Webhook | 장애 및 자원 경고 알림 수신 채널 |
 | Docker Compose | 컨테이너 실행 및 의존 관계 관리 |
 
 ---
@@ -56,7 +63,11 @@ PostgreSQL Container
 |---|---|
 | Health Check | API 정상 응답 여부와 DB 연결 상태를 함께 반환 |
 | System Check | 메모리/디스크 사용량을 수치로 반환 |
-| Dashboard | 상태 정보를 카드형 화면으로 표시 |
+| Dashboard | 상태 정보, 최근 알림, 모니터링 상태를 카드형 화면으로 표시 |
+| Alert History | 최근 장애/복구/자원 임계치 알림 이력 조회 |
+| Background Monitoring | 주기 점검 루프로 상태 변화 감지 |
+| Discord Notification | 장애 및 복구 이벤트를 외부 채널로 전송 |
+| CI Workflow | Python 문법, 앱 import, Compose 설정, Docker build 검증 |
 | Security Baseline | `.env` 분리, CORS 제한, 보안 헤더, 오류 메시지 단순화 적용 |
 
 ---
@@ -69,6 +80,8 @@ PostgreSQL Container
 | GET | `/health` | API 및 DB 연결 상태 확인 |
 | GET | `/system` | 메모리/디스크 사용량 조회 |
 | GET | `/dashboard` | 운영 대시보드 페이지 |
+| GET | `/alerts` | 최근 알림 이력 조회 |
+| GET | `/monitoring/status` | 모니터링 루프 상태 조회 |
 | GET | `/docs` | Swagger UI |
 
 ### `/health` 응답 예시
@@ -98,6 +111,31 @@ PostgreSQL Container
     "used_gb": 0.0,
     "percent": 0.0
   }
+}
+```
+
+### `/alerts` 응답 예시
+
+```json
+[
+  {
+    "type": "incident",
+    "target": "database",
+    "status": "disconnected",
+    "message": "Database connection failed",
+    "timestamp": "<TIMESTAMP>"
+  }
+]
+```
+
+### `/monitoring/status` 응답 예시
+
+```json
+{
+  "enabled": true,
+  "interval_seconds": 60,
+  "discord_webhook_configured": true,
+  "last_check": "<TIMESTAMP>"
 }
 ```
 
@@ -132,6 +170,7 @@ DISK_ALERT_THRESHOLD=80
 | `.env` 생성 | `.env.example`을 복사해 실제 값 입력 |
 | DB 계정 정보 | 실행 환경의 실제 값 사용 |
 | Discord Webhook URL | 실제 웹훅 URL을 `.env`에만 저장 |
+| 모니터링 임계치 | `.env`에서 점검 주기와 임계치 설정 |
 | Git 관리 | `.env`는 업로드하지 않고 `.env.example`만 추적 |
 
 주의 사항:
@@ -153,6 +192,8 @@ docker compose up --build -d
 | `http://localhost/dashboard` | 운영 대시보드 |
 | `http://localhost/health` | 헬스체크 |
 | `http://localhost/system` | 시스템 상태 조회 |
+| `http://localhost/alerts` | 최근 알림 이력 조회 |
+| `http://localhost/monitoring/status` | 백그라운드 모니터링 상태 조회 |
 
 ### 6.6 로컬 실행
 
@@ -173,8 +214,6 @@ uvicorn app.main:app --reload
 | 허용 메서드 | `GET` 중심 제한 |
 | Nginx 보안 헤더 | `X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`, `Referrer-Policy` 적용 |
 | 오류 메시지 관리 | 상세 DB 예외 대신 고정 메시지 사용 |
-
-상세 기준은 [docs/07_security.md](docs/07_security.md)에서 관리합니다.
 
 ---
 
@@ -202,11 +241,13 @@ ops-monitor/
 │   ├── services/
 │   └── main.py
 ├── docs/
+├── study/
 ├── nginx/
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt
 ├── .env.example
+├── .github/
 └── README.md
 ```
 
