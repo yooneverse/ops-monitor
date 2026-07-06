@@ -1,18 +1,22 @@
 from datetime import datetime
 
 from app.api.dashboard import router as dashboard_router
+from app.services.monitoring_loop import monitor_services
 
 from fastapi import FastAPI
 
 from app.services.db_check import check_database_connection
-
 from app.services.system_check import check_system_status
 
 from fastapi.middleware.cors import CORSMiddleware
 
+import asyncio
+
 app = FastAPI(title="Ops Monitor")
 
 app.include_router(dashboard_router)
+
+monitoring_task = None
 
 app.add_middleware(
     CORSMiddleware,
@@ -42,3 +46,21 @@ def health_check():
 @app.get("/system")
 def system_status():
     return check_system_status()
+
+@app.on_event("startup")
+async def startup_event():
+    global monitoring_task
+    monitoring_task = asyncio.create_task(monitor_services())
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    global monitoring_task
+
+    if monitoring_task:
+        monitoring_task.cancel()
+
+        try:
+            await monitoring_task
+        except asyncio.CancelledError:
+            pass

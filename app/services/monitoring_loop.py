@@ -1,0 +1,185 @@
+import asyncio
+import os
+from datetime import datetime
+
+from app.services.alert_history import add_alert_history
+from app.services.db_check import check_database_connection
+from app.services.discord_webhook import send_discord_alert
+from app.services.system_check import check_system_status
+
+previous_state = {
+    "db_status": None,
+    "memory_alert": False,
+    "disk_alert": False,
+}
+
+monitoring_status = {
+    "enabled": False,
+    "interval_seconds": 60,
+    "discord_webhook_configured": False,
+    "last_check": None,
+}
+
+
+def now_iso() -> str:
+    return datetime.now().isoformat(timespec="seconds")
+
+
+def get_monitor_interval() -> int:
+    return int(os.getenv("MONITOR_INTERVAL_SECONDS", "60"))
+
+
+def get_threshold(name: str, default: int) -> int:
+    return int(os.getenv(name, str(default)))
+
+
+def build_alert_event(
+    event_type: str,
+    target: str,
+    status: str,
+    message: str,
+) -> dict:
+    return {
+        "type": event_type,
+        "target": target,
+        "status": status,
+        "message": message,
+        "timestamp": now_iso(),
+    }
+
+
+def evaluate_db_transition(current_db_status: str) -> dict | None:
+    previous_db_status = previous_state.get("db_status")
+
+    if previous_db_status is None:
+        previous_state["db_status"] = current_db_status
+        return None
+
+    if previous_db_status == current_db_status:
+        return None
+
+    previous_state["db_status"] = current_db_status
+
+    if previous_db_status == "connected" and current_db_status == "disconnected":
+        return build_alert_event(
+            event_type="incident",
+            target="database",
+            status="disconnected",
+            message="Database connection failed",
+        )
+
+    if previous_db_status == "disconnected" and current_db_status == "connected":
+        return build_alert_event(
+            event_type="recovery",
+            target="database",
+            status="connected",
+            message="Database connection recovered",
+        )
+
+    return None
+
+
+def evaluate_resource_thresholds(system_status: dict) -> list[dict]:
+    events = []
+
+    memory_threshold = get_threshold("MEMORY_ALERT_THRESHOLD", 80)
+    disk_threshold = get_threshold("DISK_ALERT_THRESHOLD", 80)
+
+    memory_percent = system_status.get("memory_percent", 0)
+    disk_percent = system_status.get("disk_percent", 0)
+
+    current_memory_alert = memory_percent >= memory_threshold
+    current_disk_alert = disk_percent >= disk_threshold
+
+    if not previous_state["memory_alert"] and current_memory_alert:
+        events.append(
+            build_alert_event(
+                event_type="resource_alert",
+                target="memory",
+                status="warning",
+                message=f"Memory usage exceeded threshold: {memory_percent}%",
+            )
+        )
+
+    if not previous_state["disk_alert"] and current_disk_alert:
+        events.append(
+            build_alert_event(
+                event_type="resource_alert",
+                target="disk",
+                status="warning",
+                message=f"Disk usage exceeded threshold: {disk_percent}%",
+            )
+        )
+
+    previous_state["memory_alert"] = current_memory_alert
+    previous_state["disk_alert"] = current_disk_alert
+
+    return events
+
+
+def notify_event(event: dict) -> None:
+    add_alert_history(event)
+
+    level = "info"
+
+    if event["type"] == "incident":
+        level = "critical"
+    elif event["type"] == "recovery":
+        level = "recovery"
+    elif event["type"] == "resource_alert":
+        level = "warning"
+
+    send_discord_alert(
+        title=event["message"],
+        fields={
+            "Type": event["type"],
+            "Target": event["target"],
+            "Status": event["status"],
+            "Time": event["timestamp"],
+        },
+        level=level,
+    )
+
+
+async def check_and_notify() -> None:
+    db_status = check_database_connection()
+    system_status = check_system_status()
+
+    monitoring_status["last_check"] = now_iso()
+
+    db_event = evaluate_db_transition(db_status.get("status"))
+
+    if db_event:
+        notify_event(db_event)
+
+    resource_events = evaluate_resource_thresholds(system_status)
+
+    for event in resource_events:
+        notify_event(event)
+
+
+async def monitor_services() -> None:
+    interval = get_monitor_interval()
+
+    monitoring_status["enabled"] = True
+    monitoring_status["interval_seconds"] = interval
+    monitoring_status["discord_webhook_configured"] = bool(os.getenv("DISCORD_WEBHOOK_URL"))
+
+    while True:
+        try:
+            await check_and_notify()
+
+        except Exception as error:
+            event = build_alert_event(
+                event_type="monitoring_error",
+                target="monitoring_loop",
+                status="error",
+                message=str(error),
+            )
+            add_alert_history(event)
+
+        await asyncio.sleep(interval)
+
+
+def get_monitoring_status() -> dict:
+    return monitoring_status
