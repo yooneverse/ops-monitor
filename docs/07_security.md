@@ -7,7 +7,7 @@
 | 문서명 | 보안 설정 문서 |
 | 프로젝트명 | Ops Monitor |
 | 작성 목적 | 기본 보안 설정 기준과 적용 범위를 정리 |
-| 적용 범위 | 환경변수 관리, API 접근 제한, Nginx 보안 헤더, 로그 보안 |
+| 적용 범위 | 환경변수 관리, Discord Webhook URL 보호, API 접근 제한, Nginx 보안 헤더, 로그 보안 |
 | 참고 문서 | `03_api_spec.md`, `05_docker_compose_design.md`, `06_troubleshooting.md`, `operation-log.md` |
 
 ---
@@ -16,7 +16,7 @@
 
 | 구분 | 기준 |
 |---|---|
-| 민감정보 관리 | 실제 계정 정보와 연결 문자열은 `.env`로 분리 |
+| 민감정보 관리 | 실제 계정 정보, 연결 문자열, Discord Webhook URL은 `.env`로 분리 |
 | Git 관리 | `.env`는 제외, `.env.example`만 포함 |
 | API 접근 | 로컬 출처만 허용, `GET` 요청 중심으로 제한 |
 | Reverse Proxy | Nginx 기본 보안 헤더 적용 |
@@ -26,7 +26,7 @@
 
 ## 3. 민감정보 관리
 
-실행 환경의 DB 계정명, 비밀번호, DB 이름, 연결 문자열은 코드와 문서에 직접 기록하지 않는다.
+실행 환경의 DB 계정명, 비밀번호, DB 이름, 연결 문자열, Discord Webhook URL은 코드와 문서에 직접 기록하지 않는다.
 
 | 파일 | 용도 | Git 업로드 |
 |---|---|---|
@@ -41,6 +41,7 @@
 | DB 비밀번호 | `.env`에서 관리 |
 | DB 이름 | `.env`에서 관리 |
 | DATABASE_URL | `.env`에서 관리 |
+| DISCORD_WEBHOOK_URL | `.env`에서 관리 |
 | 문서 예시 | 실제 값 대신 예시 값 또는 플레이스홀더 사용 |
 
 ### 3.2 예시 형식
@@ -50,6 +51,7 @@ POSTGRES_USER=<DB_USER>
 POSTGRES_PASSWORD=<DB_PASSWORD>
 POSTGRES_DB=<DB_NAME>
 DATABASE_URL=postgresql://<DB_USER>:<DB_PASSWORD>@db:5432/<DB_NAME>
+DISCORD_WEBHOOK_URL=<DISCORD_WEBHOOK_URL>
 ```
 
 ---
@@ -105,6 +107,7 @@ Nginx Reverse Proxy에는 기본 보안 헤더를 적용한다.
 |---|---|---|
 | DB 비밀번호 | 금지 | 인증 정보 노출 위험 |
 | 전체 `DATABASE_URL` | 금지 | 계정명, 비밀번호 포함 가능 |
+| 실제 `DISCORD_WEBHOOK_URL` | 금지 | 외부 채널 오남용 가능 |
 | 로컬 사용자 경로 | 금지 | 개인 정보 포함 가능 |
 | 상세 DB 오류 원문 | 금지 | 내부 구조 노출 가능 |
 
@@ -124,6 +127,7 @@ Database connection failed
 |---|---|---|
 | 환경변수 분리 | 적용 | `.env`, `.env.example` 분리 |
 | `.env` Git 제외 | 적용 | `.gitignore` 반영 |
+| Discord Webhook URL 보호 | 적용 | `.env`에서만 관리 |
 | Nginx 보안 헤더 | 적용 | `nginx/default.conf` 설정 |
 | CORS 출처 제한 | 적용 | 로컬 출처만 허용 |
 | 로그 민감정보 제외 | 적용 | DB 오류 메시지 단순화 |

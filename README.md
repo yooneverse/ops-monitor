@@ -119,15 +119,33 @@ POSTGRES_USER=<DB_USER>
 POSTGRES_PASSWORD=<DB_PASSWORD>
 POSTGRES_DB=<DB_NAME>
 DATABASE_URL=postgresql://<DB_USER>:<DB_PASSWORD>@db:5432/<DB_NAME>
+DISCORD_WEBHOOK_URL=<DISCORD_WEBHOOK_URL>
+MONITOR_INTERVAL_SECONDS=60
+MEMORY_ALERT_THRESHOLD=80
+DISK_ALERT_THRESHOLD=80
 ```
 
-### 6.3 컨테이너 실행
+### 6.3 환경변수 관리 기준
+
+| 항목 | 설정 방법 |
+|---|---|
+| `.env` 생성 | `.env.example`을 복사해 실제 값 입력 |
+| DB 계정 정보 | 실행 환경의 실제 값 사용 |
+| Discord Webhook URL | 실제 웹훅 URL을 `.env`에만 저장 |
+| Git 관리 | `.env`는 업로드하지 않고 `.env.example`만 추적 |
+
+주의 사항:
+- 실제 `DISCORD_WEBHOOK_URL`은 README, 문서, 코드에 직접 작성하지 않습니다.
+- `.env` 파일은 개인 로컬 또는 배포 환경에서만 관리합니다.
+- 예시 파일에는 플레이스홀더만 유지합니다.
+
+### 6.4 컨테이너 실행
 
 ```bash
 docker compose up --build -d
 ```
 
-### 6.4 접속 주소
+### 6.5 접속 주소
 
 | 주소 | 설명 |
 |---|---|
@@ -136,7 +154,7 @@ docker compose up --build -d
 | `http://localhost/health` | 헬스체크 |
 | `http://localhost/system` | 시스템 상태 조회 |
 
-### 6.5 로컬 실행
+### 6.6 로컬 실행
 
 ```bash
 uvicorn app.main:app --reload
@@ -150,6 +168,7 @@ uvicorn app.main:app --reload
 |---|---|
 | 환경변수 분리 | 실제 계정 정보와 연결 문자열은 `.env`에서 관리 |
 | Git 제외 | `.env`는 추적 제외, `.env.example`만 포함 |
+| Discord Webhook 보호 | 실제 웹훅 URL은 `.env`에만 저장 |
 | CORS 제한 | `http://localhost`, `http://127.0.0.1`만 허용 |
 | 허용 메서드 | `GET` 중심 제한 |
 | Nginx 보안 헤더 | `X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`, `Referrer-Policy` 적용 |
