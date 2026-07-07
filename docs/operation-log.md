@@ -250,6 +250,10 @@ GitHub Actions 트리거 범위를 정제하고, Dependency Graph와 CI workflow
 ```bash
 python -m compileall app
 python -c "from app.main import app; print(app.title)"
+docker stop ops-monitor-db
+docker start ops-monitor-db
+docker compose up -d --force-recreate app
+docker compose up -d --build app
 git status
 git log --oneline
 ```
@@ -273,6 +277,12 @@ GET /dashboard
 - CI를 `main`, `pull_request`, `workflow_dispatch` 기준으로 정제하고 코드/인프라 변경 시에만 실행되도록 `paths` 적용
 - `app/requirements.txt`는 프로젝트 기준 의존성 파일이 아니라고 판단해 `.gitignore`로 정리
 - 로컬 장애 테스트 시나리오와 CI/Dependency Graph 구분 내용을 학습 문서로 정리
+- DB 컨테이너 중지 후 `/health = disconnected`, `/alerts = incident` 흐름 실측 확인
+- DB 복구 후 `/health = connected`, `/alerts = recovery` 흐름 실측 확인
+- 잘못된 Webhook URL과 낮은 threshold 설정에서 `resource_alert`와 `notification_error` 동시 기록 확인
+- 정상 Webhook + 낮은 메모리 threshold 설정에서 `resource_alert` 생성 및 전송 실패 이력 없음 확인
+- `.env` 변경은 단순 `docker restart`가 아니라 `docker compose up -d --force-recreate app`로 반영된다는 점 확인
+- 최신 알림 로직 검증에는 `docker compose up -d --build app`으로 이미지 재빌드가 필요함을 확인
 
 ### Issue
 
@@ -281,6 +291,8 @@ GET /dashboard
 ### Resolution
 
 DB 연결 실패, Webhook 전송 실패, 임계치 초과, 복구, 중복 알림 방지 관점으로 로컬 테스트 기준을 분리하고 관련 로직을 코드에 반영했다.
+
+실제 재현 과정에서는 DB 컨테이너 중지/복구, 테스트용 `.env` 변경, 앱 컨테이너 재생성, 이미지 재빌드까지 포함해 검증 흐름을 정리했다.
 
 ### Next
 
