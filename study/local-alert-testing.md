@@ -153,7 +153,45 @@ DISK_ALERT_THRESHOLD=1
 
 ---
 
-## 7. 정리
+## 7. 실제 검증 결과
+
+2026-07-07 기준으로 다음 시나리오를 실제로 확인했다.
+
+| 시나리오 | 확인 결과 |
+|---|---|
+| DB 중지 | `/health`에서 `disconnected`, `/alerts`에 `incident` 기록 |
+| DB 복구 | `/health`에서 `connected`, `/alerts`에 `recovery` 기록 |
+| 잘못된 Webhook + 낮은 threshold | `/alerts`에 `resource_alert`, `notification_error` 기록 |
+| 정상 Webhook + 낮은 메모리 threshold | `/alerts`에 `resource_alert` 기록, 전송 실패 이력 없음 |
+
+### 7.1 운영 관점 확인 포인트
+
+| 항목 | 확인 내용 |
+|---|---|
+| 중복 알림 방지 | 같은 DB 장애 상태에서 반복 알림이 계속 쌓이지 않음 |
+| 복구 알림 | 장애 해소 후 recovery 이벤트 생성 |
+| 전송 실패 처리 | Webhook 오류를 별도 이벤트로 기록 |
+| 설정 반영 방식 | `.env` 변경은 컨테이너 재생성 필요 |
+| 코드 반영 방식 | 최신 로직 검증에는 이미지 재빌드 필요 |
+
+### 7.2 컨테이너 반영 주의점
+
+실제 테스트에서 `docker restart`만으로는 `.env` 변경이 반영되지 않았다.
+테스트용 환경변수를 적용하려면 다음 명령이 필요했다.
+
+```bash
+docker compose up -d --force-recreate app
+```
+
+또한 최신 알림 로직까지 같이 검증하려면 이미지 재빌드도 필요했다.
+
+```bash
+docker compose up -d --build app
+```
+
+---
+
+## 8. 정리
 
 이번 정리를 통해 로컬 환경에서도 단순 컨테이너 중지/재시작 외에 DB 연결 오류, 전송 실패, 임계치 초과, 복구, 중복 알림 방지까지 충분히 검증할 수 있음을 확인했다.
 
