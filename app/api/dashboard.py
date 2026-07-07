@@ -141,6 +141,14 @@ def dashboard():
                 border-left-color: #d97706;
             }
 
+            .alert-item.resource_recovery {
+                border-left-color: #16803c;
+            }
+
+            .alert-item.notification_error {
+                border-left-color: #7c3aed;
+            }
+
             .alert-title {
                 font-weight: bold;
                 margin-bottom: 4px;

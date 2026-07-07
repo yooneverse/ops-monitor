@@ -4,31 +4,30 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
-load_dotenv()
-
-DATABASE_URL = os.getenv("DATABASE_URL")
-
 
 def check_database_connection():
-    if not DATABASE_URL:
+    load_dotenv(override=True)
+    database_url = os.getenv("DATABASE_URL")
+
+    if not database_url:
         return {
             "status": "error",
-            "message": "DATABASE_URL is not set"
+            "message": "DATABASE_URL is not set",
         }
 
     try:
-        engine = create_engine(DATABASE_URL)
+        engine = create_engine(database_url)
 
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
 
         return {
             "status": "connected",
-            "message": "Database connection successful"
+            "message": "Database connection successful",
         }
 
     except SQLAlchemyError:
         return {
             "status": "disconnected",
-            "message": "Database connection failed"
+            "message": "Database connection failed",
         }

@@ -33,6 +33,11 @@ def get_threshold(name: str, default: int) -> int:
     return int(os.getenv(name, str(default)))
 
 
+def refresh_monitoring_status() -> None:
+    monitoring_status["interval_seconds"] = get_monitor_interval()
+    monitoring_status["discord_webhook_configured"] = bool(os.getenv("DISCORD_WEBHOOK_URL"))
+
+
 def build_alert_event(
     event_type: str,
     target: str,
@@ -53,6 +58,15 @@ def evaluate_db_transition(current_db_status: str) -> dict | None:
 
     if previous_db_status is None:
         previous_state["db_status"] = current_db_status
+
+        if current_db_status == "disconnected":
+            return build_alert_event(
+                event_type="incident",
+                target="database",
+                status="disconnected",
+                message="Database connection failed",
+            )
+
         return None
 
     if previous_db_status == current_db_status:
@@ -85,8 +99,8 @@ def evaluate_resource_thresholds(system_status: dict) -> list[dict]:
     memory_threshold = get_threshold("MEMORY_ALERT_THRESHOLD", 80)
     disk_threshold = get_threshold("DISK_ALERT_THRESHOLD", 80)
 
-    memory_percent = system_status.get("memory_percent", 0)
-    disk_percent = system_status.get("disk_percent", 0)
+    memory_percent = system_status.get("memory", {}).get("percent", 0)
+    disk_percent = system_status.get("disk", {}).get("percent", 0)
 
     current_memory_alert = memory_percent >= memory_threshold
     current_disk_alert = disk_percent >= disk_threshold
@@ -101,6 +115,16 @@ def evaluate_resource_thresholds(system_status: dict) -> list[dict]:
             )
         )
 
+    if previous_state["memory_alert"] and not current_memory_alert:
+        events.append(
+            build_alert_event(
+                event_type="resource_recovery",
+                target="memory",
+                status="normal",
+                message=f"Memory usage recovered: {memory_percent}%",
+            )
+        )
+
     if not previous_state["disk_alert"] and current_disk_alert:
         events.append(
             build_alert_event(
@@ -108,6 +132,16 @@ def evaluate_resource_thresholds(system_status: dict) -> list[dict]:
                 target="disk",
                 status="warning",
                 message=f"Disk usage exceeded threshold: {disk_percent}%",
+            )
+        )
+
+    if previous_state["disk_alert"] and not current_disk_alert:
+        events.append(
+            build_alert_event(
+                event_type="resource_recovery",
+                target="disk",
+                status="normal",
+                message=f"Disk usage recovered: {disk_percent}%",
             )
         )
 
@@ -128,8 +162,10 @@ def notify_event(event: dict) -> None:
         level = "recovery"
     elif event["type"] == "resource_alert":
         level = "warning"
+    elif event["type"] == "resource_recovery":
+        level = "recovery"
 
-    send_discord_alert(
+    sent = send_discord_alert(
         title=event["message"],
         fields={
             "Type": event["type"],
@@ -140,8 +176,20 @@ def notify_event(event: dict) -> None:
         level=level,
     )
 
+    if not sent and event["target"] != "discord_webhook":
+        add_alert_history(
+            build_alert_event(
+                event_type="notification_error",
+                target="discord_webhook",
+                status="failed",
+                message="Discord webhook send failed",
+            )
+        )
+
 
 async def check_and_notify() -> None:
+    refresh_monitoring_status()
+
     db_status = check_database_connection()
     system_status = check_system_status()
 
@@ -159,11 +207,8 @@ async def check_and_notify() -> None:
 
 
 async def monitor_services() -> None:
-    interval = get_monitor_interval()
-
     monitoring_status["enabled"] = True
-    monitoring_status["interval_seconds"] = interval
-    monitoring_status["discord_webhook_configured"] = bool(os.getenv("DISCORD_WEBHOOK_URL"))
+    refresh_monitoring_status()
 
     while True:
         try:
@@ -178,8 +223,9 @@ async def monitor_services() -> None:
             )
             add_alert_history(event)
 
-        await asyncio.sleep(interval)
+        await asyncio.sleep(get_monitor_interval())
 
 
 def get_monitoring_status() -> dict:
+    refresh_monitoring_status()
     return monitoring_status
