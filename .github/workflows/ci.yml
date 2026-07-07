@@ -4,9 +4,24 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "app/**"
+      - ".github/workflows/ci.yml"
+      - "Dockerfile"
+      - "docker-compose.yml"
+      - "requirements.txt"
+      - ".env.example"
   pull_request:
     branches:
       - main
+    paths:
+      - "app/**"
+      - ".github/workflows/ci.yml"
+      - "Dockerfile"
+      - "docker-compose.yml"
+      - "requirements.txt"
+      - ".env.example"
+  workflow_dispatch:
 
 jobs:
   validate:
