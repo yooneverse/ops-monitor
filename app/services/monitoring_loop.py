@@ -32,11 +32,17 @@ def get_monitor_interval() -> int:
     return int(os.getenv("MONITOR_INTERVAL_SECONDS", "60"))
 
 
+def is_monitoring_enabled() -> bool:
+    raw_value = os.getenv("ENABLE_MONITORING_LOOP", "true")
+    return raw_value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def get_threshold(name: str, default: int) -> int:
     return int(os.getenv(name, str(default)))
 
 
 def refresh_monitoring_status() -> None:
+    monitoring_status["enabled"] = is_monitoring_enabled()
     monitoring_status["interval_seconds"] = get_monitor_interval()
     monitoring_status["discord_webhook_configured"] = bool(os.getenv("DISCORD_WEBHOOK_URL"))
 
@@ -217,8 +223,12 @@ async def check_and_notify() -> None:
 
 
 async def monitor_services() -> None:
-    monitoring_status["enabled"] = True
     refresh_monitoring_status()
+
+    if not monitoring_status["enabled"]:
+        logger.info("Monitoring loop is disabled by configuration")
+        return
+
     logger.info("Monitoring loop started")
 
     while True:

@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 from app.api.dashboard import router as dashboard_router
 from app.security import get_allowed_hosts, is_docs_enabled, require_monitor_auth
 from app.services.db_check import check_database_connection
-from app.services.monitoring_loop import monitor_services
+from app.services.monitoring_loop import is_monitoring_enabled, monitor_services
 from app.services.runtime_logs import configure_runtime_logging
 from app.services.system_check import check_system_status
 
@@ -122,6 +122,12 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     async def startup_event():
         global monitoring_task
+
+        if not is_monitoring_enabled():
+            logger.info("Monitoring startup skipped")
+            monitoring_task = None
+            return
+
         monitoring_task = asyncio.create_task(monitor_services())
 
     @app.on_event("shutdown")

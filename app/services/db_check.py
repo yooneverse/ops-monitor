@@ -1,16 +1,44 @@
-import os
 import logging
+import os
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, text
+from sqlalchemy import Engine, create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
 logger = logging.getLogger("uvicorn.error")
+load_dotenv(override=True)
+
+_engine: Engine | None = None
+_engine_url: str | None = None
+
+
+def get_database_url() -> str | None:
+    return os.getenv("DATABASE_URL")
+
+
+def get_database_engine(database_url: str) -> Engine:
+    global _engine
+    global _engine_url
+
+    if _engine is not None and _engine_url == database_url:
+        return _engine
+
+    connect_args: dict[str, int] = {}
+
+    if database_url.startswith("postgresql"):
+        connect_args["connect_timeout"] = 3
+
+    _engine = create_engine(
+        database_url,
+        pool_pre_ping=True,
+        connect_args=connect_args,
+    )
+    _engine_url = database_url
+    return _engine
 
 
 def check_database_connection():
-    load_dotenv(override=True)
-    database_url = os.getenv("DATABASE_URL")
+    database_url = get_database_url()
 
     logger.info("Checking database connection...")
 
@@ -22,7 +50,7 @@ def check_database_connection():
         }
 
     try:
-        engine = create_engine(database_url)
+        engine = get_database_engine(database_url)
 
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
