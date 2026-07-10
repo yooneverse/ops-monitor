@@ -123,15 +123,3 @@ ci     : CI 설정 변경
 | [07_security.md](docs/07_security.md) | 기본 보안 정리 |
 | [08_runtime_security.md](docs/08_runtime_security.md) | 런타임 보안 보강 |
 | [operation-log.md](docs/operation-log.md) | 작업 기록 |
-
-### study 문서
-
-| 문서 | 내용 |
-|---|---|
-| [fastapi-db-health-logging.md](study/fastapi-db-health-logging.md) | DB 상태 확인과 로그 정리 |
-| [runtime-security-hardening.md](study/runtime-security-hardening.md) | 런타임 보안 보강 |
-| [ops-monitor-hardening-roadmap.md](study/ops-monitor-hardening-roadmap.md) | 보완 사항 로드맵 |
-| [daily-runtime-logging.md](study/daily-runtime-logging.md) | 일일 로그 구조 |
-| [github-actions-ci.md](study/github-actions-ci.md) | CI 정리 |
-| [docker-compose-runtime.md](study/docker-compose-runtime.md) | Compose 운영 정리 |
-| [local-alert-testing.md](study/local-alert-testing.md) | 알림 테스트 방법 |
