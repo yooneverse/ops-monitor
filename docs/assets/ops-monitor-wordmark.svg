@@ -1,0 +1,18 @@
+<svg width="1200" height="320" viewBox="0 0 1200 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="320" rx="28" fill="#0B1220"/>
+  <rect x="36" y="36" width="1128" height="248" rx="20" fill="url(#panel)"/>
+  <circle cx="118" cy="110" r="18" fill="#22C55E"/>
+  <circle cx="166" cy="110" r="18" fill="#F59E0B"/>
+  <circle cx="214" cy="110" r="18" fill="#3B82F6"/>
+  <path d="M102 214C144 174 176 230 220 190C256 158 286 158 324 214" stroke="#60A5FA" stroke-width="10" stroke-linecap="round"/>
+  <path d="M338 214H402" stroke="#22C55E" stroke-width="10" stroke-linecap="round"/>
+  <text x="454" y="130" fill="#E5EEF9" font-family="Segoe UI, Arial, sans-serif" font-size="64" font-weight="700" letter-spacing="6">OPS MONITOR</text>
+  <text x="456" y="184" fill="#8AA0BD" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="600" letter-spacing="2">OPERATIONAL OBSERVABILITY FOR CONTAINERIZED SERVICES</text>
+  <text x="456" y="230" fill="#B8C7DA" font-family="Segoe UI, Arial, sans-serif" font-size="24">FastAPI · PostgreSQL · Docker Compose · Nginx</text>
+  <defs>
+    <linearGradient id="panel" x1="36" y1="36" x2="1164" y2="284" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset="1" stop-color="#111C34"/>
+    </linearGradient>
+  </defs>
+</svg>

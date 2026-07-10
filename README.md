@@ -1,266 +1,137 @@
-# Ops Monitor
-
-Ops Monitor는 FastAPI, PostgreSQL, Docker Compose, Nginx를 기반으로 구성한 운영 모니터링 프로젝트입니다.  
-서비스 상태 확인, DB 연결 점검, 시스템 자원 조회, Discord 웹훅 기반 알림, 기본 보안 기준 적용 결과를 제출용 문서 형태로 정리했습니다.
+<div align="center">
+  <h1>Ops Monitor</h1>
+  <p>Docker 컨테이너 기반 서비스 모니터링 프로젝트</p>
+  <img src="docs/assets/ops-monitor-wordmark-main.png" alt="Ops Monitor" width="460" />
+  <br />
+  <br />
+  <p>
+    <code>FastAPI</code>
+    <code>PostgreSQL</code>
+    <code>Docker Compose</code>
+    <code>Nginx</code>
+  </p>
+</div>
 
 ---
 
 ## 1. 프로젝트 개요
 
-| 항목 | 내용 |
-|---|---|
-| 프로젝트명 | Ops Monitor |
-| 목적 | API, DB, 시스템 자원 상태를 통합 점검하는 운영 모니터링 구성 구현 |
-| 구성 | Nginx, FastAPI, PostgreSQL, Docker Compose |
-| 주요 산출물 | API, 대시보드, 인프라 설정, 모니터링 알림, 설계 문서, 보안 문서 |
+Ops Monitor는 서비스가 정상 동작하는지 확인하고, 장애 징후를 빠르게 파악하며, 운영 로그를 날짜별로 남기는 과정을 직접 구현해 보기 위해 만든 프로젝트입니다.
 
----
+- 공개 상태 확인 API와 보호된 운영 조회 API를 분리했습니다.
+- DB 상태, 시스템 자원, 이벤트 이력을 한곳에서 확인할 수 있습니다.
+- 운영 중 필요한 기본 보안 설정과 일일 로그 정리를 함께 다룹니다.
 
-## 2. 구현 범위
-
-| 구분 | 내용 | 상태 |
-|---|---|---|
-| API 상태 확인 | `/` 엔드포인트로 서버 실행 여부 확인 | 완료 |
-| DB 상태 확인 | `/health`로 DB 연결 상태 확인 | 완료 |
-| 시스템 자원 조회 | `/system`으로 메모리/디스크 사용량 조회 | 완료 |
-| 운영 대시보드 | `/dashboard`에서 주요 상태 시각화 | 완료 |
-| 알림 이력 조회 | `/alerts`로 최근 알림 목록 조회 | 완료 |
-| 모니터링 상태 조회 | `/monitoring/status`로 백그라운드 점검 상태 조회 | 완료 |
-| Discord 알림 | 장애/복구/임계치 이벤트를 웹훅으로 전송 | 완료 |
-| Reverse Proxy | Nginx를 통한 요청 전달 | 완료 |
-| 백그라운드 모니터링 | 주기 점검 루프 기반 상태 전이 감지 | 완료 |
-| CI 검증 | GitHub Actions 기반 기본 검증 워크플로 구성 | 완료 |
-| 기본 보안 설정 | CORS 제한, 보안 헤더, 민감정보 분리 | 완료 |
-
----
-
-## 3. 시스템 구성
+## 2. 커밋 원칙
 
 ```text
-Client
-  ↓
-Nginx Container
-  ↓
-FastAPI Container
-  ↓
-PostgreSQL Container
+init   : 프로젝트 초기 설정
+feat   : 기능 추가
+infra  : 인프라 및 실행 환경 변경
+test   : 테스트 추가 또는 보강
+docs   : 문서 작성 및 수정
+fix    : 오류 수정
+chore  : 기타 정리
+ci     : CI 설정 변경
 ```
+
+## 3. 아키텍처
+
+<div align="center">
+  <img src="docs/assets/ops-monitor-architecture-simple.png" alt="Ops Monitor Architecture" width="920" />
+</div>
+
+전체 흐름은 단순하게 구성했습니다.
+
+- 사용자의 요청은 `Nginx`를 거쳐 `FastAPI`로 전달됩니다.
+- 애플리케이션은 상태 조회 API, 대시보드, 모니터링 루프를 제공합니다.
+- 이벤트와 로그는 날짜별 파일로 정리되고, 필요 시 알림 채널로 전송됩니다.
+
+### 구성 요소
 
 | 구성 요소 | 역할 |
 |---|---|
-| Nginx | 외부 요청 수신, Reverse Proxy, 보안 헤더 적용 |
-| FastAPI | 상태 점검 API 및 대시보드 제공 |
-| PostgreSQL | DB 연결 상태 점검 대상 |
-| Monitoring Loop | 백그라운드 점검, 상태 전이 감지, 알림 트리거 |
-| Discord Webhook | 장애 및 자원 경고 알림 수신 채널 |
-| Docker Compose | 컨테이너 실행 및 의존 관계 관리 |
-
----
+| Nginx | 요청 전달, 기본 보안 헤더, 접근 제한 |
+| FastAPI | 상태 조회 API, 대시보드, 운영 기능 제공 |
+| PostgreSQL | 연결 상태 확인 및 예시 데이터 저장 |
+| Monitoring Loop | 주기적 상태 점검과 이벤트 생성 |
+| Alert Channel | 장애 및 복구 알림 전송 |
+| Daily Logs | 날짜별 로그와 리포트 생성 |
 
 ## 4. 주요 기능
 
-| 기능 | 설명 |
+| 구분 | 내용 |
 |---|---|
-| Health Check | API 정상 응답 여부와 DB 연결 상태를 함께 반환 |
-| System Check | 메모리/디스크 사용량을 수치로 반환 |
-| Dashboard | 상태 정보, 최근 알림, 모니터링 상태를 카드형 화면으로 표시 |
-| Alert History | 최근 장애/복구/자원 임계치 알림 이력 조회 |
-| Background Monitoring | 주기 점검 루프로 상태 변화 감지 |
-| Discord Notification | 장애 및 복구 이벤트를 외부 채널로 전송 |
-| CI Workflow | Python 문법, 앱 import, Compose 설정, Docker build 검증 |
-| Security Baseline | `.env` 분리, CORS 제한, 보안 헤더, 오류 메시지 단순화 적용 |
+| Public Health | `/`, `/livez`, `/readyz` |
+| Protected Ops API | `/health`, `/system`, `/alerts`, `/monitoring/status` |
+| Dashboard | `/dashboard` |
+| Monitoring | DB 상태, 메모리, 디스크, 이벤트 점검 |
+| Alerts | 웹훅 기반 장애 및 복구 알림 |
+| Logging | 애플리케이션 로그, 이벤트 로그, 일일 리포트 생성 |
+| Security | Basic Auth, Trusted Host, rate limit, 숨김 경로 차단 |
 
----
+## 5. 주소 정리
 
-## 5. API 요약
+### 공개 주소
 
-| Method | Endpoint | 설명 |
+| Method | Path | 설명 |
 |---|---|---|
-| GET | `/` | API 서버 실행 확인 |
-| GET | `/health` | API 및 DB 연결 상태 확인 |
-| GET | `/system` | 메모리/디스크 사용량 조회 |
-| GET | `/dashboard` | 운영 대시보드 페이지 |
-| GET | `/alerts` | 최근 알림 이력 조회 |
-| GET | `/monitoring/status` | 모니터링 루프 상태 조회 |
-| GET | `/docs` | Swagger UI |
+| GET | `/` | 기본 확인 |
+| GET | `/livez` | 프로세스 생존 확인 |
+| GET | `/readyz` | 준비 상태 확인 |
 
-### `/health` 응답 예시
+### 보호된 주소
 
-```json
-{
-  "api": "ok",
-  "database": {
-    "status": "connected",
-    "message": "Database connection successful"
-  },
-  "timestamp": "<TIMESTAMP>"
-}
-```
+| Method | Path | 설명 |
+|---|---|---|
+| GET | `/health` | 앱 및 DB 상태 |
+| GET | `/system` | 시스템 자원 상태 |
+| GET | `/alerts` | 최근 이벤트 이력 |
+| GET | `/monitoring/status` | 모니터링 루프 상태 |
+| GET | `/dashboard` | 운영 대시보드 |
 
-### `/system` 응답 예시
+## 6. 보안과 로그
 
-```json
-{
-  "memory": {
-    "total_gb": 0.0,
-    "used_gb": 0.0,
-    "percent": 0.0
-  },
-  "disk": {
-    "total_gb": 0.0,
-    "used_gb": 0.0,
-    "percent": 0.0
-  }
-}
-```
+### 보안
 
-### `/alerts` 응답 예시
+- Basic Auth로 운영용 조회 주소를 보호합니다.
+- 인증 정보가 없으면 보호된 기능은 열리지 않도록 구성했습니다.
+- 허용된 `Host`만 통과하도록 제한합니다.
+- Nginx에서 method 제한, rate limit, 숨김 경로 차단을 적용합니다.
 
-```json
-[
-  {
-    "type": "incident",
-    "target": "database",
-    "status": "disconnected",
-    "message": "Database connection failed",
-    "timestamp": "<TIMESTAMP>"
-  }
-]
-```
+### 로그
 
-### `/monitoring/status` 응답 예시
-
-```json
-{
-  "enabled": true,
-  "interval_seconds": 60,
-  "discord_webhook_configured": true,
-  "last_check": "<TIMESTAMP>"
-}
-```
-
----
-
-## 6. 실행 방법
-
-### 6.1 사전 준비
-
-- Python 3.11 이상
-- Docker Desktop
-
-### 6.2 환경변수 설정
-
-`.env.example`을 참고해 `.env` 파일을 생성합니다.
-
-```env
-POSTGRES_USER=<DB_USER>
-POSTGRES_PASSWORD=<DB_PASSWORD>
-POSTGRES_DB=<DB_NAME>
-DATABASE_URL=postgresql://<DB_USER>:<DB_PASSWORD>@db:5432/<DB_NAME>
-DISCORD_WEBHOOK_URL=<DISCORD_WEBHOOK_URL>
-MONITOR_INTERVAL_SECONDS=60
-MEMORY_ALERT_THRESHOLD=80
-DISK_ALERT_THRESHOLD=80
-```
-
-### 6.3 환경변수 관리 기준
-
-| 항목 | 설정 방법 |
+| 경로 | 설명 |
 |---|---|
-| `.env` 생성 | `.env.example`을 복사해 실제 값 입력 |
-| DB 계정 정보 | 실행 환경의 실제 값 사용 |
-| Discord Webhook URL | 실제 웹훅 URL을 `.env`에만 저장 |
-| 모니터링 임계치 | `.env`에서 점검 주기와 임계치 설정 |
-| Git 관리 | `.env`는 업로드하지 않고 `.env.example`만 추적 |
+| `logs/application/YYYY-MM-DD.log` | 애플리케이션 로그 |
+| `logs/access/YYYY-MM-DD.log` | 접근 로그 |
+| `logs/events/YYYY-MM-DD.jsonl` | 이벤트 원본 로그 |
+| `logs/reports/YYYY-MM-DD.md` | 일일 리포트 |
 
-주의 사항:
-- 실제 `DISCORD_WEBHOOK_URL`은 README, 문서, 코드에 직접 작성하지 않습니다.
-- `.env` 파일은 개인 로컬 또는 배포 환경에서만 관리합니다.
-- 예시 파일에는 플레이스홀더만 유지합니다.
+## 7. 문서 모음
 
-### 6.4 컨테이너 실행
-
-```bash
-docker compose up --build -d
-```
-
-### 6.5 접속 주소
-
-| 주소 | 설명 |
-|---|---|
-| `http://localhost/` | 기본 진입 |
-| `http://localhost/dashboard` | 운영 대시보드 |
-| `http://localhost/health` | 헬스체크 |
-| `http://localhost/system` | 시스템 상태 조회 |
-| `http://localhost/alerts` | 최근 알림 이력 조회 |
-| `http://localhost/monitoring/status` | 백그라운드 모니터링 상태 조회 |
-
-### 6.6 로컬 실행
-
-```bash
-uvicorn app.main:app --reload
-```
-
----
-
-## 7. 보안 적용 사항
-
-| 항목 | 적용 내용 |
-|---|---|
-| 환경변수 분리 | 실제 계정 정보와 연결 문자열은 `.env`에서 관리 |
-| Git 제외 | `.env`는 추적 제외, `.env.example`만 포함 |
-| Discord Webhook 보호 | 실제 웹훅 URL은 `.env`에만 저장 |
-| CORS 제한 | `http://localhost`, `http://127.0.0.1`만 허용 |
-| 허용 메서드 | `GET` 중심 제한 |
-| Nginx 보안 헤더 | `X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`, `Referrer-Policy` 적용 |
-| 오류 메시지 관리 | 상세 DB 예외 대신 고정 메시지 사용 |
-
----
-
-## 8. 문서 구성
+### 설계 및 기록 문서
 
 | 문서 | 내용 |
 |---|---|
-| [01_srs.md](docs/01_srs.md) | 요구사항 정의 |
-| [02_architecture.md](docs/02_architecture.md) | 시스템 아키텍처 설계 |
+| [01_srs.md](docs/01_srs.md) | 요구사항 정리 |
+| [02_architecture.md](docs/02_architecture.md) | 아키텍처 설명 |
 | [03_api_spec.md](docs/03_api_spec.md) | API 명세 |
-| [04_erd.md](docs/04_erd.md) | 데이터 모델 설계 |
-| [05_docker_compose_design.md](docs/05_docker_compose_design.md) | Docker Compose 구성 문서 |
+| [04_erd.md](docs/04_erd.md) | 데이터 모델 |
+| [05_docker_compose_design.md](docs/05_docker_compose_design.md) | Compose 설계 |
 | [06_troubleshooting.md](docs/06_troubleshooting.md) | 문제 해결 기록 |
-| [07_security.md](docs/07_security.md) | 보안 설정 기준 |
-| [operation-log.md](docs/operation-log.md) | 운영 확인 및 작업 로그 |
+| [07_security.md](docs/07_security.md) | 기본 보안 정리 |
+| [08_runtime_security.md](docs/08_runtime_security.md) | 런타임 보안 보강 |
+| [operation-log.md](docs/operation-log.md) | 작업 기록 |
 
----
+### study 문서
 
-## 9. 저장소 구조
-
-```text
-ops-monitor/
-├── app/
-│   ├── api/
-│   ├── services/
-│   └── main.py
-├── docs/
-├── study/
-├── nginx/
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-├── .env.example
-├── .github/
-└── README.md
-```
-
----
-
-## 10. 커밋 컨벤션
-
-```text
-init: 프로젝트 초기 설정
-feat: 기능 추가
-infra: 인프라 설정 추가
-docs: 문서 작성 및 수정
-fix: 오류 수정
-chore: 기타 설정 변경
-ci: CI 설정
-```
+| 문서 | 내용 |
+|---|---|
+| [fastapi-db-health-logging.md](study/fastapi-db-health-logging.md) | DB 상태 확인과 로그 정리 |
+| [runtime-security-hardening.md](study/runtime-security-hardening.md) | 런타임 보안 보강 |
+| [ops-monitor-hardening-roadmap.md](study/ops-monitor-hardening-roadmap.md) | 보완 사항 로드맵 |
+| [daily-runtime-logging.md](study/daily-runtime-logging.md) | 일일 로그 구조 |
+| [github-actions-ci.md](study/github-actions-ci.md) | CI 정리 |
+| [docker-compose-runtime.md](study/docker-compose-runtime.md) | Compose 운영 정리 |
+| [local-alert-testing.md](study/local-alert-testing.md) | 알림 테스트 방법 |
