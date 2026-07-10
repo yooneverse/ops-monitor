@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 from datetime import datetime
 
@@ -6,6 +7,8 @@ from app.services.alert_history import add_alert_history
 from app.services.db_check import check_database_connection
 from app.services.discord_webhook import send_discord_alert
 from app.services.system_check import check_system_status
+
+logger = logging.getLogger("uvicorn.error")
 
 previous_state = {
     "db_status": None,
@@ -205,16 +208,25 @@ async def check_and_notify() -> None:
     for event in resource_events:
         notify_event(event)
 
+    logger.info(
+        "Monitoring cycle completed: db=%s memory=%s%% disk=%s%%",
+        db_status.get("status"),
+        system_status.get("memory", {}).get("percent", 0),
+        system_status.get("disk", {}).get("percent", 0),
+    )
+
 
 async def monitor_services() -> None:
     monitoring_status["enabled"] = True
     refresh_monitoring_status()
+    logger.info("Monitoring loop started")
 
     while True:
         try:
             await check_and_notify()
 
         except Exception as error:
+            logger.exception("Monitoring loop failed")
             event = build_alert_event(
                 event_type="monitoring_error",
                 target="monitoring_loop",

@@ -13,8 +13,10 @@ from app.api.dashboard import router as dashboard_router
 from app.security import get_allowed_hosts, is_docs_enabled, require_monitor_auth
 from app.services.db_check import check_database_connection
 from app.services.monitoring_loop import monitor_services
+from app.services.runtime_logs import configure_runtime_logging
 from app.services.system_check import check_system_status
 
+configure_runtime_logging()
 logger = logging.getLogger("uvicorn.error")
 monitoring_task = None
 
