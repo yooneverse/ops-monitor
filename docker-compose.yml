@@ -17,6 +17,8 @@ services:
     restart: always
     env_file:
       - .env
+    volumes:
+      - ./logs:/app/logs
     expose:
       - "8000"
     depends_on:
