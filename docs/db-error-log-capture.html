@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DB Error Log Capture</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --card: #ffffff;
+      --terminal: #0f172a;
+      --terminal-border: #243041;
+      --text: #e5edf8;
+      --muted: #97a6ba;
+      --accent: #3b82f6;
+      --danger: #f87171;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at top left, #dbeafe 0, transparent 38%),
+        radial-gradient(circle at bottom right, #e0f2fe 0, transparent 32%),
+        var(--bg);
+      font-family: "Segoe UI", sans-serif;
+      color: #0f172a;
+    }
+
+    .card {
+      width: 360px;
+      border-radius: 18px;
+      background: var(--card);
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.14);
+      padding: 18px 18px 16px;
+    }
+
+    .terminal {
+      background: linear-gradient(180deg, #111827 0%, #0f172a 100%);
+      border: 1px solid var(--terminal-border);
+      border-radius: 14px;
+      padding: 16px 16px 14px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.58;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .danger {
+      color: var(--danger);
+    }
+
+    .meta {
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    .meta::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.14);
+    }
+
+    .caption {
+      margin-top: 8px;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+  </style>
+</head>
+<body>
+  <article class="card">
+    <section class="terminal">docker logs ops-monitor-app
+
+<span class="muted">INFO:</span>     Checking database connection...
+<span class="danger">ERROR:</span>    Database connection failed
+Traceback (most recent call last):
+  File "/app/app/services/db_check.py", line 27, in check_database_connection
+    with engine.connect() as connection:
+psycopg2.OperationalError:
+  could not translate host name "db"
+  to address: Name or service not known
+<span class="muted">INFO:</span>     Health check completed
+<span class="danger">with errors</span></section>
+    <div class="meta">Docker Logs</div>
+    <div class="caption">DB Connection Failure Log</div>
+  </article>
+</body>
+</html>
