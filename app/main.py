@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 
 from app.api.dashboard import router as dashboard_router
 from app.services.monitoring_loop import monitor_services
@@ -13,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 
 app = FastAPI(title="Ops Monitor")
+logger = logging.getLogger("uvicorn.error")
 
 app.include_router(dashboard_router)
 
@@ -36,6 +38,12 @@ def root():
 @app.get("/health")
 def health_check():
     database_status = check_database_connection()
+    status = database_status.get("status")
+
+    if status in {"disconnected", "error"}:
+        logger.info("Health check completed with errors")
+    else:
+        logger.info("Health check completed successfully")
 
     return {
         "api": "ok",
