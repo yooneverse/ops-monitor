@@ -1,6 +1,6 @@
 import os
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from fastapi import HTTPException
 from fastapi.security import HTTPBasicCredentials
@@ -12,6 +12,8 @@ from app.security import (
     require_monitor_auth,
     validate_monitor_credentials,
 )
+from app.services import db_check
+from app.services.monitoring_loop import is_monitoring_enabled
 
 
 class SecurityConfigTests(unittest.TestCase):
@@ -103,6 +105,35 @@ class SecurityConfigTests(unittest.TestCase):
         self.assertEqual(status_code, 503)
         self.assertEqual(payload["status"], "not_ready")
         self.assertNotIn("database", payload)
+
+    def test_monitoring_flag_defaults_to_enabled(self) -> None:
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertTrue(is_monitoring_enabled())
+
+    def test_monitoring_flag_can_disable_background_loop(self) -> None:
+        with patch.dict(os.environ, {"ENABLE_MONITORING_LOOP": "false"}, clear=False):
+            self.assertFalse(is_monitoring_enabled())
+
+
+class DatabaseCheckTests(unittest.TestCase):
+    def setUp(self) -> None:
+        db_check._engine = None
+        db_check._engine_url = None
+
+    def tearDown(self) -> None:
+        db_check._engine = None
+        db_check._engine_url = None
+
+    def test_database_engine_is_reused_for_same_url(self) -> None:
+        fake_engine = MagicMock()
+
+        with patch("app.services.db_check.create_engine", return_value=fake_engine) as create_engine_mock:
+            first_engine = db_check.get_database_engine("postgresql://user:pass@db:5432/app")
+            second_engine = db_check.get_database_engine("postgresql://user:pass@db:5432/app")
+
+        self.assertIs(first_engine, fake_engine)
+        self.assertIs(second_engine, fake_engine)
+        create_engine_mock.assert_called_once()
 
 
 if __name__ == "__main__":
