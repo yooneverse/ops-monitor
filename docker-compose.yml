@@ -17,7 +17,11 @@ services:
     restart: always
     env_file:
       - .env
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
     volumes:
+      - ./app:/app/app:ro
       - ./logs:/app/logs
     expose:
       - "8000"
