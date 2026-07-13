@@ -4,6 +4,7 @@ import unittest
 from datetime import datetime
 from tempfile import TemporaryDirectory
 
+from app.config import reset_settings_cache
 from app.services.runtime_logs import (
     DailyLogFileHandler,
     get_daily_path,
@@ -12,9 +13,16 @@ from app.services.runtime_logs import (
 
 
 class DailyRuntimeLoggingTests(unittest.TestCase):
+    def setUp(self) -> None:
+        reset_settings_cache()
+
+    def tearDown(self) -> None:
+        reset_settings_cache()
+
     def test_daily_path_uses_stream_name_and_date(self) -> None:
         with TemporaryDirectory() as temp_dir:
             with unittest.mock.patch.dict(os.environ, {"LOG_DIR": temp_dir}, clear=False):
+                reset_settings_cache()
                 path = get_daily_path(
                     stream_name="application",
                     extension="log",
@@ -37,6 +45,7 @@ class DailyRuntimeLoggingTests(unittest.TestCase):
 
         with TemporaryDirectory() as temp_dir:
             with unittest.mock.patch.dict(os.environ, {"LOG_DIR": temp_dir}, clear=False):
+                reset_settings_cache()
                 persist_alert_event(event, now=datetime(2026, 7, 10, 21, 15, 0))
 
                 events_path = get_daily_path("events", "jsonl", datetime(2026, 7, 10, 21, 15, 0))
@@ -52,6 +61,7 @@ class DailyRuntimeLoggingTests(unittest.TestCase):
     def test_daily_log_handler_writes_to_date_scoped_file(self) -> None:
         with TemporaryDirectory() as temp_dir:
             with unittest.mock.patch.dict(os.environ, {"LOG_DIR": temp_dir}, clear=False):
+                reset_settings_cache()
                 handler = DailyLogFileHandler(
                     stream_name="application",
                     time_provider=lambda: datetime(2026, 7, 10, 8, 0, 0),

@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 from fastapi import HTTPException
 from fastapi.security import HTTPBasicCredentials
 
+from app.config import reset_settings_cache
 from app.main import build_readiness_response
 from app.security import (
     get_allowed_hosts,
@@ -17,8 +18,15 @@ from app.services.monitoring_loop import is_monitoring_enabled
 
 
 class SecurityConfigTests(unittest.TestCase):
+    def setUp(self) -> None:
+        reset_settings_cache()
+
+    def tearDown(self) -> None:
+        reset_settings_cache()
+
     def test_allowed_hosts_are_split_from_env(self) -> None:
         with patch.dict(os.environ, {"ALLOWED_HOSTS": "localhost,127.0.0.1,monitor.local"}, clear=False):
+            reset_settings_cache()
             self.assertEqual(
                 get_allowed_hosts(),
                 ["localhost", "127.0.0.1", "monitor.local"],
@@ -26,6 +34,7 @@ class SecurityConfigTests(unittest.TestCase):
 
     def test_docs_flag_defaults_to_disabled(self) -> None:
         with patch.dict(os.environ, {}, clear=True):
+            reset_settings_cache()
             self.assertFalse(is_docs_enabled())
 
     def test_monitor_credentials_validate_correct_pair(self) -> None:
@@ -37,6 +46,7 @@ class SecurityConfigTests(unittest.TestCase):
             },
             clear=False,
         ):
+            reset_settings_cache()
             self.assertTrue(
                 validate_monitor_credentials("ops-admin", "s3cret")
             )
@@ -45,7 +55,15 @@ class SecurityConfigTests(unittest.TestCase):
             )
 
     def test_require_monitor_auth_rejects_missing_configuration(self) -> None:
-        with patch.dict(os.environ, {}, clear=True):
+        with patch.dict(
+            os.environ,
+            {
+                "MONITOR_USERNAME": "",
+                "MONITOR_PASSWORD": "",
+            },
+            clear=False,
+        ):
+            reset_settings_cache()
             with self.assertRaises(HTTPException) as context:
                 require_monitor_auth(None)
 
@@ -60,6 +78,7 @@ class SecurityConfigTests(unittest.TestCase):
             },
             clear=False,
         ):
+            reset_settings_cache()
             with self.assertRaises(HTTPException) as context:
                 require_monitor_auth(
                     HTTPBasicCredentials(username="ops-admin", password="wrong")
@@ -76,6 +95,7 @@ class SecurityConfigTests(unittest.TestCase):
             },
             clear=False,
         ):
+            reset_settings_cache()
             username = require_monitor_auth(
                 HTTPBasicCredentials(username="ops-admin", password="s3cret")
             )
@@ -108,19 +128,23 @@ class SecurityConfigTests(unittest.TestCase):
 
     def test_monitoring_flag_defaults_to_enabled(self) -> None:
         with patch.dict(os.environ, {}, clear=True):
+            reset_settings_cache()
             self.assertTrue(is_monitoring_enabled())
 
     def test_monitoring_flag_can_disable_background_loop(self) -> None:
         with patch.dict(os.environ, {"ENABLE_MONITORING_LOOP": "false"}, clear=False):
+            reset_settings_cache()
             self.assertFalse(is_monitoring_enabled())
 
 
 class DatabaseCheckTests(unittest.TestCase):
     def setUp(self) -> None:
+        reset_settings_cache()
         db_check._engine = None
         db_check._engine_url = None
 
     def tearDown(self) -> None:
+        reset_settings_cache()
         db_check._engine = None
         db_check._engine_url = None
 
