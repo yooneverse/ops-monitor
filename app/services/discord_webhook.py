@@ -1,7 +1,8 @@
-import os
 from datetime import datetime, timezone
 
 import requests
+
+from app.config import get_settings
 
 
 def build_discord_payload(title: str, fields: dict[str, str], level: str = "info") -> dict:
@@ -27,7 +28,7 @@ def build_discord_payload(title: str, fields: dict[str, str], level: str = "info
 
 
 def send_discord_message(content: str) -> bool:
-    webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
+    webhook_url = get_settings().discord_webhook_url
 
     if not webhook_url:
         return False
@@ -48,7 +49,7 @@ def send_discord_message(content: str) -> bool:
 
 
 def send_discord_alert(title: str, fields: dict[str, str], level: str = "info") -> bool:
-    webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
+    webhook_url = get_settings().discord_webhook_url
 
     if not webhook_url:
         return False

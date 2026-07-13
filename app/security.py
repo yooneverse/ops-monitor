@@ -1,54 +1,31 @@
-import os
 import secrets
 
-from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+
+from app.config import get_settings
 
 basic_auth = HTTPBasic(auto_error=False)
 
 
-def load_runtime_env() -> None:
-    load_dotenv(override=True)
-
-
-def parse_bool_env(name: str, default: bool = False) -> bool:
-    load_runtime_env()
-    raw_value = os.getenv(name)
-
-    if raw_value is None:
-        return default
-
-    return raw_value.strip().lower() in {"1", "true", "yes", "on"}
-
-
 def get_allowed_hosts() -> list[str]:
-    load_runtime_env()
-    raw_hosts = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,testserver")
-
-    hosts = [host.strip() for host in raw_hosts.split(",") if host.strip()]
-
-    if not hosts:
-        return ["localhost", "127.0.0.1", "testserver"]
-
-    return hosts
+    return list(get_settings().allowed_hosts)
 
 
 def is_docs_enabled() -> bool:
-    return parse_bool_env("ENABLE_API_DOCS", default=False)
+    return get_settings().api_docs_enabled
 
 
 def get_monitor_credentials() -> tuple[str | None, str | None]:
-    load_runtime_env()
+    settings = get_settings()
     return (
-        os.getenv("MONITOR_USERNAME"),
-        os.getenv("MONITOR_PASSWORD"),
+        settings.monitor_username,
+        settings.monitor_password,
     )
 
 
 def is_monitor_auth_configured() -> bool:
-    username, password = get_monitor_credentials()
-    return bool(username and password)
+    return get_settings().monitor_auth_configured
 
 
 def validate_monitor_credentials(

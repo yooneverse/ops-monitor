@@ -1,19 +1,18 @@
 import logging
-import os
 
-from dotenv import load_dotenv
 from sqlalchemy import Engine, create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
+from app.config import get_settings
+
 logger = logging.getLogger("uvicorn.error")
-load_dotenv(override=True)
 
 _engine: Engine | None = None
 _engine_url: str | None = None
 
 
 def get_database_url() -> str | None:
-    return os.getenv("DATABASE_URL")
+    return get_settings().database_url
 
 
 def get_database_engine(database_url: str) -> Engine:

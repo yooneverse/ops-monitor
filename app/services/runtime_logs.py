@@ -1,23 +1,17 @@
 import json
 import logging
-import os
 from datetime import datetime
 from pathlib import Path
 from threading import Lock
 from typing import Callable
 
-from dotenv import load_dotenv
+from app.config import get_settings
 
 _write_lock = Lock()
 
 
-def load_runtime_env() -> None:
-    load_dotenv(override=True)
-
-
 def get_log_dir() -> Path:
-    load_runtime_env()
-    return Path(os.getenv("LOG_DIR", "logs"))
+    return get_settings().log_dir
 
 
 def get_daily_path(

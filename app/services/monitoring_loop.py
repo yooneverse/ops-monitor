@@ -1,8 +1,8 @@
 import asyncio
 import logging
-import os
 from datetime import datetime
 
+from app.config import get_settings
 from app.services.alert_history import add_alert_history
 from app.services.db_check import check_database_connection
 from app.services.discord_webhook import send_discord_alert
@@ -29,22 +29,30 @@ def now_iso() -> str:
 
 
 def get_monitor_interval() -> int:
-    return int(os.getenv("MONITOR_INTERVAL_SECONDS", "60"))
+    return get_settings().monitor_interval_seconds
 
 
 def is_monitoring_enabled() -> bool:
-    raw_value = os.getenv("ENABLE_MONITORING_LOOP", "true")
-    return raw_value.strip().lower() in {"1", "true", "yes", "on"}
+    return get_settings().monitoring_enabled
 
 
 def get_threshold(name: str, default: int) -> int:
-    return int(os.getenv(name, str(default)))
+    settings = get_settings()
+
+    if name == "MEMORY_ALERT_THRESHOLD":
+        return settings.memory_alert_threshold
+
+    if name == "DISK_ALERT_THRESHOLD":
+        return settings.disk_alert_threshold
+
+    return default
 
 
 def refresh_monitoring_status() -> None:
+    settings = get_settings()
     monitoring_status["enabled"] = is_monitoring_enabled()
     monitoring_status["interval_seconds"] = get_monitor_interval()
-    monitoring_status["discord_webhook_configured"] = bool(os.getenv("DISCORD_WEBHOOK_URL"))
+    monitoring_status["discord_webhook_configured"] = bool(settings.discord_webhook_url)
 
 
 def build_alert_event(
