@@ -57,7 +57,7 @@ def get_settings() -> Settings:
         ),
         api_docs_enabled=parse_bool(os.getenv("ENABLE_API_DOCS"), default=False),
         monitoring_enabled=parse_bool(os.getenv("ENABLE_MONITORING_LOOP"), default=True),
-        monitor_interval_seconds=int(os.getenv("MONITOR_INTERVAL_SECONDS", "60")),
+        monitor_interval_seconds=int(os.getenv("MONITOR_INTERVAL_SECONDS", "30")),
         memory_alert_threshold=int(os.getenv("MEMORY_ALERT_THRESHOLD", "80")),
         disk_alert_threshold=int(os.getenv("DISK_ALERT_THRESHOLD", "80")),
         log_dir=Path(os.getenv("LOG_DIR", "logs")),

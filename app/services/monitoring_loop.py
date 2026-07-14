@@ -18,7 +18,7 @@ previous_state = {
 
 monitoring_status = {
     "enabled": False,
-    "interval_seconds": 60,
+    "interval_seconds": 30,
     "discord_webhook_configured": False,
     "last_check": None,
 }
