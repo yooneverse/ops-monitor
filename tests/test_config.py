@@ -53,6 +53,30 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(first_settings.monitor_interval_seconds, 60)
         self.assertEqual(second_settings.monitor_interval_seconds, 15)
 
+    def test_invalid_runtime_settings_fall_back_to_safe_defaults(self) -> None:
+        with patch.dict(
+            os.environ,
+            {
+                "MONITOR_INTERVAL_SECONDS": "fast",
+                "MEMORY_ALERT_THRESHOLD": "0",
+                "DISK_ALERT_THRESHOLD": "120",
+                "MONITOR_USERNAME": "   ",
+                "MONITOR_PASSWORD": "   ",
+                "LOG_DIR": "   ",
+            },
+            clear=False,
+        ):
+            reset_settings_cache()
+            settings = get_settings()
+
+        self.assertEqual(settings.monitor_interval_seconds, 30)
+        self.assertEqual(settings.memory_alert_threshold, 80)
+        self.assertEqual(settings.disk_alert_threshold, 80)
+        self.assertIsNone(settings.monitor_username)
+        self.assertIsNone(settings.monitor_password)
+        self.assertEqual(settings.log_dir, Path("logs"))
+        self.assertEqual(len(settings.config_warnings), 3)
+
 
 if __name__ == "__main__":
     unittest.main()

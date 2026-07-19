@@ -20,6 +20,13 @@ monitoring_status = {
     "enabled": False,
     "interval_seconds": 30,
     "discord_webhook_configured": False,
+    "monitor_auth_configured": False,
+    "api_docs_enabled": False,
+    "thresholds": {
+        "memory_percent": 80,
+        "disk_percent": 80,
+    },
+    "config_warnings": [],
     "last_check": None,
 }
 
@@ -53,6 +60,13 @@ def refresh_monitoring_status() -> None:
     monitoring_status["enabled"] = is_monitoring_enabled()
     monitoring_status["interval_seconds"] = get_monitor_interval()
     monitoring_status["discord_webhook_configured"] = bool(settings.discord_webhook_url)
+    monitoring_status["monitor_auth_configured"] = settings.monitor_auth_configured
+    monitoring_status["api_docs_enabled"] = settings.api_docs_enabled
+    monitoring_status["thresholds"] = {
+        "memory_percent": settings.memory_alert_threshold,
+        "disk_percent": settings.disk_alert_threshold,
+    }
+    monitoring_status["config_warnings"] = list(settings.config_warnings)
 
 
 def build_alert_event(
@@ -258,4 +272,8 @@ async def monitor_services() -> None:
 
 def get_monitoring_status() -> dict:
     refresh_monitoring_status()
-    return monitoring_status
+    return {
+        **monitoring_status,
+        "thresholds": dict(monitoring_status["thresholds"]),
+        "config_warnings": list(monitoring_status["config_warnings"]),
+    }
