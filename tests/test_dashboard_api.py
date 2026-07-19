@@ -10,6 +10,8 @@ class DashboardApiTests(unittest.TestCase):
 
         self.assertIn("Ops Monitor Dashboard", html)
         self.assertIn("Recent Alerts", html)
+        self.assertIn("Configuration Warnings", html)
+        self.assertIn("Auto refresh every", html)
         self.assertIn("loadDashboard()", html)
 
     def test_get_alerts_returns_service_data(self) -> None:
