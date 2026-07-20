@@ -3,15 +3,17 @@ import unittest
 from unittest.mock import patch
 
 from app.config import reset_settings_cache
-from app.services.monitoring_loop import get_monitoring_status
+from app.services.monitoring_loop import get_monitoring_status, reset_monitoring_state
 
 
 class MonitoringStatusTests(unittest.TestCase):
     def setUp(self) -> None:
         reset_settings_cache()
+        reset_monitoring_state()
 
     def tearDown(self) -> None:
         reset_settings_cache()
+        reset_monitoring_state()
 
     def test_monitoring_status_includes_runtime_configuration_metadata(self) -> None:
         with patch.dict(
@@ -67,6 +69,10 @@ class MonitoringStatusTests(unittest.TestCase):
         )
         self.assertEqual(len(status["config_warnings"]), 3)
         self.assertIn("MONITOR_INTERVAL_SECONDS", status["config_warnings"][0])
+
+    def test_reset_monitoring_state_clears_last_check(self) -> None:
+        status = get_monitoring_status()
+        self.assertIsNone(status["last_check"])
 
 
 if __name__ == "__main__":
