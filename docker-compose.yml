@@ -57,8 +57,10 @@ services:
     build: ./demo-notes
     container_name: ops-monitor-notes
     restart: always
+    env_file:
+      - .env
     environment:
-      DEMO_NOTES_DATABASE_URL: "postgresql://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@db:5432/$${POSTGRES_DB}"
+      DEMO_NOTES_DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}"
     depends_on:
       db:
         condition: service_healthy

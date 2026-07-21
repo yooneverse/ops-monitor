@@ -70,6 +70,25 @@ class DemoNotesAppTests(unittest.TestCase):
         self.assertEqual(deleted["note"]["id"], note_id)
         self.assertEqual(self.module.list_notes()["notes"], [])
 
+    def test_database_url_falls_back_to_database_url_and_localhost(self) -> None:
+        previous_demo = os.environ.pop("DEMO_NOTES_DATABASE_URL", None)
+        previous_main = os.environ.get("DATABASE_URL")
+        os.environ["DATABASE_URL"] = "postgresql://user:pass@db:5432/app"
+
+        try:
+            self.module.is_running_in_container = lambda: False
+            self.assertEqual(
+                self.module.get_database_url(),
+                "postgresql://user:***@localhost:5432/app",
+            )
+        finally:
+            if previous_demo is not None:
+                os.environ["DEMO_NOTES_DATABASE_URL"] = previous_demo
+            if previous_main is None:
+                os.environ.pop("DATABASE_URL", None)
+            else:
+                os.environ["DATABASE_URL"] = previous_main
+
 
 if __name__ == "__main__":
     unittest.main()

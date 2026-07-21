@@ -145,8 +145,7 @@ class DatabaseCheckTests(unittest.TestCase):
 
     def tearDown(self) -> None:
         reset_settings_cache()
-        db_check._engine = None
-        db_check._engine_url = None
+        db_check.reset_database_engine_cache()
 
     def test_database_engine_is_reused_for_same_url(self) -> None:
         fake_engine = MagicMock()
@@ -158,6 +157,15 @@ class DatabaseCheckTests(unittest.TestCase):
         self.assertIs(first_engine, fake_engine)
         self.assertIs(second_engine, fake_engine)
         create_engine_mock.assert_called_once()
+
+    def test_database_url_uses_localhost_when_running_outside_container(self) -> None:
+        with patch.dict(os.environ, {"DATABASE_URL": "postgresql://user:pass@db:5432/app"}, clear=False):
+            reset_settings_cache()
+            with patch("app.services.db_check.is_running_in_container", return_value=False):
+                self.assertEqual(
+                    db_check.get_database_url(),
+                    "postgresql://user:***@localhost:5432/app",
+                )
 
 
 if __name__ == "__main__":

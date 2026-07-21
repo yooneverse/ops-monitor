@@ -1,6 +1,8 @@
 import logging
+from pathlib import Path
 
 from sqlalchemy import Engine, create_engine, text
+from sqlalchemy.engine import make_url
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.config import get_settings
@@ -11,8 +13,43 @@ _engine: Engine | None = None
 _engine_url: str | None = None
 
 
+def is_running_in_container() -> bool:
+    return Path("/.dockerenv").exists()
+
+
+def normalize_database_url(database_url: str) -> str:
+    if is_running_in_container():
+        return database_url
+
+    try:
+        parsed = make_url(database_url)
+    except Exception:
+        return database_url
+
+    if parsed.host != "db":
+        return database_url
+
+    return str(parsed.set(host="localhost"))
+
+
 def get_database_url() -> str | None:
-    return get_settings().database_url
+    database_url = get_settings().database_url
+
+    if not database_url:
+        return None
+
+    return normalize_database_url(database_url)
+
+
+def reset_database_engine_cache() -> None:
+    global _engine
+    global _engine_url
+
+    if _engine is not None:
+        _engine.dispose()
+
+    _engine = None
+    _engine_url = None
 
 
 def get_database_engine(database_url: str) -> Engine:

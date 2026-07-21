@@ -1,11 +1,14 @@
 import os
 from contextlib import contextmanager
+from pathlib import Path
 from typing import Iterator
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from sqlalchemy import Integer, String, Text, create_engine, select
+from sqlalchemy.engine import make_url
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
 app = FastAPI(title="Demo Notes Service")
@@ -38,8 +41,32 @@ class NoteUpdate(NoteCreate):
 _database_initialized = False
 
 
+def is_running_in_container() -> bool:
+    return Path("/.dockerenv").exists()
+
+
+def normalize_database_url(database_url: str) -> str:
+    if is_running_in_container():
+        return database_url
+
+    try:
+        parsed = make_url(database_url)
+    except Exception:
+        return database_url
+
+    if parsed.host != "db":
+        return database_url
+
+    return str(parsed.set(host="localhost"))
+
+
 def get_database_url() -> str:
-    return os.getenv("DEMO_NOTES_DATABASE_URL", "sqlite:///./demo_notes.db")
+    database_url = (
+        os.getenv("DEMO_NOTES_DATABASE_URL")
+        or os.getenv("DATABASE_URL")
+        or "sqlite:///./demo_notes.db"
+    )
+    return normalize_database_url(database_url)
 
 
 def build_engine():
@@ -388,81 +415,91 @@ def get_notes_page() -> str:
             }
 
             async function loadNotes() {
-                const response = await fetch("/api/notes");
-                const payload = await response.json();
-                const notes = payload.notes || [];
                 const notesRoot = document.getElementById("notes");
                 const count = document.getElementById("note-count");
-
-                count.textContent = notes.length + "개";
                 notesRoot.innerHTML = "";
 
-                if (notes.length === 0) {
-                    notesRoot.innerHTML = '<div class="empty">저장된 메모가 없습니다.</div>';
-                    return;
-                }
+                try {
+                    const response = await fetch("/api/notes");
+                    if (!response.ok) {
+                        throw new Error("notes_api_failed");
+                    }
 
-                notes.forEach(note => {
-                    const item = document.createElement("article");
-                    item.className = "note";
-                    const top = document.createElement("div");
-                    const title = document.createElement("div");
-                    const status = document.createElement("div");
-                    const body = document.createElement("div");
-                    const meta = document.createElement("div");
-                    const actions = document.createElement("div");
-                    const editButton = document.createElement("button");
-                    const deleteButton = document.createElement("button");
+                    const payload = await response.json();
+                    const notes = payload.notes || [];
 
-                    top.className = "note-top";
-                    title.className = "note-title";
-                    status.className = "note-status";
-                    body.className = "note-body";
-                    meta.className = "note-meta";
-                    actions.className = "note-actions";
-                    editButton.className = "secondary";
-                    deleteButton.className = "danger";
+                    count.textContent = notes.length + "개";
 
-                    title.textContent = note.title;
-                    status.textContent = note.status;
-                    body.textContent = note.body;
-                    meta.textContent = "기한: " + (note.due_date || "-");
-                    editButton.textContent = "수정";
-                    deleteButton.textContent = "삭제";
+                    if (notes.length === 0) {
+                        notesRoot.innerHTML = '<div class="empty">저장된 메모가 없습니다.</div>';
+                        return;
+                    }
 
-                    editButton.addEventListener("click", () => startEdit(note));
-                    deleteButton.addEventListener("click", async () => {
-                        const confirmed = window.confirm("이 메모를 삭제할까요?");
-                        if (!confirmed) {
-                            return;
-                        }
+                    notes.forEach(note => {
+                        const item = document.createElement("article");
+                        item.className = "note";
+                        const top = document.createElement("div");
+                        const title = document.createElement("div");
+                        const status = document.createElement("div");
+                        const body = document.createElement("div");
+                        const meta = document.createElement("div");
+                        const actions = document.createElement("div");
+                        const editButton = document.createElement("button");
+                        const deleteButton = document.createElement("button");
 
-                        const deleteResponse = await fetch("/api/notes/" + note.id, {
-                            method: "DELETE",
+                        top.className = "note-top";
+                        title.className = "note-title";
+                        status.className = "note-status";
+                        body.className = "note-body";
+                        meta.className = "note-meta";
+                        actions.className = "note-actions";
+                        editButton.className = "secondary";
+                        deleteButton.className = "danger";
+
+                        title.textContent = note.title;
+                        status.textContent = note.status;
+                        body.textContent = note.body;
+                        meta.textContent = "기한: " + (note.due_date || "-");
+                        editButton.textContent = "수정";
+                        deleteButton.textContent = "삭제";
+
+                        editButton.addEventListener("click", () => startEdit(note));
+                        deleteButton.addEventListener("click", async () => {
+                            const confirmed = window.confirm("이 메모를 삭제할까요?");
+                            if (!confirmed) {
+                                return;
+                            }
+
+                            const deleteResponse = await fetch("/api/notes/" + note.id, {
+                                method: "DELETE",
+                            });
+
+                            if (!deleteResponse.ok) {
+                                document.getElementById("feedback").textContent = "메모 삭제에 실패했습니다.";
+                                return;
+                            }
+
+                            document.getElementById("feedback").textContent = "메모를 삭제했습니다.";
+                            if (document.getElementById("editing-id").value === String(note.id)) {
+                                resetForm();
+                            }
+                            await loadNotes();
                         });
 
-                        if (!deleteResponse.ok) {
-                            document.getElementById("feedback").textContent = "메모 삭제에 실패했습니다.";
-                            return;
-                        }
-
-                        document.getElementById("feedback").textContent = "메모를 삭제했습니다.";
-                        if (document.getElementById("editing-id").value === String(note.id)) {
-                            resetForm();
-                        }
-                        await loadNotes();
+                        top.appendChild(title);
+                        top.appendChild(status);
+                        actions.appendChild(editButton);
+                        actions.appendChild(deleteButton);
+                        item.appendChild(top);
+                        item.appendChild(body);
+                        item.appendChild(meta);
+                        item.appendChild(actions);
+                        notesRoot.appendChild(item);
                     });
-
-                    top.appendChild(title);
-                    top.appendChild(status);
-                    actions.appendChild(editButton);
-                    actions.appendChild(deleteButton);
-                    item.appendChild(top);
-                    item.appendChild(body);
-                    item.appendChild(meta);
-                    item.appendChild(actions);
-                    notesRoot.appendChild(item);
-                });
+                } catch (error) {
+                    count.textContent = "-";
+                    notesRoot.innerHTML = '<div class="empty">메모 서비스를 불러오지 못했습니다. DB 연결 상태를 확인해주세요.</div>';
+                }
             }
 
             async function saveNote(event) {
@@ -514,7 +551,6 @@ def startup() -> None:
 
 @app.get("/", response_class=HTMLResponse)
 def root() -> str:
-    init_database()
     return get_notes_page()
 
 
@@ -529,10 +565,13 @@ def healthz() -> dict:
 
 @app.get("/api/notes")
 def list_notes() -> dict:
-    notes = [serialize_note(note) for note in list_note_rows()]
-    return {
-        "notes": notes,
-    }
+    try:
+        notes = [serialize_note(note) for note in list_note_rows()]
+        return {
+            "notes": notes,
+        }
+    except SQLAlchemyError as error:
+        raise HTTPException(status_code=503, detail="메모 저장소에 연결할 수 없습니다.") from error
 
 
 @app.post("/api/notes")
