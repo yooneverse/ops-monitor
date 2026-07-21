@@ -9,10 +9,10 @@ class DashboardApiTests(unittest.TestCase):
     def test_dashboard_page_contains_expected_sections(self) -> None:
         html = dashboard.dashboard()
 
-        self.assertIn("Ops Monitor Dashboard", html)
-        self.assertIn("Recent Alerts", html)
-        self.assertIn("Configuration Warnings", html)
-        self.assertIn("Auto refresh every", html)
+        self.assertIn("Ops Monitor 대시보드", html)
+        self.assertIn("최근 알림", html)
+        self.assertIn("설정 경고", html)
+        self.assertIn("자동 갱신:", html)
         self.assertIn("loadDashboard()", html)
 
     def test_dashboard_route_uses_shared_page_builder(self) -> None:
