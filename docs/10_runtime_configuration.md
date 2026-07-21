@@ -1,32 +1,32 @@
-# Runtime Configuration Guide
+# 런타임 설정 가이드
 
-## Overview
+## 개요
 
-This document describes the runtime validation and dashboard visibility that were added to keep `ops-monitor` practical and predictable in daily use.
+이 문서는 `ops-monitor`의 런타임 설정 검증과 대시보드 가시성 보강 내용을 정리합니다.
 
-The goal is simple:
+목표는 단순합니다.
 
-- invalid monitoring settings should not crash the app at startup
-- fallback behavior should be visible from the protected monitoring API
-- operators should be able to see threshold and configuration quality from `/dashboard`
+- 잘못된 모니터링 설정값이 들어와도 애플리케이션이 시작 단계에서 바로 깨지지 않을 것
+- 보호된 모니터링 API에서 어떤 설정이 기본값으로 대체되었는지 확인할 수 있을 것
+- 운영자가 `/dashboard`에서 임계치와 설정 상태를 바로 읽을 수 있을 것
 
-## What Changed
+## 변경 내용
 
-### 1. Safe integer validation
+### 1. 정수 설정값 안전 검증
 
-The application now validates key numeric environment variables before using them.
+이제 핵심 숫자형 환경 변수를 사용하기 전에 범위를 검증합니다.
 
-| Variable | Default | Accepted Range | Fallback Behavior |
+| 변수 | 기본값 | 허용 범위 | 잘못된 값일 때 동작 |
 |---|---|---|---|
-| `MONITOR_INTERVAL_SECONDS` | `30` | `5` to `3600` | Reverts to `30` |
-| `MEMORY_ALERT_THRESHOLD` | `80` | `1` to `100` | Reverts to `80` |
-| `DISK_ALERT_THRESHOLD` | `80` | `1` to `100` | Reverts to `80` |
+| `MONITOR_INTERVAL_SECONDS` | `30` | `5` ~ `3600` | `30`으로 대체 |
+| `MEMORY_ALERT_THRESHOLD` | `80` | `1` ~ `100` | `80`으로 대체 |
+| `DISK_ALERT_THRESHOLD` | `80` | `1` ~ `100` | `80`으로 대체 |
 
-Blank credential values such as `"   "` are also normalized to `None`, so the app treats them as missing configuration instead of partially valid input.
+또한 `"   "`처럼 공백만 들어간 인증 정보는 `None`으로 정규화해서, 일부만 채워진 유효하지 않은 값처럼 취급되지 않도록 했습니다.
 
-### 2. Monitoring status now exposes configuration metadata
+### 2. 모니터링 상태 응답에 설정 메타데이터 추가
 
-`GET /monitoring/status` now includes:
+`GET /monitoring/status`는 이제 아래 정보를 함께 반환합니다.
 
 - `monitor_auth_configured`
 - `api_docs_enabled`
@@ -34,7 +34,7 @@ Blank credential values such as `"   "` are also normalized to `None`, so the ap
 - `thresholds.disk_percent`
 - `config_warnings`
 
-Example response:
+예시 응답:
 
 ```json
 {
@@ -52,30 +52,30 @@ Example response:
 }
 ```
 
-This makes it easier to understand whether the monitor is healthy because of intended configuration or because the app silently fell back to defaults.
+이렇게 하면 모니터가 정상처럼 보여도, 실제로는 사용자가 의도한 설정인지 아니면 기본값으로 대체된 결과인지 구분하기 쉬워집니다.
 
-### 3. Dashboard shows why a status looks healthy or risky
+### 3. 대시보드에서 상태의 이유를 함께 표시
 
-The dashboard now surfaces:
+대시보드는 이제 아래 정보를 함께 보여줍니다.
 
-- auto-refresh timing based on the monitoring interval
-- threshold values used for memory and disk alerts
-- a configuration health card
-- visible configuration warnings
-- safer alert rendering without string-based HTML injection
+- 모니터링 주기를 반영한 자동 갱신 안내
+- 메모리/디스크 경고 임계치
+- 설정 상태 카드
+- 설정 경고 표시
+- 문자열 `innerHTML` 의존도를 줄인 더 안전한 알림 렌더링
 
-This is intentionally small-scope. It does not add a new admin system or a large front-end framework; it only makes the current operational screen more trustworthy.
+범위는 일부러 크게 넓히지 않았습니다. 새로운 관리자 시스템이나 프론트엔드 프레임워크를 붙인 것이 아니라, 현재 운영 화면을 더 신뢰할 수 있게 만드는 수준으로 제한했습니다.
 
-## Recommended Runtime Checks
+## 권장 점검 항목
 
-When changing `.env`, verify these three things together:
+`.env`를 변경한 뒤에는 아래 세 가지를 같이 확인하는 것이 좋습니다.
 
-1. `GET /monitoring/status` shows the expected interval and thresholds.
-2. `/dashboard` shows `Config Status = healthy`.
-3. `config_warnings` is empty unless you are intentionally testing fallback behavior.
+1. `GET /monitoring/status`에서 interval과 thresholds가 예상한 값으로 보이는지 확인
+2. `/dashboard`에서 설정 상태와 설정 경고가 올바르게 보이는지 확인
+3. 테스트 목적이 아니라면 `config_warnings`가 비어 있는지 확인
 
-## Notes
+## 메모
 
-- Fallback behavior is designed to keep the app running, not to hide bad configuration.
-- If warnings appear in the dashboard, treat them as configuration debt to clean up soon.
-- The validation ranges are conservative on purpose so the monitoring loop does not become excessively noisy or too slow to react.
+- 기본값 대체 동작은 애플리케이션을 계속 띄우기 위한 장치이지, 잘못된 설정을 숨기기 위한 장치가 아닙니다.
+- 대시보드에 경고가 보이면 나중으로 미루지 말고 설정 부채로 보고 정리하는 편이 좋습니다.
+- 허용 범위는 모니터링 루프가 지나치게 시끄러워지거나 너무 둔감해지지 않도록 보수적으로 잡았습니다.
