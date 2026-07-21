@@ -6,6 +6,7 @@ from datetime import datetime
 from app.config import Settings, get_settings
 from app.services.alert_history import add_alert_history
 from app.services.db_check import check_database_connection
+from app.services.demo_notes_check import check_demo_notes_service
 from app.services.discord_webhook import send_discord_alert
 from app.services.system_check import check_system_status
 
@@ -60,6 +61,7 @@ class MonitoringStatusView:
 @dataclass
 class MonitoringRuntimeState:
     previous_db_status: str | None = None
+    previous_demo_notes_status: str | None = None
     memory_alert_active: bool = False
     disk_alert_active: bool = False
     status_view: MonitoringStatusView = field(default_factory=MonitoringStatusView)
@@ -108,6 +110,48 @@ class MonitoringRuntimeState:
                 target="database",
                 status="connected",
                 message="Database connection recovered",
+            )
+
+        return None
+
+    def evaluate_demo_notes_transition(self, current_status: str | None) -> dict | None:
+        if current_status is None or current_status == "disabled":
+            return None
+
+        previous_status = self.previous_demo_notes_status
+
+        if previous_status is None:
+            self.previous_demo_notes_status = current_status
+
+            if current_status == "disconnected":
+                return build_alert_event(
+                    event_type="incident",
+                    target="demo_notes",
+                    status="disconnected",
+                    message="Demo notes service is unavailable",
+                )
+
+            return None
+
+        if previous_status == current_status:
+            return None
+
+        self.previous_demo_notes_status = current_status
+
+        if previous_status == "connected" and current_status == "disconnected":
+            return build_alert_event(
+                event_type="incident",
+                target="demo_notes",
+                status="disconnected",
+                message="Demo notes service is unavailable",
+            )
+
+        if previous_status == "disconnected" and current_status == "connected":
+            return build_alert_event(
+                event_type="recovery",
+                target="demo_notes",
+                status="connected",
+                message="Demo notes service recovered",
             )
 
         return None
@@ -173,6 +217,7 @@ class MonitoringRuntimeState:
 
     def reset(self) -> None:
         self.previous_db_status = None
+        self.previous_demo_notes_status = None
         self.memory_alert_active = False
         self.disk_alert_active = False
         self.status_view = MonitoringStatusView()
@@ -253,6 +298,7 @@ async def check_and_notify() -> None:
     runtime_state.refresh_status(settings)
 
     db_status = check_database_connection()
+    demo_notes_status = check_demo_notes_service()
     system_status = check_system_status()
 
     runtime_state.mark_last_check()
@@ -261,6 +307,13 @@ async def check_and_notify() -> None:
 
     if db_event:
         notify_event(db_event)
+
+    demo_notes_event = runtime_state.evaluate_demo_notes_transition(
+        demo_notes_status.get("status")
+    )
+
+    if demo_notes_event:
+        notify_event(demo_notes_event)
 
     resource_events = runtime_state.evaluate_resource_thresholds(
         system_status,
@@ -271,8 +324,9 @@ async def check_and_notify() -> None:
         notify_event(event)
 
     logger.info(
-        "Monitoring cycle completed: db=%s memory=%s%% disk=%s%%",
+        "Monitoring cycle completed: db=%s demo_notes=%s memory=%s%% disk=%s%%",
         db_status.get("status"),
+        demo_notes_status.get("status"),
         system_status.get("memory", {}).get("percent", 0),
         system_status.get("disk", {}).get("percent", 0),
     )

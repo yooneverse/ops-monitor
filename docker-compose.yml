@@ -20,6 +20,7 @@ services:
     environment:
       PYTHONDONTWRITEBYTECODE: "1"
       PYTHONUNBUFFERED: "1"
+      DEMO_NOTES_URL: "http://notes:8010/healthz"
     volumes:
       - ./app:/app/app:ro
       - ./logs:/app/logs
@@ -51,6 +52,24 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+
+  notes:
+    build: ./demo-notes
+    container_name: ops-monitor-notes
+    restart: always
+    environment:
+      DEMO_NOTES_DATABASE_URL: "postgresql://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@db:5432/$${POSTGRES_DB}"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8010:8010"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8010/healthz', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
 volumes:
   postgres_data:

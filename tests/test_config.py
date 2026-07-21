@@ -23,6 +23,7 @@ class SettingsTests(unittest.TestCase):
                 "MONITOR_INTERVAL_SECONDS": "30",
                 "MEMORY_ALERT_THRESHOLD": "75",
                 "DISK_ALERT_THRESHOLD": "70",
+                "DEMO_NOTES_URL": "http://127.0.0.1:8010/healthz",
                 "LOG_DIR": "custom-logs",
             },
             clear=False,
@@ -39,6 +40,7 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(settings.monitor_interval_seconds, 30)
         self.assertEqual(settings.memory_alert_threshold, 75)
         self.assertEqual(settings.disk_alert_threshold, 70)
+        self.assertEqual(settings.demo_notes_url, "http://127.0.0.1:8010/healthz")
         self.assertEqual(settings.log_dir, Path("custom-logs"))
 
     def test_reset_settings_cache_reloads_environment_values(self) -> None:

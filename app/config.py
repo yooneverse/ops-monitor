@@ -70,6 +70,7 @@ def read_int_setting(
 @dataclass(frozen=True)
 class Settings:
     database_url: str | None
+    demo_notes_url: str | None
     discord_webhook_url: str | None
     monitor_username: str | None
     monitor_password: str | None
@@ -94,6 +95,7 @@ def get_settings() -> Settings:
 
     return Settings(
         database_url=normalize_optional_str(os.getenv("DATABASE_URL")),
+        demo_notes_url=normalize_optional_str(os.getenv("DEMO_NOTES_URL")),
         discord_webhook_url=normalize_optional_str(os.getenv("DISCORD_WEBHOOK_URL")),
         monitor_username=normalize_optional_str(os.getenv("MONITOR_USERNAME")),
         monitor_password=normalize_optional_str(os.getenv("MONITOR_PASSWORD")),
