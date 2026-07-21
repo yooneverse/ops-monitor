@@ -7,8 +7,8 @@
 | 문서명 | API 명세서 |
 | 프로젝트명 | Ops Monitor |
 | 목적 | API 요청/응답 구조 및 상태값 정의 |
-| 현재 구현 범위 | `/`, `/health` |
-| 확장 예정 범위 | `/logs`, `/incidents` |
+| 현재 구현 범위 | `/`, `/livez`, `/readyz`, `/health`, `/system`, `/alerts`, `/monitoring/status`, `/dashboard`, `/admin/database/restart` |
+| 연계 서비스 범위 | `demo-notes`의 `/`, `/healthz`, `/api/notes` |
 
 ---
 
@@ -17,7 +17,14 @@
 | Method | Endpoint | 기능 | 상태 |
 |---|---|---|---|
 | GET | `/` | API 서버 실행 확인 | 완료 |
-| GET | `/health` | API 서버 및 DB 연결 상태 확인 | 완료 |
+| GET | `/livez` | 프로세스 생존 확인 | 완료 |
+| GET | `/readyz` | 준비 상태 확인 | 완료 |
+| GET | `/health` | API 서버, DB, 메모 서비스 상태 확인 | 완료 |
+| GET | `/system` | 메모리, 디스크 상태 확인 | 완료 |
+| GET | `/alerts` | 최근 알림 이력 조회 | 완료 |
+| GET | `/monitoring/status` | 모니터링 루프와 설정 상태 확인 | 완료 |
+| GET | `/dashboard` | 운영 대시보드 화면 조회 | 완료 |
+| POST | `/admin/database/restart` | DB 재시작 요청 | 완료 |
 | GET | `/logs` | 로그 목록 조회 | 예정 |
 | POST | `/logs` | 로그 생성 | 예정 |
 | GET | `/incidents` | 장애 이력 목록 조회 | 예정 |
@@ -34,7 +41,8 @@
 | 시간 형식 | ISO 8601 |
 | 민감정보 | 응답에 포함하지 않음 |
 | 오류 메시지 | 내부 오류 원문 대신 정의된 메시지 반환 |
-| 상태 확인 방식 | `/health` 응답의 status 값으로 구분 |
+| 상태 확인 방식 | `/health`, `/readyz`, `/monitoring/status` 응답으로 구분 |
+| 인증 기준 | 운영 API와 대시보드는 Basic Auth 필요 |
 
 ---
 
@@ -58,15 +66,70 @@ GET /
 }
 ```
 
-### Response Field
+### 응답 필드
 
-| Field | Type | Description |
+| 필드 | 타입 | 설명 |
 |---|---|---|
 | message | string | API 서버 실행 메시지 |
 
 ---
 
-## 5. GET `/health`
+## 5. GET `/livez`
+
+### 개요
+
+프로세스가 살아 있는지 확인한다.
+
+### Request
+
+```http
+GET /livez
+```
+
+### Response 200
+
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-07-21T21:00:00"
+}
+```
+
+---
+
+## 6. GET `/readyz`
+
+### 개요
+
+DB 연결 가능 여부를 기준으로 준비 상태를 반환한다.
+
+### Request
+
+```http
+GET /readyz
+```
+
+### Response 200
+
+```json
+{
+  "status": "ready",
+  "timestamp": "2026-07-21T21:00:00"
+}
+```
+
+### Response 503
+
+```json
+{
+  "status": "not_ready",
+  "timestamp": "2026-07-21T21:00:00"
+}
+```
+
+---
+
+## 7. GET `/health`
 
 ### 개요
 
@@ -78,7 +141,7 @@ API 서버 상태와 PostgreSQL 연결 상태를 확인한다.
 GET /health
 ```
 
-### Response 200 - DB Connected
+### Response 200 - 정상 연결
 
 ```json
 {
@@ -87,11 +150,15 @@ GET /health
     "status": "connected",
     "message": "Database connection successful"
   },
-  "timestamp": "2026-07-04T22:40:00"
+  "demo_notes": {
+    "status": "connected",
+    "message": "Demo notes service is available"
+  },
+  "timestamp": "2026-07-21T21:00:00"
 }
 ```
 
-### Response 200 - DB Disconnected
+### Response 200 - DB 연결 실패
 
 ```json
 {
@@ -100,11 +167,15 @@ GET /health
     "status": "disconnected",
     "message": "Database connection failed"
   },
-  "timestamp": "2026-07-04T22:23:48.969699"
+  "demo_notes": {
+    "status": "disconnected",
+    "message": "Demo notes service is unavailable"
+  },
+  "timestamp": "2026-07-21T21:00:00"
 }
 ```
 
-### Response 200 - Environment Variable Error
+### Response 200 - 설정 누락
 
 ```json
 {
@@ -113,26 +184,33 @@ GET /health
     "status": "error",
     "message": "DATABASE_URL is not set"
   },
-  "timestamp": "2026-07-04T22:23:48.969699"
+  "demo_notes": {
+    "status": "disabled",
+    "message": "DEMO_NOTES_URL is not set"
+  },
+  "timestamp": "2026-07-21T21:00:00"
 }
 ```
 
-### Response Field
+### 응답 필드
 
-| Field | Type | Description |
+| 필드 | 타입 | 설명 |
 |---|---|---|
 | api | string | API 서버 상태 |
 | database.status | string | DB 연결 상태 |
 | database.message | string | DB 연결 결과 메시지 |
+| demo_notes.status | string | 메모 서비스 연결 상태 |
+| demo_notes.message | string | 메모 서비스 연결 결과 메시지 |
 | timestamp | string | 응답 생성 시각 |
 
-### Status Definition
+### 상태 정의
 
-| Status | 의미 | 발생 조건 |
+| 상태값 | 의미 | 발생 조건 |
 |---|---|---|
 | connected | DB 연결 성공 | PostgreSQL 실행 및 연결 가능 |
 | disconnected | DB 연결 실패 | PostgreSQL 중지 또는 연결 불가 |
 | error | 설정 오류 | `DATABASE_URL` 누락 |
+| disabled | 서비스 비활성화 | `DEMO_NOTES_URL` 미설정 |
 
 ### 처리 기준
 
@@ -145,7 +223,90 @@ GET /health
 
 ---
 
-## 6. GET `/logs` 예정
+## 8. GET `/system`
+
+### 개요
+
+현재 시스템 자원 사용량을 반환한다.
+
+### 주요 응답 필드
+
+- `memory.percent`
+- `disk.percent`
+- `timestamp`
+
+---
+
+## 9. GET `/alerts`
+
+### 개요
+
+최근 장애, 복구, 자원 경고 이력을 반환한다.
+
+### 주요 응답 필드
+
+- `type`
+- `target`
+- `message`
+- `created_at`
+
+---
+
+## 10. GET `/monitoring/status`
+
+### 개요
+
+모니터링 루프 활성 상태와 운영 설정 메타데이터를 반환한다.
+
+### 주요 응답 필드
+
+- `enabled`
+- `interval_seconds`
+- `discord_webhook_configured`
+- `monitor_auth_configured`
+- `api_docs_enabled`
+- `thresholds.memory_percent`
+- `thresholds.disk_percent`
+- `config_warnings`
+- `last_check`
+
+---
+
+## 11. GET `/dashboard`
+
+### 개요
+
+운영자가 브라우저에서 확인하는 한글 관리자 대시보드 화면을 반환한다.
+
+---
+
+## 12. POST `/admin/database/restart`
+
+### 개요
+
+운영 화면에서 DB 재시작을 요청한다.
+
+### Response 200
+
+```json
+{
+  "status": "ok",
+  "message": "DB 재시작 요청을 보냈습니다."
+}
+```
+
+### Response 503
+
+```json
+{
+  "status": "error",
+  "message": "DB 재시작에 실패했습니다."
+}
+```
+
+---
+
+## 13. GET `/logs` 예정
 
 ### 개요
 
@@ -171,9 +332,9 @@ GET /logs
 ]
 ```
 
-### Response Field
+### 응답 필드
 
-| Field | Type | Description |
+| 필드 | 타입 | 설명 |
 |---|---|---|
 | id | integer | 로그 ID |
 | level | string | 로그 레벨 |
@@ -191,7 +352,7 @@ GET /logs
 
 ---
 
-## 7. POST `/logs` 예정
+## 14. POST `/logs` 예정
 
 ### 개요
 
@@ -227,7 +388,7 @@ POST /logs
 
 ---
 
-## 8. GET `/incidents` 예정
+## 15. GET `/incidents` 예정
 
 ### 개요
 
@@ -256,9 +417,9 @@ GET /incidents
 ]
 ```
 
-### Response Field
+### 응답 필드
 
-| Field | Type | Description |
+| 필드 | 타입 | 설명 |
 |---|---|---|
 | id | integer | 장애 이력 ID |
 | title | string | 장애 제목 |
@@ -271,7 +432,7 @@ GET /incidents
 
 ---
 
-## 9. POST `/incidents` 예정
+## 16. POST `/incidents` 예정
 
 ### 개요
 
@@ -309,7 +470,7 @@ POST /incidents
 
 ---
 
-## 10. PATCH `/incidents/{incident_id}/recover` 예정
+## 17. PATCH `/incidents/{incident_id}/recover` 예정
 
 ### 개요
 
@@ -321,9 +482,9 @@ POST /incidents
 PATCH /incidents/{incident_id}/recover
 ```
 
-### Path Parameter
+### 경로 파라미터
 
-| Parameter | Type | Description |
+| 파라미터 | 타입 | 설명 |
 |---|---|---|
 | incident_id | integer | 장애 이력 ID |
 
@@ -352,7 +513,7 @@ PATCH /incidents/{incident_id}/recover
 
 ---
 
-## 11. 상태값 정의
+## 18. 상태값 정의
 
 ### incidents.status
 
@@ -371,14 +532,19 @@ PATCH /incidents/{incident_id}/recover
 
 ---
 
-## 12. 구현 상태
+## 19. 구현 상태
 
 | 항목 | 상태 |
 |---|---|
 | Root API | 완료 |
+| Liveness API | 완료 |
+| Readiness API | 완료 |
 | Health Check API | 완료 |
-| DB 연결 상태 응답 | 완료 |
-| DB 연결 실패 응답 | 완료 |
+| 시스템 상태 API | 완료 |
+| 최근 알림 API | 완료 |
+| 모니터링 상태 API | 완료 |
+| 대시보드 화면 | 완료 |
+| DB 재시작 요청 API | 완료 |
 | 로그 조회 API | 예정 |
 | 로그 생성 API | 예정 |
 | 장애 이력 조회 API | 예정 |
@@ -387,7 +553,7 @@ PATCH /incidents/{incident_id}/recover
 
 ---
 
-## 13. 다음 작업
+## 20. 다음 작업
 
 | 작업 | 설명 |
 |---|---|
