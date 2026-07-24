@@ -299,3 +299,64 @@ DB 연결 실패, Webhook 전송 실패, 임계치 초과, 복구, 중복 알림
 - API 테스트 또는 smoke test 추가
 - 중복 알림 제한 정책을 시간 기준으로 확장 검토
 - 운영 로그에 실제 장애 재현 결과 추가 기록
+
+---
+
+## 2026-07-21
+
+### Type
+
+`FEATURE`, `INFRA`, `CHECK`, `TROUBLESHOOTING`, `DOCS`
+
+### Summary
+
+운영 대시보드를 콘솔형 관리자 화면 기준으로 정제하고, `demo-notes`를 실제 운영 대상 서비스처럼 연결했다.
+작업 중 로컬 실행과 Compose 실행의 DB host 차이, `notes` 컨테이너 환경변수 치환 오류, 빈 상태와 실패 상태 구분 부족 문제를 함께 해결했다.
+
+### Commands
+
+```bash
+docker ps -a
+docker logs ops-monitor-notes
+docker-compose up -d --build notes
+.venv\Scripts\python.exe -m unittest tests.test_demo_notes_app tests.test_runtime_hardening
+```
+
+### Check
+
+```text
+GET /dashboard
+GET /health
+GET http://localhost:8010
+GET http://localhost:8010/healthz
+```
+
+### Result
+
+- 대시보드를 한글 콘솔형 운영 화면 기준으로 재정리
+- `demo-notes` 메모 생성, 수정, 삭제 흐름과 PostgreSQL 저장 구조 반영
+- 로컬 직접 실행 시 `db` host를 `localhost`로 보정하는 기준 추가
+- `notes` 컨테이너의 `DEMO_NOTES_DATABASE_URL` 치환 오류 수정
+- `ops-monitor-notes` 컨테이너 `healthy` 상태와 `http://localhost:8010` 응답 복구 확인
+- 메모가 없는 상태와 저장소 연결 실패 상태를 UI에서 분리
+- 관련 문서와 스터디 문서 정리
+
+### Issue
+
+브라우저에서는 `ERR_EMPTY_RESPONSE`처럼 보였지만, 실제 원인은 `demo-notes` 컨테이너의 DB 인증 실패와 재시작 루프였다.
+
+동시에 로컬 직접 실행 환경에서는 `db` host 해석 실패도 별도로 존재했다.
+
+### Resolution
+
+컨테이너 로그와 포트 상태를 먼저 확인해 브라우저 증상과 실제 원인을 분리했다.
+
+그 뒤 Compose 환경변수 치환을 수정하고, 코드에서는 로컬/컨테이너 실행 차이를 흡수하도록 DB URL 보정 로직을 추가했다.
+
+또한 빈 데이터와 연결 실패를 화면에서 구분하도록 메모 서비스의 오류 표현을 정리했다.
+
+### Next
+
+- `demo-notes` 인증 또는 권한 모델 검토
+- 메모 서비스 마이그레이션 체계 검토
+- 운영 액션 증가 시 감사 로그 범위 검토
