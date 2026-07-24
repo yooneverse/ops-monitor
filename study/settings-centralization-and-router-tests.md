@@ -1,66 +1,66 @@
-# Settings Centralization and Router Tests
+# 설정 일원화와 라우터 테스트
 
-## 1. Why this update matters
+## 1. 왜 이 업데이트가 중요했는가
 
-Projects that look like "vibe coding" often show the same patterns:
+이른바 "바이브 코딩"처럼 보이는 프로젝트는 대체로 아래 패턴을 반복합니다.
 
-- configuration is scattered across many files
-- environment variables are read ad hoc in each function
-- UI or route responses are hard-coded in long inline blocks
-- tests cover only fragments of utility logic
+- 설정이 여러 파일에 흩어져 있음
+- 환경 변수를 각 함수에서 즉석으로 읽음
+- UI나 라우트 응답이 긴 인라인 블록으로 하드코딩되어 있음
+- 테스트가 유틸 함수 일부만 겨우 덮고 있음
 
-This update was meant to reduce those signals in Ops Monitor.
+이번 정리는 Ops Monitor에서 그런 인상을 줄이는 방향으로 진행했습니다.
 
-## 2. What changed
+## 2. 무엇을 바꿨는가
 
-### 2.1 Shared settings module
+### 2.1 공용 설정 모듈 분리
 
-A dedicated `app/config.py` module was added.
+전용 `app/config.py` 모듈을 추가했습니다.
 
-It now handles:
+이 모듈은 현재 아래 역할을 담당합니다.
 
-- `.env` loading
-- boolean parsing
-- host list parsing
-- monitor interval and threshold loading
-- log directory loading
+- `.env` 로딩
+- 불리언 값 파싱
+- 호스트 목록 파싱
+- 모니터링 주기와 임계치 로딩
+- 로그 디렉터리 로딩
 
-Benefits:
+효과는 다음과 같습니다.
 
-- environment-dependent values are loaded in one place
-- repeated `load_dotenv()` and `os.getenv()` calls are removed from service code
-- configuration behavior becomes easier to test
+- 환경 의존 값을 한곳에서 읽고 관리할 수 있음
+- 서비스 코드에 반복되던 `load_dotenv()`와 `os.getenv()` 호출을 제거할 수 있음
+- 설정 동작 자체를 더 쉽게 테스트할 수 있음
 
-### 2.2 Dashboard cleanup
+### 2.2 대시보드 정리
 
-The dashboard route was refactored to make the file easier to read and review.
+대시보드 라우트도 읽기 쉽고 검토하기 쉬운 구조로 리팩터링했습니다.
 
-Improvements:
+개선된 점은 다음과 같습니다.
 
-- broken text was removed
-- dashboard HTML is stored as a named constant
-- route handlers now have explicit return types
+- 깨진 문구 제거
+- 대시보드 HTML을 이름 있는 상수로 분리
+- 라우트 핸들러에 명시적 반환 타입 부여
 
-This makes the route file look more intentional and less like temporary demo code.
+이렇게 하면 라우트 파일이 임시 데모 코드보다 더 의도적으로 설계된 코드처럼 보이게 됩니다.
 
-### 2.3 Router and settings tests
+### 2.3 라우터와 설정 테스트 추가
 
-New tests were added for:
+아래 항목을 검증하는 테스트를 추가했습니다.
 
-- settings parsing
-- settings cache reset behavior
-- dashboard HTML rendering
-- alert and monitoring status route responses
+- 설정 파싱
+- 설정 캐시 초기화 동작
+- 대시보드 HTML 렌더링
+- 알림 및 모니터링 상태 라우트 응답
 
-This matters because reviewers can see that the project is not only "working once" but also being checked at a unit level.
+이 부분이 중요한 이유는, 리뷰어가 프로젝트를 "한 번 우연히 실행된 코드"가 아니라 단위 수준에서 검증되고 있는 코드로 볼 수 있기 때문입니다.
 
-## 3. Practical lesson
+## 3. 실무적으로 남는 교훈
 
-Even in a small FastAPI project, moving configuration into one module and adding route-level tests improves:
+작은 FastAPI 프로젝트라도 설정을 한 모듈로 모으고 라우트 단위 테스트를 추가하면 아래 측면이 개선됩니다.
 
-- maintainability
-- reviewability
-- change safety
-- portfolio credibility
+- 유지보수성
+- 리뷰 용이성
+- 변경 안정성
+- 포트폴리오 설득력
 
-The goal is not just to make the app run, but to make the code explain itself when someone else reads it.
+목표는 단순히 앱을 실행시키는 것이 아니라, 다른 사람이 읽었을 때 코드가 스스로 설명되도록 만드는 데 있습니다.

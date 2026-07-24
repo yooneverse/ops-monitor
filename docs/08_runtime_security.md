@@ -1,14 +1,14 @@
-# Runtime Security Hardening
+# 런타임 보안 강화
 
-## Goal
+## 목표
 
-This document describes the runtime hardening added to Ops Monitor so the service does not expose monitoring data to unauthenticated `curl` requests.
+이 문서는 Ops Monitor에 적용한 런타임 보안 강화 내용을 정리합니다. 목적은 인증되지 않은 `curl` 요청에 모니터링 데이터가 그대로 노출되지 않도록 하는 것입니다.
 
-## What Changed
+## 변경 사항
 
-### 1. Basic authentication for sensitive endpoints
+### 1. 민감 엔드포인트 기본 인증 적용
 
-The following endpoints now require HTTP Basic Auth:
+아래 엔드포인트는 이제 HTTP Basic Auth가 필요합니다.
 
 - `/dashboard`
 - `/health`
@@ -18,87 +18,87 @@ The following endpoints now require HTTP Basic Auth:
 - `/docs`
 - `/openapi.json`
 
-Credentials are loaded from:
+인증 정보는 아래 환경 변수에서 읽습니다.
 
 ```env
 MONITOR_USERNAME=<MONITOR_USERNAME>
 MONITOR_PASSWORD=<MONITOR_PASSWORD>
 ```
 
-If credentials are not configured, protected endpoints fail closed with `503 Service Unavailable` instead of opening anonymously.
+인증 정보가 설정되지 않으면 보호 대상 엔드포인트는 익명으로 열리지 않고 `503 Service Unavailable`을 반환하도록 닫힌 상태로 동작합니다.
 
-### 2. Minimal public health endpoints
+### 2. 최소 공개 헬스 체크 엔드포인트 추가
 
-Two lightweight public probes were added for container orchestration and reverse proxy health checks:
+컨테이너 오케스트레이션과 리버스 프록시 헬스 체크를 위해 가벼운 공개 프로브 두 개를 추가했습니다.
 
 - `/livez`
 - `/readyz`
 
-`/readyz` only returns `ready` or `not_ready` and avoids exposing detailed database failure information.
+`/readyz`는 `ready` 또는 `not_ready`만 반환하며, 데이터베이스 장애 세부 정보를 외부에 노출하지 않습니다.
 
-### 3. Trusted host filtering
+### 3. Trusted Host 필터링 적용
 
-The app now enforces an allowlist of valid `Host` headers.
+애플리케이션은 이제 허용된 `Host` 헤더 목록만 받도록 제한합니다.
 
 ```env
 ALLOWED_HOSTS=localhost,127.0.0.1,testserver
 ```
 
-This helps reduce abuse through unexpected host header values.
+이 설정은 예상하지 못한 Host 헤더 값으로 인한 오용 가능성을 줄이는 데 도움이 됩니다.
 
-### 4. Nginx rate limiting and method restrictions
+### 4. Nginx 요청 제한과 메서드 제한
 
-The reverse proxy now adds:
+리버스 프록시에 아래 제어를 추가했습니다.
 
-- request rate limiting
-- connection limiting
-- `GET` and `HEAD` only
-- hidden file blocking
+- 요청 수 제한
+- 연결 수 제한
+- `GET`, `HEAD`만 허용
+- 숨김 파일 차단
 - `server_tokens off`
 - `Cache-Control: no-store`
 
-These controls reduce casual scraping and accidental information exposure.
+이 제어들은 단순 스크래핑과 의도치 않은 정보 노출 가능성을 줄이기 위한 것입니다.
 
-### 5. Authenticated API docs only when explicitly enabled
+### 5. API 문서는 명시적으로 켠 경우에만 노출
 
-Swagger is no longer exposed by default.
+Swagger 문서는 이제 기본값으로 노출되지 않습니다.
 
 ```env
 ENABLE_API_DOCS=false
 ```
 
-When documentation is enabled, it is still protected by Basic Auth.
+문서를 활성화하더라도 Basic Auth 보호는 그대로 유지됩니다.
 
-## Local Verification
+## 로컬 검증
 
-Unauthenticated request:
+인증 없이 요청:
 
 ```bash
 curl -i http://localhost/health
 ```
 
-Expected result:
+예상 결과:
 
-- `401 Unauthorized` when auth is configured
-- `503 Service Unavailable` when auth is missing
+- 인증이 설정된 경우 `401 Unauthorized`
+- 인증 정보가 없는 경우 `503 Service Unavailable`
 
-Authenticated request:
+인증 포함 요청:
 
 ```bash
 curl -i -u <MONITOR_USERNAME>:<MONITOR_PASSWORD> http://localhost/health
 ```
 
-Readiness request:
+준비 상태 요청:
 
 ```bash
 curl -i http://localhost/readyz
 ```
 
-Expected result:
+예상 결과:
 
-- `200 OK` with `{"status":"ready", ...}`
-- `503 Service Unavailable` with `{"status":"not_ready", ...}`
+- `{"status":"ready", ...}`와 함께 `200 OK`
+- `{"status":"not_ready", ...}`와 함께 `503 Service Unavailable`
 
-## Why This Matters For Portfolio Review
+## 포트폴리오 관점에서 중요한 이유
 
-This hardening shows that the project treats observability endpoints as operational assets, not public demo routes. That is a stronger signal for middleware, platform, and infrastructure-oriented roles.
+이 보강은 이 프로젝트가 관측성 엔드포인트를 공개 데모용 URL이 아니라 실제 운영 자산으로 다룬다는 점을 보여줍니다. 미들웨어, 플랫폼, 인프라 성격의 역할에 더 설득력 있는 신호가 됩니다.
