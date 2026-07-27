@@ -79,7 +79,7 @@ class DemoNotesAppTests(unittest.TestCase):
             self.module.is_running_in_container = lambda: False
             self.assertEqual(
                 self.module.get_database_url(),
-                "postgresql://user:***@localhost:5432/app",
+                "postgresql://user:pass@localhost:5432/app",
             )
         finally:
             if previous_demo is not None:

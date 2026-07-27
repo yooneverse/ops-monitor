@@ -164,7 +164,7 @@ class DatabaseCheckTests(unittest.TestCase):
             with patch("app.services.db_check.is_running_in_container", return_value=False):
                 self.assertEqual(
                     db_check.get_database_url(),
-                    "postgresql://user:***@localhost:5432/app",
+                    "postgresql://user:pass@localhost:5432/app",
                 )
 
 

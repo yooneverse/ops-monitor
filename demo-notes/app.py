@@ -57,7 +57,7 @@ def normalize_database_url(database_url: str) -> str:
     if parsed.host != "db":
         return database_url
 
-    return str(parsed.set(host="localhost"))
+    return parsed.set(host="localhost").render_as_string(hide_password=False)
 
 
 def get_database_url() -> str:
