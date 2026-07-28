@@ -21,6 +21,7 @@ class DashboardApiTests(unittest.TestCase):
         self.assertIn("menu-search", html)
         self.assertIn("data-nav-view", html)
         self.assertIn("db-restart-button", html)
+        self.assertIn("db-status-signal", html)
 
     def test_dashboard_route_uses_shared_page_builder(self) -> None:
         self.assertEqual(dashboard.dashboard(), get_dashboard_html())

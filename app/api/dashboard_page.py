@@ -998,6 +998,59 @@ def build_dashboard_styles() -> str:
             font-weight: 700;
         }
 
+        .status-signal {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: #eff5fb;
+            color: #6c8199;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        .status-signal-light {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #d7e2ef;
+            box-shadow: 0 0 0 4px rgba(156, 173, 192, 0.18);
+            transition: background 180ms ease, box-shadow 180ms ease;
+        }
+
+        .status-signal.pending {
+            background: #fff6e7;
+            color: #b17a13;
+        }
+
+        .status-signal.pending .status-signal-light {
+            background: #e7b554;
+            box-shadow: 0 0 0 4px rgba(231, 181, 84, 0.2);
+        }
+
+        .status-signal.connected {
+            background: #edf8f1;
+            color: var(--ok);
+        }
+
+        .status-signal.connected .status-signal-light {
+            background: var(--ok);
+            box-shadow: 0 0 0 4px rgba(45, 150, 89, 0.2), 0 0 18px rgba(45, 150, 89, 0.24);
+        }
+
+        .status-signal.disconnected {
+            background: #fff1ee;
+            color: var(--danger);
+        }
+
+        .status-signal.disconnected .status-signal-light {
+            background: var(--danger);
+            box-shadow: 0 0 0 4px rgba(217, 88, 73, 0.18), 0 0 18px rgba(217, 88, 73, 0.22);
+        }
+
         .connected {
             color: var(--ok);
         }
@@ -1233,6 +1286,10 @@ def build_summary_surface() -> str:
                                     </div>
                                     <div class="metric-icon lime">DB</div>
                                 </div>
+                                <div id="db-status-signal" class="status-signal pending">
+                                    <span class="status-signal-light" aria-hidden="true"></span>
+                                    <span id="db-status-signal-text">DB 연결 확인 중</span>
+                                </div>
                                 <div id="db-status" class="metric-value normal">확인 중...</div>
                                 <div class="metric-meta">
                                     <div class="meta-chip">핵심 의존성</div>
@@ -1420,6 +1477,19 @@ def build_dashboard_script() -> str:
             }
             element.textContent = text;
             element.className = "metric-value " + tone;
+        }
+
+        function setStatusSignal(id, textId, tone, text) {
+            const signal = document.getElementById(id);
+            const label = document.getElementById(textId);
+
+            if (signal) {
+                signal.className = "status-signal " + tone;
+            }
+
+            if (label) {
+                label.textContent = text;
+            }
         }
 
         function setBarWidth(id, value) {
@@ -1906,6 +1976,7 @@ def build_dashboard_script() -> str:
         function fillUnavailableState() {
             setStatusValue(document.getElementById("api-status"), "알 수 없음", "disconnected");
             setStatusValue(document.getElementById("db-status"), "알 수 없음", "disconnected");
+            setStatusSignal("db-status-signal", "db-status-signal-text", "disconnected", "DB 상태 확인 실패");
             setStatusValue(document.getElementById("memory-status"), "알 수 없음", "disconnected");
             setStatusValue(document.getElementById("disk-status"), "알 수 없음", "disconnected");
             setStatusValue(document.getElementById("monitoring-status"), "알 수 없음", "disconnected");
@@ -1960,6 +2031,12 @@ def build_dashboard_script() -> str:
                 const demoNotesConnected = health.demo_notes && health.demo_notes.status === "connected";
                 setStatusValue(document.getElementById("api-status"), apiHealthy ? "정상" : String(health.api || "오류"), apiHealthy ? "connected" : "warning");
                 setStatusValue(document.getElementById("db-status"), databaseConnected ? "연결됨" : "연결 안 됨", databaseConnected ? "connected" : "disconnected");
+                setStatusSignal(
+                    "db-status-signal",
+                    "db-status-signal-text",
+                    databaseConnected ? "connected" : "disconnected",
+                    databaseConnected ? "DB 연결 정상" : "DB 연결 실패"
+                );
                 document.getElementById("demo-notes-status").textContent = demoNotesConnected ? "연결됨" : "점검 필요";
                 document.getElementById("checked-time").textContent = health.timestamp || "-";
                 setBarWidth("api-bar", apiHealthy ? 100 : 28);
@@ -1967,6 +2044,7 @@ def build_dashboard_script() -> str:
             } else {
                 setStatusValue(document.getElementById("api-status"), "알 수 없음", "disconnected");
                 setStatusValue(document.getElementById("db-status"), "알 수 없음", "disconnected");
+                setStatusSignal("db-status-signal", "db-status-signal-text", "disconnected", "DB 상태 확인 실패");
                 document.getElementById("demo-notes-status").textContent = "-";
                 document.getElementById("checked-time").textContent = "-";
                 setBarWidth("api-bar", 20);
