@@ -859,6 +859,60 @@ def build_dashboard_styles() -> str:
             line-height: 1.5;
         }
 
+        .target-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .target-card {
+            padding: 14px;
+            border: 1px solid #dce8f8;
+            border-radius: 12px;
+            background: white;
+        }
+
+        .target-card-title {
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #60748f;
+        }
+
+        .target-card-copy {
+            margin-bottom: 10px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .target-chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .target-chip {
+            padding: 7px 10px;
+            border-radius: 999px;
+            border: 1px solid #dbe7f7;
+            background: #f8fbff;
+            color: #4f6885;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .target-chip.warning {
+            border-color: #f1d49e;
+            background: var(--warn-soft);
+            color: #8d5105;
+        }
+
+        .target-chip.empty {
+            border-color: #d6eadb;
+            background: #f3fbf5;
+            color: #3f7d55;
+        }
+
         .interaction-state {
             margin-top: 12px;
             display: flex;
@@ -1213,21 +1267,21 @@ def build_page_header() -> str:
             <div class="control-strip">
                 <div class="control-panel">
                     <div class="control-panel-title">운영 개요</div>
-                    <div class="control-grid">
-                        <div class="control-item">
-                            <div class="control-label">운영 환경</div>
-                            <div class="control-value">Production</div>
-                        </div>
-                        <div class="control-item">
-                            <div class="control-label">보호 상태</div>
-                            <div class="control-value">Basic Auth</div>
-                        </div>
-                        <div class="control-item">
-                            <div class="control-label">감시 대상</div>
-                            <div id="tracked-targets" class="control-value">3 Services</div>
+                        <div class="control-grid">
+                            <div class="control-item">
+                                <div class="control-label">운영 환경</div>
+                                <div id="environment-label" class="control-value">확인 중...</div>
+                            </div>
+                            <div class="control-item">
+                                <div class="control-label">보호 상태</div>
+                                <div id="protection-status" class="control-value">확인 중...</div>
+                            </div>
+                            <div class="control-item">
+                                <div class="control-label">감시 대상</div>
+                                <div id="tracked-targets" class="control-value">확인 중...</div>
+                            </div>
                         </div>
                     </div>
-                </div>
                 <div class="control-panel">
                     <div class="control-panel-title">빠른 실행</div>
                     <div class="launch-list">
@@ -1385,6 +1439,8 @@ def build_summary_surface() -> str:
                         <div class="summary-note-row"><span>모니터링 마지막 점검</span><strong id="monitor-last-check">-</strong></div>
                         <div class="summary-note-row"><span>데모 서비스</span><strong id="demo-notes-status">-</strong></div>
                         <div class="summary-note-row"><span>설정 경고 수</span><strong id="config-warning-count">-</strong></div>
+                        <div class="summary-note-row"><span>활성 점검 대상</span><strong id="active-target-count">-</strong></div>
+                        <div class="summary-note-row"><span>제외 대상</span><strong id="excluded-target-count">-</strong></div>
                         <div class="summary-note-row compact"><span>알림 기준</span><strong id="threshold-summary">-</strong></div>
                     </div>
                 </div>
@@ -1412,6 +1468,38 @@ def build_detail_surface() -> str:
                         </div>
                         <div id="warning-list" class="warning-list">
                             <div class="warning-item empty">설정 경고가 없습니다.</div>
+                        </div>
+                    </div>
+
+                    <div class="subpanel" data-panel="targets" data-views="overview monitoring services config">
+                        <div class="subpanel-header">
+                            <div>
+                                <div class="subpanel-title">점검 대상</div>
+                                <div class="subpanel-copy">현재 루프에서 실제로 점검 중인 대상과 예외 규칙을 함께 보여줍니다.</div>
+                            </div>
+                        </div>
+                        <div class="target-grid">
+                            <div class="target-card">
+                                <div class="target-card-title">활성 대상</div>
+                                <div class="target-card-copy">이번 실행에서 상태를 수집하는 대상입니다.</div>
+                                <div id="active-target-list" class="target-chip-list">
+                                    <div class="target-chip empty">확인 중...</div>
+                                </div>
+                            </div>
+                            <div class="target-card">
+                                <div class="target-card-title">제외 대상</div>
+                                <div class="target-card-copy">설정으로 임시 제외된 대상입니다.</div>
+                                <div id="excluded-target-list" class="target-chip-list">
+                                    <div class="target-chip empty">확인 중...</div>
+                                </div>
+                            </div>
+                            <div class="target-card">
+                                <div class="target-card-title">대상 경고</div>
+                                <div class="target-card-copy">알 수 없는 제외 대상이나 전체 제외 같은 운영 경고를 표시합니다.</div>
+                                <div id="target-warning-list" class="target-chip-list">
+                                    <div class="target-chip empty">확인 중...</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -1863,6 +1951,75 @@ def build_dashboard_script() -> str:
             });
         }
 
+        function renderTargetChips(containerId, items, emptyMessage, tone) {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                return;
+            }
+
+            container.innerHTML = "";
+
+            if (!items || items.length === 0) {
+                const emptyChip = document.createElement("div");
+                emptyChip.className = "target-chip empty";
+                emptyChip.textContent = emptyMessage;
+                container.appendChild(emptyChip);
+                return;
+            }
+
+            items.forEach(itemText => {
+                const chip = document.createElement("div");
+                chip.className = "target-chip" + (tone ? " " + tone : "");
+                chip.textContent = itemText;
+                container.appendChild(chip);
+            });
+        }
+
+        function renderTargetMetadata(monitoring) {
+            const activeTargets = monitoring && Array.isArray(monitoring.active_targets)
+                ? monitoring.active_targets
+                : [];
+            const excludedTargets = monitoring && Array.isArray(monitoring.excluded_targets)
+                ? monitoring.excluded_targets
+                : [];
+            const targetWarnings = monitoring && Array.isArray(monitoring.target_warnings)
+                ? monitoring.target_warnings
+                : [];
+
+            setText("environment-label", window.location.host || "로컬 실행");
+            setText(
+                "protection-status",
+                monitoring && monitoring.monitor_auth_configured
+                    ? "Basic Auth 적용"
+                    : "인증 보완 필요"
+            );
+            setText(
+                "tracked-targets",
+                "활성 " + activeTargets.length + "개 / 제외 " + excludedTargets.length + "개"
+            );
+            setText("active-target-count", String(activeTargets.length));
+            setText("excluded-target-count", String(excludedTargets.length));
+
+            renderTargetChips(
+                "active-target-list",
+                activeTargets,
+                "현재 활성 점검 대상이 없습니다.",
+                ""
+            );
+            renderTargetChips(
+                "excluded-target-list",
+                excludedTargets,
+                "제외된 점검 대상이 없습니다.",
+                ""
+            );
+            renderTargetChips(
+                "target-warning-list",
+                targetWarnings,
+                "대상 관련 경고가 없습니다.",
+                "warning"
+            );
+        }
+
         function renderAlerts(alerts) {
             const alertList = document.getElementById("alert-list");
             dashboardState.latestAlerts = Array.isArray(alerts) ? alerts : [];
@@ -1992,10 +2149,13 @@ def build_dashboard_script() -> str:
             document.getElementById("checked-time").textContent = "-";
             document.getElementById("monitor-last-check").textContent = "-";
             document.getElementById("config-warning-count").textContent = "-";
+            document.getElementById("active-target-count").textContent = "-";
+            document.getElementById("excluded-target-count").textContent = "-";
             setBarWidth("api-bar", 20);
             setBarWidth("db-bar", 20);
             setDonutValue("memory-donut", "memory-donut-value", 0, "disconnected");
             setDonutValue("disk-donut", "disk-donut-value", 0, "disconnected");
+            renderTargetMetadata(null);
         }
 
         async function loadDashboard() {
@@ -2082,6 +2242,7 @@ def build_dashboard_script() -> str:
                 document.getElementById("config-desc").textContent = "인증 " + (monitoring.monitor_auth_configured ? "설정됨" : "누락") + " | 검증 경고 " + warningCount + "건";
                 document.getElementById("monitor-last-check").textContent = monitoring.last_check || "-";
                 document.getElementById("config-warning-count").textContent = String(warningCount);
+                renderTargetMetadata(monitoring);
                 renderWarnings(warningMessages);
                 renderSummary(health, monitoring);
                 updateSidebarMeta(health, monitoring, alerts);
@@ -2096,6 +2257,7 @@ def build_dashboard_script() -> str:
                 document.getElementById("config-desc").textContent = "설정 검증 상태를 가져오지 못했습니다.";
                 document.getElementById("monitor-last-check").textContent = "-";
                 document.getElementById("config-warning-count").textContent = "-";
+                renderTargetMetadata(null);
                 renderWarnings(["모니터링 설정 상태를 불러오지 못했습니다."]);
                 renderSummary(health, null);
                 updateSidebarMeta(health, null, alerts);
