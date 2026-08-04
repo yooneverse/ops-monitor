@@ -5,9 +5,13 @@ from datetime import datetime
 
 from app.config import Settings, get_settings
 from app.services.alert_history import add_alert_history
-from app.services.db_check import check_database_connection
-from app.services.demo_notes_check import check_demo_notes_service
 from app.services.discord_webhook import send_discord_alert
+from app.services.monitoring_targets import (
+    ServiceCheckTarget,
+    collect_service_statuses,
+    select_service_check_targets,
+)
+from app.services.runtime_logs import persist_monitoring_run
 from app.services.system_check import check_system_status
 
 logger = logging.getLogger("uvicorn.error")
@@ -31,6 +35,9 @@ class MonitoringStatusView:
         }
     )
     config_warnings: list[str] = field(default_factory=list)
+    active_targets: list[str] = field(default_factory=list)
+    excluded_targets: list[str] = field(default_factory=list)
+    target_warnings: list[str] = field(default_factory=list)
     last_check: str | None = None
 
     def refresh_from_settings(self, settings: Settings) -> None:
@@ -44,6 +51,17 @@ class MonitoringStatusView:
             "disk_percent": settings.disk_alert_threshold,
         }
         self.config_warnings = list(settings.config_warnings)
+        self.excluded_targets = list(settings.monitoring_excluded_targets)
+        self.active_targets = []
+        self.target_warnings = []
+
+    def apply_target_metadata(
+        self,
+        active_targets: list[str],
+        target_warnings: list[str],
+    ) -> None:
+        self.active_targets = active_targets
+        self.target_warnings = target_warnings
 
     def to_dict(self) -> dict:
         return {
@@ -54,14 +72,16 @@ class MonitoringStatusView:
             "api_docs_enabled": self.api_docs_enabled,
             "thresholds": dict(self.thresholds),
             "config_warnings": list(self.config_warnings),
+            "active_targets": list(self.active_targets),
+            "excluded_targets": list(self.excluded_targets),
+            "target_warnings": list(self.target_warnings),
             "last_check": self.last_check,
         }
 
 
 @dataclass
 class MonitoringRuntimeState:
-    previous_db_status: str | None = None
-    previous_demo_notes_status: str | None = None
+    previous_service_statuses: dict[str, str | None] = field(default_factory=dict)
     memory_alert_active: bool = False
     disk_alert_active: bool = False
     status_view: MonitoringStatusView = field(default_factory=MonitoringStatusView)
@@ -72,63 +92,32 @@ class MonitoringRuntimeState:
     def mark_last_check(self) -> None:
         self.status_view.last_check = now_iso()
 
-    def evaluate_db_transition(self, current_db_status: str | None) -> dict | None:
-        if current_db_status is None:
+    def apply_target_metadata(
+        self,
+        active_targets: list[str],
+        target_warnings: list[str],
+    ) -> None:
+        self.status_view.apply_target_metadata(active_targets, target_warnings)
+
+    def evaluate_service_transition(
+        self,
+        target: ServiceCheckTarget,
+        current_status: str | None,
+    ) -> dict | None:
+        if current_status is None or current_status in target.ignored_statuses:
             return None
 
-        previous_db_status = self.previous_db_status
-
-        if previous_db_status is None:
-            self.previous_db_status = current_db_status
-
-            if current_db_status == "disconnected":
-                return build_alert_event(
-                    event_type="incident",
-                    target="database",
-                    status="disconnected",
-                    message="Database connection failed",
-                )
-
-            return None
-
-        if previous_db_status == current_db_status:
-            return None
-
-        self.previous_db_status = current_db_status
-
-        if previous_db_status == "connected" and current_db_status == "disconnected":
-            return build_alert_event(
-                event_type="incident",
-                target="database",
-                status="disconnected",
-                message="Database connection failed",
-            )
-
-        if previous_db_status == "disconnected" and current_db_status == "connected":
-            return build_alert_event(
-                event_type="recovery",
-                target="database",
-                status="connected",
-                message="Database connection recovered",
-            )
-
-        return None
-
-    def evaluate_demo_notes_transition(self, current_status: str | None) -> dict | None:
-        if current_status is None or current_status == "disabled":
-            return None
-
-        previous_status = self.previous_demo_notes_status
+        previous_status = self.previous_service_statuses.get(target.key)
 
         if previous_status is None:
-            self.previous_demo_notes_status = current_status
+            self.previous_service_statuses[target.key] = current_status
 
-            if current_status == "disconnected":
+            if current_status != target.expected_status:
                 return build_alert_event(
                     event_type="incident",
-                    target="demo_notes",
-                    status="disconnected",
-                    message="Demo notes service is unavailable",
+                    target=target.key,
+                    status=current_status,
+                    message=target.unavailable_message,
                 )
 
             return None
@@ -136,22 +125,22 @@ class MonitoringRuntimeState:
         if previous_status == current_status:
             return None
 
-        self.previous_demo_notes_status = current_status
+        self.previous_service_statuses[target.key] = current_status
 
-        if previous_status == "connected" and current_status == "disconnected":
+        if previous_status == target.expected_status and current_status != target.expected_status:
             return build_alert_event(
                 event_type="incident",
-                target="demo_notes",
-                status="disconnected",
-                message="Demo notes service is unavailable",
+                target=target.key,
+                status=current_status,
+                message=target.unavailable_message,
             )
 
-        if previous_status == "disconnected" and current_status == "connected":
+        if previous_status != target.expected_status and current_status == target.expected_status:
             return build_alert_event(
                 event_type="recovery",
-                target="demo_notes",
-                status="connected",
-                message="Demo notes service recovered",
+                target=target.key,
+                status=current_status,
+                message=target.recovery_message,
             )
 
         return None
@@ -216,8 +205,7 @@ class MonitoringRuntimeState:
         return events
 
     def reset(self) -> None:
-        self.previous_db_status = None
-        self.previous_demo_notes_status = None
+        self.previous_service_statuses = {}
         self.memory_alert_active = False
         self.disk_alert_active = False
         self.status_view = MonitoringStatusView()
@@ -254,6 +242,42 @@ def build_alert_event(
         "status": status,
         "message": message,
         "timestamp": now_iso(),
+    }
+
+
+def build_monitoring_run_report(
+    *,
+    started_at: str,
+    completed_at: str,
+    active_targets: tuple[ServiceCheckTarget, ...],
+    excluded_targets: tuple[str, ...],
+    service_statuses: dict[str, dict],
+    system_status: dict,
+    events: list[dict],
+    target_warnings: list[str],
+) -> dict:
+    overall_status = "ok"
+
+    if target_warnings:
+        overall_status = "warning"
+
+    if events and any(event["type"] in {"incident", "resource_alert", "monitoring_error"} for event in events):
+        overall_status = "warning"
+
+    return {
+        "run_id": completed_at.replace("-", "").replace(":", "").replace("T", "-"),
+        "started_at": started_at,
+        "completed_at": completed_at,
+        "overall_status": overall_status,
+        "active_targets": [target.key for target in active_targets],
+        "excluded_targets": list(excluded_targets),
+        "target_warnings": list(target_warnings),
+        "service_statuses": service_statuses,
+        "system_status": {
+            "memory_percent": system_status.get("memory", {}).get("percent", 0),
+            "disk_percent": system_status.get("disk", {}).get("percent", 0),
+        },
+        "events": list(events),
     }
 
 
@@ -297,23 +321,27 @@ async def check_and_notify() -> None:
     settings = get_settings()
     runtime_state.refresh_status(settings)
 
-    db_status = check_database_connection()
-    demo_notes_status = check_demo_notes_service()
+    run_started_at = now_iso()
+    service_targets, target_warnings = select_service_check_targets(
+        settings.monitoring_excluded_targets
+    )
+    runtime_state.apply_target_metadata(
+        active_targets=[target.key for target in service_targets],
+        target_warnings=target_warnings,
+    )
+    service_statuses = collect_service_statuses(service_targets)
     system_status = check_system_status()
+    generated_events: list[dict] = []
 
     runtime_state.mark_last_check()
 
-    db_event = runtime_state.evaluate_db_transition(db_status.get("status"))
+    for target in service_targets:
+        target_status = service_statuses.get(target.key, {}).get("status")
+        target_event = runtime_state.evaluate_service_transition(target, target_status)
 
-    if db_event:
-        notify_event(db_event)
-
-    demo_notes_event = runtime_state.evaluate_demo_notes_transition(
-        demo_notes_status.get("status")
-    )
-
-    if demo_notes_event:
-        notify_event(demo_notes_event)
+        if target_event:
+            notify_event(target_event)
+            generated_events.append(target_event)
 
     resource_events = runtime_state.evaluate_resource_thresholds(
         system_status,
@@ -322,11 +350,26 @@ async def check_and_notify() -> None:
 
     for event in resource_events:
         notify_event(event)
+        generated_events.append(event)
+
+    run_completed_at = now_iso()
+    persist_monitoring_run(
+        build_monitoring_run_report(
+            started_at=run_started_at,
+            completed_at=run_completed_at,
+            active_targets=service_targets,
+            excluded_targets=settings.monitoring_excluded_targets,
+            service_statuses=service_statuses,
+            system_status=system_status,
+            events=generated_events,
+            target_warnings=target_warnings,
+        )
+    )
 
     logger.info(
         "Monitoring cycle completed: db=%s demo_notes=%s memory=%s%% disk=%s%%",
-        db_status.get("status"),
-        demo_notes_status.get("status"),
+        service_statuses.get("database", {}).get("status"),
+        service_statuses.get("demo_notes", {}).get("status"),
         system_status.get("memory", {}).get("percent", 0),
         system_status.get("disk", {}).get("percent", 0),
     )

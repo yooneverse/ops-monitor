@@ -6,59 +6,40 @@
 |---|---|
 | 문서명 | API 명세서 |
 | 프로젝트명 | Ops Monitor |
-| 목적 | API 요청/응답 구조 및 상태값 정의 |
-| 현재 구현 범위 | `/`, `/livez`, `/readyz`, `/health`, `/system`, `/alerts`, `/monitoring/status`, `/dashboard`, `/admin/database/restart` |
-| 연계 서비스 범위 | `demo-notes`의 `/`, `/healthz`, `/api/notes` |
+| 작성 목적 | 공개 프로브, 보호 API, 운영 액션 응답 구조를 정리 |
+| 인증 기준 | 운영 API는 Basic Auth 보호 |
 
 ---
 
-## 2. API 목록
+## 2. 공통 원칙
 
-| Method | Endpoint | 기능 | 상태 |
-|---|---|---|---|
-| GET | `/` | API 서버 실행 확인 | 완료 |
-| GET | `/livez` | 프로세스 생존 확인 | 완료 |
-| GET | `/readyz` | 준비 상태 확인 | 완료 |
-| GET | `/health` | API 서버, DB, 메모 서비스 상태 확인 | 완료 |
-| GET | `/system` | 메모리, 디스크 상태 확인 | 완료 |
-| GET | `/alerts` | 최근 알림 이력 조회 | 완료 |
-| GET | `/monitoring/status` | 모니터링 루프와 설정 상태 확인 | 완료 |
-| GET | `/dashboard` | 운영 대시보드 화면 조회 | 완료 |
-| POST | `/admin/database/restart` | DB 재시작 요청 | 완료 |
-| GET | `/logs` | 로그 목록 조회 | 예정 |
-| POST | `/logs` | 로그 생성 | 예정 |
-| GET | `/incidents` | 장애 이력 목록 조회 | 예정 |
-| POST | `/incidents` | 장애 이력 생성 | 예정 |
-| PATCH | `/incidents/{incident_id}/recover` | 장애 복구 처리 | 예정 |
+### 2.1 응답 형식
 
----
+- 기본 응답 형식은 JSON
+- 시각 값은 ISO 8601
+- 내부 상세 예외 원문은 API 응답에 그대로 노출하지 않음
 
-## 3. 공통 기준
+### 2.2 엔드포인트 분류
 
-| 항목 | 기준 |
+| 구분 | 엔드포인트 |
 |---|---|
-| 응답 형식 | JSON |
-| 시간 형식 | ISO 8601 |
-| 민감정보 | 응답에 포함하지 않음 |
-| 오류 메시지 | 내부 오류 원문 대신 정의된 메시지 반환 |
-| 상태 확인 방식 | `/health`, `/readyz`, `/monitoring/status` 응답으로 구분 |
-| 인증 기준 | 운영 API와 대시보드는 Basic Auth 필요 |
+| 공개 프로브 | `/`, `/livez`, `/readyz` |
+| 보호된 운영 API | `/health`, `/system`, `/alerts`, `/monitoring/status`, `/dashboard`, `/admin/database/restart` |
+
+### 2.3 인증 기준
+
+운영 API는 `MONITOR_USERNAME`, `MONITOR_PASSWORD`가 설정된 경우 Basic Auth가 필요하다.
+
+- 인증 누락 또는 불일치: `401 Unauthorized`
+- 인증 설정 자체가 없음: `503 Service Unavailable`
 
 ---
 
-## 4. GET `/`
+## 3. 공개 프로브
 
-### 개요
+### 3.1 `GET /`
 
-API 서버 실행 여부를 확인한다.
-
-### Request
-
-```http
-GET /
-```
-
-### Response 200
+기본 실행 여부를 확인한다.
 
 ```json
 {
@@ -66,82 +47,46 @@ GET /
 }
 ```
 
-### 응답 필드
+### 3.2 `GET /livez`
 
-| 필드 | 타입 | 설명 |
-|---|---|---|
-| message | string | API 서버 실행 메시지 |
-
----
-
-## 5. GET `/livez`
-
-### 개요
-
-프로세스가 살아 있는지 확인한다.
-
-### Request
-
-```http
-GET /livez
-```
-
-### Response 200
+프로세스 생존 여부를 확인한다.
 
 ```json
 {
   "status": "ok",
-  "timestamp": "2026-07-21T21:00:00"
+  "timestamp": "2026-08-04T10:00:00"
 }
 ```
 
----
+### 3.3 `GET /readyz`
 
-## 6. GET `/readyz`
+DB 연결 기준으로 준비 상태를 확인한다.
 
-### 개요
-
-DB 연결 가능 여부를 기준으로 준비 상태를 반환한다.
-
-### Request
-
-```http
-GET /readyz
-```
-
-### Response 200
+성공:
 
 ```json
 {
   "status": "ready",
-  "timestamp": "2026-07-21T21:00:00"
+  "timestamp": "2026-08-04T10:00:00"
 }
 ```
 
-### Response 503
+실패:
 
 ```json
 {
   "status": "not_ready",
-  "timestamp": "2026-07-21T21:00:00"
+  "timestamp": "2026-08-04T10:00:00"
 }
 ```
 
 ---
 
-## 7. GET `/health`
+## 4. 보호된 운영 API
 
-### 개요
+### 4.1 `GET /health`
 
-API 서버 상태와 PostgreSQL 연결 상태를 확인한다.
-
-### Request
-
-```http
-GET /health
-```
-
-### Response 200 - 정상 연결
+API, DB, 부가 서비스 상태를 함께 반환한다.
 
 ```json
 {
@@ -154,411 +99,189 @@ GET /health
     "status": "connected",
     "message": "Demo notes service is available"
   },
-  "timestamp": "2026-07-21T21:00:00"
+  "timestamp": "2026-08-04T10:00:00"
 }
 ```
 
-### Response 200 - DB 연결 실패
+### 4.2 `GET /system`
+
+메모리와 디스크 사용량을 반환한다.
 
 ```json
 {
-  "api": "ok",
-  "database": {
-    "status": "disconnected",
-    "message": "Database connection failed"
+  "memory": {
+    "total_gb": 31.92,
+    "used_gb": 12.41,
+    "percent": 38.9
   },
-  "demo_notes": {
-    "status": "disconnected",
-    "message": "Demo notes service is unavailable"
-  },
-  "timestamp": "2026-07-21T21:00:00"
+  "disk": {
+    "total_gb": 476.11,
+    "used_gb": 211.54,
+    "percent": 44.43
+  }
 }
 ```
 
-### Response 200 - 설정 누락
+### 4.3 `GET /alerts`
+
+최근 이벤트 이력을 반환한다.
+
+예시:
+
+```json
+[
+  {
+    "type": "incident",
+    "target": "database",
+    "status": "disconnected",
+    "message": "Database connection failed",
+    "timestamp": "2026-08-04T10:10:00"
+  },
+  {
+    "type": "admin_action",
+    "target": "database_restart",
+    "status": "completed",
+    "message": "Container restarted",
+    "timestamp": "2026-08-04T10:11:00",
+    "requested_by": "ops-admin"
+  }
+]
+```
+
+### 4.4 `GET /monitoring/status`
+
+모니터링 루프 상태와 설정 메타데이터를 반환한다.
 
 ```json
 {
-  "api": "ok",
-  "database": {
-    "status": "error",
-    "message": "DATABASE_URL is not set"
+  "enabled": true,
+  "interval_seconds": 30,
+  "discord_webhook_configured": false,
+  "monitor_auth_configured": true,
+  "api_docs_enabled": false,
+  "thresholds": {
+    "memory_percent": 80,
+    "disk_percent": 80
   },
-  "demo_notes": {
-    "status": "disabled",
-    "message": "DEMO_NOTES_URL is not set"
-  },
-  "timestamp": "2026-07-21T21:00:00"
+  "config_warnings": [],
+  "active_targets": [
+    "database"
+  ],
+  "excluded_targets": [
+    "demo_notes"
+  ],
+  "target_warnings": [],
+  "last_check": "2026-08-04T10:15:00"
 }
 ```
 
-### 응답 필드
+#### 필드 설명
 
-| 필드 | 타입 | 설명 |
-|---|---|---|
-| api | string | API 서버 상태 |
-| database.status | string | DB 연결 상태 |
-| database.message | string | DB 연결 결과 메시지 |
-| demo_notes.status | string | 메모 서비스 연결 상태 |
-| demo_notes.message | string | 메모 서비스 연결 결과 메시지 |
-| timestamp | string | 응답 생성 시각 |
+| 필드 | 설명 |
+|---|---|
+| `active_targets` | 실제로 점검 중인 대상 |
+| `excluded_targets` | 설정으로 제외된 대상 |
+| `target_warnings` | 알 수 없는 제외 대상 등 점검 대상 관련 경고 |
+| `config_warnings` | 잘못된 수치형 설정 등 런타임 설정 경고 |
 
-### 상태 정의
+### 4.5 `GET /dashboard`
 
-| 상태값 | 의미 | 발생 조건 |
-|---|---|---|
-| connected | DB 연결 성공 | PostgreSQL 실행 및 연결 가능 |
-| disconnected | DB 연결 실패 | PostgreSQL 중지 또는 연결 불가 |
-| error | 설정 오류 | `DATABASE_URL` 누락 |
-| disabled | 서비스 비활성화 | `DEMO_NOTES_URL` 미설정 |
+HTML 운영 화면을 반환한다.  
+대시보드는 아래 정보를 한 화면에서 제공한다.
 
-### 처리 기준
-
-| 상황 | HTTP 응답 | api | database.status |
-|---|---|---|---|
-| API 정상, DB 정상 | 200 | ok | connected |
-| API 정상, DB 중지 | 200 | ok | disconnected |
-| API 정상, 환경변수 누락 | 200 | ok | error |
-| API 서버 미실행 | 응답 없음 | - | - |
+- 서비스 상태
+- 자원 상태
+- 최근 알림
+- 설정 경고
+- 활성/제외 대상 정보
+- 관리자 액션 실행 버튼
 
 ---
 
-## 8. GET `/system`
+## 5. 운영 액션 API
 
-### 개요
+### 5.1 `POST /admin/database/restart`
 
-현재 시스템 자원 사용량을 반환한다.
+DB 재시작을 요청한다.
 
-### 주요 응답 필드
-
-- `memory.percent`
-- `disk.percent`
-- `timestamp`
-
----
-
-## 9. GET `/alerts`
-
-### 개요
-
-최근 장애, 복구, 자원 경고 이력을 반환한다.
-
-### 주요 응답 필드
-
-- `type`
-- `target`
-- `message`
-- `created_at`
-
----
-
-## 10. GET `/monitoring/status`
-
-### 개요
-
-모니터링 루프 활성 상태와 운영 설정 메타데이터를 반환한다.
-
-### 주요 응답 필드
-
-- `enabled`
-- `interval_seconds`
-- `discord_webhook_configured`
-- `monitor_auth_configured`
-- `api_docs_enabled`
-- `thresholds.memory_percent`
-- `thresholds.disk_percent`
-- `config_warnings`
-- `last_check`
-
----
-
-## 11. GET `/dashboard`
-
-### 개요
-
-운영자가 브라우저에서 확인하는 한글 관리자 대시보드 화면을 반환한다.
-
----
-
-## 12. POST `/admin/database/restart`
-
-### 개요
-
-운영 화면에서 DB 재시작을 요청한다.
-
-### Response 200
+성공 예시:
 
 ```json
 {
   "status": "ok",
-  "message": "DB 재시작 요청을 보냈습니다."
+  "message": "DB restart command sent",
+  "action": "restart_database",
+  "requested_by": "ops-admin",
+  "timestamp": "2026-08-04T10:20:00"
 }
 ```
 
-### Response 503
+실패 예시:
 
 ```json
 {
   "status": "error",
-  "message": "DB 재시작에 실패했습니다."
+  "message": "Docker CLI를 찾을 수 없습니다.",
+  "action": "restart_database",
+  "requested_by": "ops-admin",
+  "timestamp": "2026-08-04T10:20:00"
 }
 ```
 
----
+#### 응답 필드
 
-## 13. GET `/logs` 예정
-
-### 개요
-
-서비스 실행 로그와 오류 로그를 조회한다.
-
-### Request
-
-```http
-GET /logs
-```
-
-### Target Response 200
-
-```json
-[
-  {
-    "id": 1,
-    "level": "INFO",
-    "message": "Health check requested",
-    "source": "health_api",
-    "created_at": "2026-07-04T22:40:00"
-  }
-]
-```
-
-### 응답 필드
-
-| 필드 | 타입 | 설명 |
-|---|---|---|
-| id | integer | 로그 ID |
-| level | string | 로그 레벨 |
-| message | string | 로그 메시지 |
-| source | string | 로그 발생 위치 |
-| created_at | string | 로그 생성 시각 |
-
-### level
-
-| Value | 의미 |
+| 필드 | 설명 |
 |---|---|
-| INFO | 일반 실행 정보 |
-| WARNING | 주의 필요 |
-| ERROR | 오류 발생 |
+| `status` | `ok` 또는 `error` |
+| `message` | 조치 결과 메시지 |
+| `action` | 수행한 운영 액션 식별자 |
+| `requested_by` | 인증된 수행자 |
+| `timestamp` | 액션 처리 시각 |
 
 ---
 
-## 14. POST `/logs` 예정
+## 6. 상태값 기준
 
-### 개요
+### 6.1 서비스 상태
 
-서비스 실행 또는 오류 로그를 생성한다.
-
-### Request
-
-```http
-POST /logs
-```
-
-### Target Request Body
-
-```json
-{
-  "level": "INFO",
-  "message": "Health check requested",
-  "source": "health_api"
-}
-```
-
-### Target Response 201
-
-```json
-{
-  "id": 1,
-  "level": "INFO",
-  "message": "Health check requested",
-  "source": "health_api",
-  "created_at": "2026-07-04T22:40:00"
-}
-```
-
----
-
-## 15. GET `/incidents` 예정
-
-### 개요
-
-장애 발생 및 복구 이력을 조회한다.
-
-### Request
-
-```http
-GET /incidents
-```
-
-### Target Response 200
-
-```json
-[
-  {
-    "id": 1,
-    "title": "PostgreSQL connection failed",
-    "status": "RECOVERED",
-    "severity": "HIGH",
-    "cause": "PostgreSQL container stopped",
-    "recovery_action": "Restarted PostgreSQL container",
-    "occurred_at": "2026-07-04T22:35:00",
-    "recovered_at": "2026-07-04T22:40:00"
-  }
-]
-```
-
-### 응답 필드
-
-| 필드 | 타입 | 설명 |
-|---|---|---|
-| id | integer | 장애 이력 ID |
-| title | string | 장애 제목 |
-| status | string | 장애 상태 |
-| severity | string | 장애 심각도 |
-| cause | string | 장애 원인 |
-| recovery_action | string | 복구 조치 |
-| occurred_at | string | 장애 발생 시각 |
-| recovered_at | string | 장애 복구 시각 |
-
----
-
-## 16. POST `/incidents` 예정
-
-### 개요
-
-장애 발생 이력을 생성한다.
-
-### Request
-
-```http
-POST /incidents
-```
-
-### Target Request Body
-
-```json
-{
-  "title": "PostgreSQL connection failed",
-  "severity": "HIGH",
-  "cause": "PostgreSQL container stopped"
-}
-```
-
-### Target Response 201
-
-```json
-{
-  "id": 1,
-  "title": "PostgreSQL connection failed",
-  "status": "OPEN",
-  "severity": "HIGH",
-  "cause": "PostgreSQL container stopped",
-  "occurred_at": "2026-07-04T22:35:00",
-  "recovered_at": null
-}
-```
-
----
-
-## 17. PATCH `/incidents/{incident_id}/recover` 예정
-
-### 개요
-
-장애 복구 내용을 기록하고 상태를 `RECOVERED`로 변경한다.
-
-### Request
-
-```http
-PATCH /incidents/{incident_id}/recover
-```
-
-### 경로 파라미터
-
-| 파라미터 | 타입 | 설명 |
-|---|---|---|
-| incident_id | integer | 장애 이력 ID |
-
-### Target Request Body
-
-```json
-{
-  "recovery_action": "Restarted PostgreSQL container"
-}
-```
-
-### Target Response 200
-
-```json
-{
-  "id": 1,
-  "title": "PostgreSQL connection failed",
-  "status": "RECOVERED",
-  "severity": "HIGH",
-  "cause": "PostgreSQL container stopped",
-  "recovery_action": "Restarted PostgreSQL container",
-  "occurred_at": "2026-07-04T22:35:00",
-  "recovered_at": "2026-07-04T22:40:00"
-}
-```
-
----
-
-## 18. 상태값 정의
-
-### incidents.status
-
-| Value | 의미 |
+| 값 | 의미 |
 |---|---|
-| OPEN | 장애 발생 |
-| RECOVERED | 복구 완료 |
+| `connected` | 기대 상태 |
+| `disconnected` | 기대 상태에서 벗어남 |
+| `disabled` | 명시적으로 비활성 또는 제외 대상 |
+| `error` | 설정 또는 점검 불가 상태 |
 
-### incidents.severity
+### 6.2 이벤트 타입
 
-| Value | 의미 |
+| 타입 | 의미 |
 |---|---|
-| LOW | 낮은 영향도 |
-| MEDIUM | 일부 기능 영향 |
-| HIGH | 주요 기능 영향 |
+| `incident` | 정상에서 비정상으로 전이 |
+| `recovery` | 비정상에서 정상으로 전이 |
+| `resource_alert` | 자원 임계치 초과 |
+| `resource_recovery` | 자원 임계치 회복 |
+| `notification_error` | 외부 알림 채널 전송 실패 |
+| `admin_action` | 운영 액션 성공 |
+| `admin_action_error` | 운영 액션 실패 |
 
 ---
 
-## 19. 구현 상태
+## 7. 설계 메모
 
-| 항목 | 상태 |
-|---|---|
-| Root API | 완료 |
-| Liveness API | 완료 |
-| Readiness API | 완료 |
-| Health Check API | 완료 |
-| 시스템 상태 API | 완료 |
-| 최근 알림 API | 완료 |
-| 모니터링 상태 API | 완료 |
-| 대시보드 화면 | 완료 |
-| DB 재시작 요청 API | 완료 |
-| 로그 조회 API | 예정 |
-| 로그 생성 API | 예정 |
-| 장애 이력 조회 API | 예정 |
-| 장애 이력 생성 API | 예정 |
-| 장애 복구 처리 API | 예정 |
+이 API 명세는 단순 CRUD 문서가 아니라 운영 흐름 문서에 가깝다.
+
+중요한 이유는 다음과 같다.
+
+- 공개 프로브와 보호 API의 경계가 아키텍처 핵심이기 때문
+- 운영 액션은 일반 데이터 수정 API와 성격이 다르기 때문
+- 모니터링 상태 응답에는 "현재 값"보다 "점검 범위와 경고"가 더 중요하기 때문
 
 ---
 
-## 20. 다음 작업
+## 8. 관련 문서
 
-| 작업 | 설명 |
+| 문서 | 설명 |
 |---|---|
-| 로그 테이블 반영 | ERD 기준으로 logs 테이블 구현 |
-| 장애 이력 테이블 반영 | incidents 테이블 구현 |
-| `/logs` API 구현 | 로그 조회 및 생성 기능 추가 |
-| `/incidents` API 구현 | 장애 이력 생성, 조회, 복구 처리 기능 추가 |
-| Swagger 확인 | FastAPI `/docs`와 명세서 일치 여부 점검 |
+| `docs/01_srs.md` | 요구사항 |
+| `docs/02_architecture.md` | 구조와 설계 이유 |
+| `docs/07_security.md` | 보안 정책 |
+| `docs/10_runtime_configuration.md` | 설정 검증 기준 |

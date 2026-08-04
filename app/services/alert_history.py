@@ -22,7 +22,7 @@ def add_alert_history(event: dict) -> None:
 
 
 def get_alert_history() -> list[dict]:
-    return alert_history
+    return list(alert_history)
 
 
 def get_latest_alert() -> Optional[dict]:

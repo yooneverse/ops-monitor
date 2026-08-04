@@ -10,17 +10,24 @@ class AdminActionTests(unittest.TestCase):
         completed = Mock(stdout="restarted", stderr="")
 
         with patch("app.services.admin_actions.subprocess.run", return_value=completed):
-            result = restart_database_service()
+            with patch("app.services.admin_actions.add_alert_history") as add_alert_history_mock:
+                result = restart_database_service(requested_by="ops-admin")
 
         self.assertEqual(result["status"], "ok")
         self.assertIn("restarted", result["message"])
+        self.assertEqual(result["requested_by"], "ops-admin")
+        self.assertEqual(result["action"], "restart_database")
+        add_alert_history_mock.assert_called_once()
 
     def test_restart_database_service_handles_missing_docker(self) -> None:
         with patch("app.services.admin_actions.subprocess.run", side_effect=FileNotFoundError):
-            result = restart_database_service()
+            with patch("app.services.admin_actions.add_alert_history") as add_alert_history_mock:
+                result = restart_database_service(requested_by="ops-admin")
 
         self.assertEqual(result["status"], "error")
         self.assertIn("Docker CLI", result["message"])
+        self.assertEqual(result["requested_by"], "ops-admin")
+        add_alert_history_mock.assert_called_once()
 
     def test_restart_database_service_handles_command_failure(self) -> None:
         error = subprocess.CalledProcessError(
@@ -30,10 +37,13 @@ class AdminActionTests(unittest.TestCase):
         )
 
         with patch("app.services.admin_actions.subprocess.run", side_effect=error):
-            result = restart_database_service()
+            with patch("app.services.admin_actions.add_alert_history") as add_alert_history_mock:
+                result = restart_database_service(requested_by="ops-admin")
 
         self.assertEqual(result["status"], "error")
         self.assertIn("compose failed", result["message"])
+        self.assertEqual(result["requested_by"], "ops-admin")
+        add_alert_history_mock.assert_called_once()
 
 
 if __name__ == "__main__":
