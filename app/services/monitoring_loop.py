@@ -9,8 +9,9 @@ from app.services.discord_webhook import send_discord_alert
 from app.services.monitoring_targets import (
     ServiceCheckTarget,
     collect_service_statuses,
-    get_service_check_targets,
+    select_service_check_targets,
 )
+from app.services.runtime_logs import persist_monitoring_run
 from app.services.system_check import check_system_status
 
 logger = logging.getLogger("uvicorn.error")
@@ -34,6 +35,9 @@ class MonitoringStatusView:
         }
     )
     config_warnings: list[str] = field(default_factory=list)
+    active_targets: list[str] = field(default_factory=list)
+    excluded_targets: list[str] = field(default_factory=list)
+    target_warnings: list[str] = field(default_factory=list)
     last_check: str | None = None
 
     def refresh_from_settings(self, settings: Settings) -> None:
@@ -47,6 +51,17 @@ class MonitoringStatusView:
             "disk_percent": settings.disk_alert_threshold,
         }
         self.config_warnings = list(settings.config_warnings)
+        self.excluded_targets = list(settings.monitoring_excluded_targets)
+        self.active_targets = []
+        self.target_warnings = []
+
+    def apply_target_metadata(
+        self,
+        active_targets: list[str],
+        target_warnings: list[str],
+    ) -> None:
+        self.active_targets = active_targets
+        self.target_warnings = target_warnings
 
     def to_dict(self) -> dict:
         return {
@@ -57,6 +72,9 @@ class MonitoringStatusView:
             "api_docs_enabled": self.api_docs_enabled,
             "thresholds": dict(self.thresholds),
             "config_warnings": list(self.config_warnings),
+            "active_targets": list(self.active_targets),
+            "excluded_targets": list(self.excluded_targets),
+            "target_warnings": list(self.target_warnings),
             "last_check": self.last_check,
         }
 
@@ -73,6 +91,13 @@ class MonitoringRuntimeState:
 
     def mark_last_check(self) -> None:
         self.status_view.last_check = now_iso()
+
+    def apply_target_metadata(
+        self,
+        active_targets: list[str],
+        target_warnings: list[str],
+    ) -> None:
+        self.status_view.apply_target_metadata(active_targets, target_warnings)
 
     def evaluate_service_transition(
         self,
@@ -220,6 +245,42 @@ def build_alert_event(
     }
 
 
+def build_monitoring_run_report(
+    *,
+    started_at: str,
+    completed_at: str,
+    active_targets: tuple[ServiceCheckTarget, ...],
+    excluded_targets: tuple[str, ...],
+    service_statuses: dict[str, dict],
+    system_status: dict,
+    events: list[dict],
+    target_warnings: list[str],
+) -> dict:
+    overall_status = "ok"
+
+    if target_warnings:
+        overall_status = "warning"
+
+    if events and any(event["type"] in {"incident", "resource_alert", "monitoring_error"} for event in events):
+        overall_status = "warning"
+
+    return {
+        "run_id": completed_at.replace("-", "").replace(":", "").replace("T", "-"),
+        "started_at": started_at,
+        "completed_at": completed_at,
+        "overall_status": overall_status,
+        "active_targets": [target.key for target in active_targets],
+        "excluded_targets": list(excluded_targets),
+        "target_warnings": list(target_warnings),
+        "service_statuses": service_statuses,
+        "system_status": {
+            "memory_percent": system_status.get("memory", {}).get("percent", 0),
+            "disk_percent": system_status.get("disk", {}).get("percent", 0),
+        },
+        "events": list(events),
+    }
+
+
 def notify_event(event: dict) -> None:
     add_alert_history(event)
 
@@ -260,9 +321,17 @@ async def check_and_notify() -> None:
     settings = get_settings()
     runtime_state.refresh_status(settings)
 
-    service_targets = get_service_check_targets()
+    run_started_at = now_iso()
+    service_targets, target_warnings = select_service_check_targets(
+        settings.monitoring_excluded_targets
+    )
+    runtime_state.apply_target_metadata(
+        active_targets=[target.key for target in service_targets],
+        target_warnings=target_warnings,
+    )
     service_statuses = collect_service_statuses(service_targets)
     system_status = check_system_status()
+    generated_events: list[dict] = []
 
     runtime_state.mark_last_check()
 
@@ -272,6 +341,7 @@ async def check_and_notify() -> None:
 
         if target_event:
             notify_event(target_event)
+            generated_events.append(target_event)
 
     resource_events = runtime_state.evaluate_resource_thresholds(
         system_status,
@@ -280,6 +350,21 @@ async def check_and_notify() -> None:
 
     for event in resource_events:
         notify_event(event)
+        generated_events.append(event)
+
+    run_completed_at = now_iso()
+    persist_monitoring_run(
+        build_monitoring_run_report(
+            started_at=run_started_at,
+            completed_at=run_completed_at,
+            active_targets=service_targets,
+            excluded_targets=settings.monitoring_excluded_targets,
+            service_statuses=service_statuses,
+            system_status=system_status,
+            events=generated_events,
+            target_warnings=target_warnings,
+        )
+    )
 
     logger.info(
         "Monitoring cycle completed: db=%s demo_notes=%s memory=%s%% disk=%s%%",

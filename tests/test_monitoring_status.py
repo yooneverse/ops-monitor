@@ -26,6 +26,7 @@ class MonitoringStatusTests(unittest.TestCase):
                 "MONITOR_INTERVAL_SECONDS": "45",
                 "MEMORY_ALERT_THRESHOLD": "75",
                 "DISK_ALERT_THRESHOLD": "70",
+                "MONITORING_EXCLUDED_TARGETS": "demo_notes",
             },
             clear=False,
         ):
@@ -44,6 +45,9 @@ class MonitoringStatusTests(unittest.TestCase):
                 "disk_percent": 70,
             },
         )
+        self.assertEqual(status["excluded_targets"], ["demo_notes"])
+        self.assertEqual(status["active_targets"], [])
+        self.assertEqual(status["target_warnings"], [])
         self.assertEqual(status["config_warnings"], [])
 
     def test_monitoring_status_reports_invalid_runtime_configuration(self) -> None:

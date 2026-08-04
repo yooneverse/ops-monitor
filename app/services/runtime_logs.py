@@ -70,6 +70,44 @@ def persist_alert_event(event: dict, now: datetime | None = None) -> None:
     append_text_line(report_path, report_row)
 
 
+def build_run_report_header(report_date: str) -> str:
+    return "\n".join(
+        [
+            "# Ops Monitor Monitoring Run Report",
+            "",
+            f"Date: {report_date}",
+            "",
+            "| Completed At | Run ID | Status | Active Targets | Event Count | Excluded Targets |",
+            "|---|---|---|---|---|---|",
+        ]
+    )
+
+
+def persist_monitoring_run(report: dict, now: datetime | None = None) -> None:
+    target_time = now or datetime.now()
+
+    jsonl_path = get_daily_path("runs", "jsonl", target_time)
+    append_text_line(jsonl_path, json.dumps(report, ensure_ascii=False))
+
+    markdown_path = get_daily_path("run-reports", "md", target_time)
+    report_date = target_time.strftime("%Y-%m-%d")
+
+    if not markdown_path.exists():
+        append_text_line(markdown_path, build_run_report_header(report_date))
+
+    active_targets = ", ".join(report.get("active_targets", [])) or "-"
+    excluded_targets = ", ".join(report.get("excluded_targets", [])) or "-"
+    report_row = (
+        f"| {sanitize_report_value(report.get('completed_at', ''))} "
+        f"| {sanitize_report_value(report.get('run_id', ''))} "
+        f"| {sanitize_report_value(report.get('overall_status', ''))} "
+        f"| {sanitize_report_value(active_targets)} "
+        f"| {sanitize_report_value(str(len(report.get('events', []))))} "
+        f"| {sanitize_report_value(excluded_targets)} |"
+    )
+    append_text_line(markdown_path, report_row)
+
+
 class DailyLogFileHandler(logging.Handler):
     def __init__(
         self,

@@ -39,6 +39,32 @@ def get_service_check_targets() -> tuple[ServiceCheckTarget, ...]:
     return SERVICE_CHECK_TARGETS
 
 
+def select_service_check_targets(
+    excluded_target_keys: tuple[str, ...] | None = None,
+) -> tuple[tuple[ServiceCheckTarget, ...], list[str]]:
+    excluded_keys = set(excluded_target_keys or ())
+    known_keys = {target.key for target in SERVICE_CHECK_TARGETS}
+    unknown_keys = sorted(excluded_keys - known_keys)
+
+    warnings = [
+        f"MONITORING_EXCLUDED_TARGETS에 알 수 없는 대상이 포함되어 무시되었습니다: {key}"
+        for key in unknown_keys
+    ]
+
+    selected_targets = tuple(
+        target
+        for target in SERVICE_CHECK_TARGETS
+        if target.key not in excluded_keys
+    )
+
+    if not selected_targets:
+        warnings.append(
+            "모든 체크 대상이 제외되어 서비스 상태 점검이 비활성화되었습니다."
+        )
+
+    return selected_targets, warnings
+
+
 def collect_service_statuses(
     targets: tuple[ServiceCheckTarget, ...] | None = None,
 ) -> dict[str, dict]:

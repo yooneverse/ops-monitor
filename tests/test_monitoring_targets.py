@@ -4,6 +4,7 @@ from app.services.monitoring_loop import MonitoringRuntimeState
 from app.services.monitoring_targets import (
     ServiceCheckTarget,
     collect_service_statuses,
+    select_service_check_targets,
 )
 
 
@@ -67,6 +68,16 @@ class MonitoringTargetTests(unittest.TestCase):
             runtime_state.evaluate_service_transition(target, "disabled")
         )
         self.assertEqual(runtime_state.previous_service_statuses, {})
+
+    def test_select_service_check_targets_returns_warnings_for_unknown_or_empty_exclusions(self) -> None:
+        selected_targets, warnings = select_service_check_targets(
+            ("demo_notes", "unknown_target", "database")
+        )
+
+        self.assertEqual(selected_targets, ())
+        self.assertEqual(len(warnings), 2)
+        self.assertIn("unknown_target", warnings[0])
+        self.assertIn("모든 체크 대상이 제외", warnings[1])
 
 
 if __name__ == "__main__":
