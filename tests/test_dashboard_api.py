@@ -55,19 +55,25 @@ class DashboardApiTests(unittest.TestCase):
         payload = {
             "status": "ok",
             "message": "DB restarted",
+            "requested_by": "ops-admin",
+            "action": "restart_database",
+            "timestamp": "2026-08-04T10:00:00",
         }
 
         with patch("app.api.dashboard.restart_database_service", return_value=payload):
-            self.assertEqual(dashboard.restart_database(), payload)
+            self.assertEqual(dashboard.restart_database(username="ops-admin"), payload)
 
     def test_restart_database_returns_503_response_on_failure(self) -> None:
         payload = {
             "status": "error",
             "message": "restart failed",
+            "requested_by": "ops-admin",
+            "action": "restart_database",
+            "timestamp": "2026-08-04T10:00:00",
         }
 
         with patch("app.api.dashboard.restart_database_service", return_value=payload):
-            response = dashboard.restart_database()
+            response = dashboard.restart_database(username="ops-admin")
 
         self.assertIsInstance(response, JSONResponse)
         self.assertEqual(response.status_code, 503)

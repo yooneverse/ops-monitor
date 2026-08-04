@@ -1,8 +1,10 @@
 from fastapi import APIRouter
+from fastapi import Depends
 from fastapi.responses import HTMLResponse
 from fastapi.responses import JSONResponse
 
 from app.api.dashboard_page import get_dashboard_html
+from app.security import require_monitor_auth
 from app.services.alert_history import get_alert_history
 from app.services.admin_actions import restart_database_service
 from app.services.monitoring_loop import get_monitoring_status
@@ -26,8 +28,8 @@ def monitoring_status() -> dict:
 
 
 @router.post("/admin/database/restart", response_model=None)
-def restart_database():
-    result = restart_database_service()
+def restart_database(username: str = Depends(require_monitor_auth)):
+    result = restart_database_service(requested_by=username)
 
     if result["status"] != "ok":
         return JSONResponse(status_code=503, content=result)

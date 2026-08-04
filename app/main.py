@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from contextlib import asynccontextmanager
 from datetime import datetime
 
 from fastapi import Depends, FastAPI
@@ -37,12 +38,39 @@ def build_readiness_response(database_status: dict) -> tuple[dict, int]:
     return payload, 200 if is_ready else 503
 
 
+@asynccontextmanager
+async def app_lifespan(_: FastAPI):
+    global monitoring_task
+
+    if not is_monitoring_enabled():
+        logger.info("Monitoring startup skipped")
+        monitoring_task = None
+        yield
+        return
+
+    monitoring_task = asyncio.create_task(monitor_services())
+
+    try:
+        yield
+    finally:
+        if monitoring_task:
+            monitoring_task.cancel()
+
+            try:
+                await monitoring_task
+            except asyncio.CancelledError:
+                pass
+            finally:
+                monitoring_task = None
+
+
 def create_app() -> FastAPI:
     app = FastAPI(
         title="Ops Monitor",
         docs_url=None,
         redoc_url=None,
         openapi_url=None,
+        lifespan=app_lifespan,
     )
 
     app.include_router(
@@ -121,29 +149,6 @@ def create_app() -> FastAPI:
                 openapi_url="/openapi.json",
                 title=f"{app.title} - Swagger UI",
             )
-
-    @app.on_event("startup")
-    async def startup_event():
-        global monitoring_task
-
-        if not is_monitoring_enabled():
-            logger.info("Monitoring startup skipped")
-            monitoring_task = None
-            return
-
-        monitoring_task = asyncio.create_task(monitor_services())
-
-    @app.on_event("shutdown")
-    async def shutdown_event():
-        global monitoring_task
-
-        if monitoring_task:
-            monitoring_task.cancel()
-
-            try:
-                await monitoring_task
-            except asyncio.CancelledError:
-                pass
 
     return app
 
