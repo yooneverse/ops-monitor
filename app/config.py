@@ -75,6 +75,7 @@ class Settings:
     monitor_username: str | None
     monitor_password: str | None
     allowed_hosts: tuple[str, ...]
+    monitoring_excluded_targets: tuple[str, ...]
     api_docs_enabled: bool
     monitoring_enabled: bool
     monitor_interval_seconds: int
@@ -102,6 +103,10 @@ def get_settings() -> Settings:
         allowed_hosts=parse_csv(
             os.getenv("ALLOWED_HOSTS"),
             default=("localhost", "127.0.0.1", "testserver"),
+        ),
+        monitoring_excluded_targets=parse_csv(
+            os.getenv("MONITORING_EXCLUDED_TARGETS"),
+            default=(),
         ),
         api_docs_enabled=parse_bool(os.getenv("ENABLE_API_DOCS"), default=False),
         monitoring_enabled=parse_bool(os.getenv("ENABLE_MONITORING_LOOP"), default=True),

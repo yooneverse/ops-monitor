@@ -360,3 +360,71 @@ GET http://localhost:8010/healthz
 - `demo-notes` 인증 또는 권한 모델 검토
 - 메모 서비스 마이그레이션 체계 검토
 - 운영 액션 증가 시 감사 로그 범위 검토
+
+---
+
+## 2026-08-04
+
+### Type
+
+`FIX`, `FEATURE`, `TEST`, `DOCS`
+
+### Summary
+
+문서와 코드의 기준선을 다시 정리했다.
+인코딩과 문서 작성 규칙을 저장소 수준으로 명시하고, 점검 대상을 레지스트리로 추상화했으며, 모니터링 루프 1회 단위 결과를 별도 리포트로 남기도록 확장했다.
+
+동시에 FastAPI 수명주기 처리와 운영 액션 추적을 보강해 WEB/WAS 운영 관점에서 설명 가능한 구조를 강화했다.
+
+### Commands
+
+```bash
+.venv\Scripts\python.exe -m unittest tests.test_config tests.test_monitoring_status tests.test_monitoring_targets tests.test_daily_runtime_logging tests.test_dashboard_api tests.test_admin_actions
+git status --short
+git diff
+```
+
+### Check
+
+```text
+GET /monitoring/status
+GET /alerts
+POST /admin/database/restart
+logs/runs/YYYY-MM-DD.jsonl
+logs/run-reports/YYYY-MM-DD.md
+```
+
+### Result
+
+- `.editorconfig`를 추가해 UTF-8/LF 기준을 저장소 단위로 고정
+- 외부 참고용 임시 HTML을 Git 추적 대상에서 제외
+- `database`, `demo_notes` 점검 대상을 레지스트리 구조로 추상화
+- `MONITORING_EXCLUDED_TARGETS` 설정으로 점검 제외 규칙 추가
+- `/monitoring/status`에 활성 대상, 제외 대상, 대상 경고 메타데이터 추가
+- 모니터링 루프 1회 단위 결과를 `runs`와 `run-reports`로 저장
+- FastAPI 수명주기 처리를 `lifespan` 방식으로 전환
+- 운영 액션에 수행자와 시각을 함께 남기도록 보강
+- README를 현황 보고서가 아닌 제품 소개서 형태로 재작성
+- SRS, 아키텍처, API 명세, WEB/WAS 운영 관점 문서를 전면 정리
+
+### Issue
+
+처음 구조에서는 이벤트 이력만으로는 "점검이 실제로 어떤 범위로 실행되었는지"를 설명하기 어려웠다.
+
+또한 점검 대상이 늘어날수록 DB와 부가 서비스를 개별 분기로 다루는 방식은 유지보수 비용이 커질 여지가 있었다.
+
+문서도 기능 목록과 작업 기록 위주로 흩어져 있어, 제품 소개와 설계 이유를 한 번에 읽기 어려웠다.
+
+### Resolution
+
+점검 대상은 레지스트리로 추상화하고, 실행 결과는 이벤트와 별도로 저장하는 2층 구조로 바꿨다.
+
+문서는 README를 제품 안내서로, 세부 문서는 설계/운영 이유 설명서로 역할을 분리했다.
+
+또한 WEB/WAS 운영 관점에서 왜 `livez`와 `readyz`를 나눴는지, 왜 전이 감지를 선택했는지, 왜 운영 액션 추적이 필요한지를 각 문서에 명시했다.
+
+### Next
+
+- 대시보드에서 최근 실행 단위 리포트 조회 기능 검토
+- 제외 규칙을 시간대 또는 대상별 세분화하는 방안 검토
+- 운영 액션 종류가 늘어날 경우 감사 로그 분리 설계 검토

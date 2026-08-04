@@ -6,298 +6,200 @@
 |---|---|
 | 문서명 | 아키텍처 설계서 |
 | 프로젝트명 | Ops Monitor |
-| 작성 목적 | 시스템 구성 요소, 요청 흐름, 장애 감지 흐름 정의 |
-| 현재 구현 범위 | 로컬 FastAPI, Docker PostgreSQL, Health Check |
-| 확장 예정 범위 | FastAPI 컨테이너화, Nginx Reverse Proxy, GitHub Actions |
+| 작성 목적 | 현재 구조, 확장 방향, 설계 선택 이유를 정리 |
+| 문서 관점 | 운영 아키텍처, 애플리케이션 구조, 모니터링 흐름 |
 
 ---
 
-## 2. 시스템 개요
+## 2. 아키텍처 목표
 
-Ops Monitor는 API 서버와 데이터베이스 상태를 확인하고, 장애 발생 시 감지 및 복구 흐름을 검증하기 위한 운영 모니터링 미니 프로젝트이다.
+Ops Monitor의 아키텍처는 "많은 기술을 붙이는 것"보다 "운영자가 판단해야 하는 흐름을 명확히 나누는 것"에 초점을 둔다.
 
-현재는 FastAPI 서버를 로컬에서 실행하고, PostgreSQL은 Docker Compose로 실행하는 구조이다.
+핵심 목표는 아래와 같다.
 
-최종적으로는 FastAPI, PostgreSQL, Nginx를 Docker Compose로 함께 실행하고, Nginx를 단일 진입점으로 사용하는 구조로 확장한다.
+1. 공개 프로브와 운영 API를 분리한다.
+2. 점검 대상은 확장 가능하게 등록한다.
+3. 이벤트와 실행 단위 리포트를 분리 저장한다.
+4. 운영 액션은 조회 흐름과 같은 시스템 안에서 추적한다.
 
 ---
 
-## 3. 현재 아키텍처
-
-### 3.1 구성도
+## 3. 현재 논리 구조
 
 ```text
 Client
-  ↓
-FastAPI Local Server
-  ↓
-localhost:5432
-  ↓
-PostgreSQL Container
-```
-
-### 3.2 구성 요소
-
-| 구성 요소 | 실행 위치 | 역할 | 상태 |
-|---|---|---|---|
-| Client | Local | API 요청 수행 | 완료 |
-| FastAPI | Local | API 서버 및 Health Check 제공 | 완료 |
-| PostgreSQL | Docker Container | DB 연결 상태 확인 대상 | 완료 |
-| Docker Compose | Local | PostgreSQL 컨테이너 실행 | 완료 |
-| Nginx | Docker Container | Reverse Proxy | 예정 |
-| GitHub Actions | GitHub | 기본 CI 자동화 | 예정 |
-
----
-
-## 4. 현재 요청 흐름
-
-### 4.1 Root API 요청 흐름
-
-```text
-Client
-  ↓
-GET /
-  ↓
+  ->
+Nginx
+  ->
 FastAPI
-  ↓
-API 서버 실행 메시지 반환
+  ->
+Public Health APIs (/ /livez /readyz)
+  ->
+Protected Ops APIs (/health /system /alerts /monitoring/status /dashboard)
+  ->
+Monitoring Loop
+  ->
+Monitoring Targets (database, demo_notes, system resource)
+  ->
+Alert History / Run Report / Discord Webhook
 ```
 
-### 4.2 Health Check 요청 흐름
+---
 
-```text
-Client
-  ↓
-GET /health
-  ↓
-FastAPI
-  ↓
-DATABASE_URL 확인
-  ↓
-PostgreSQL 연결 테스트
-  ↓
-API 상태 + DB 상태 반환
-```
+## 4. 구성 요소 설명
 
-### 4.3 Health Check 응답 기준
-
-| 상황 | API 응답 | DB 상태 |
+| 구성 요소 | 역할 | 왜 필요한가 |
 |---|---|---|
-| FastAPI 정상, PostgreSQL 실행 | 200 | connected |
-| FastAPI 정상, PostgreSQL 중지 | 200 | disconnected |
-| FastAPI 정상, DATABASE_URL 누락 | 200 | error |
-| FastAPI 미실행 | 응답 없음 | 확인 불가 |
+| FastAPI | 상태 확인 API, 운영 API, 대시보드 제공 | 헬스 체크와 보호 API를 빠르게 분리하기 좋다. |
+| Monitoring Loop | 주기적 점검 실행 | 사용자가 직접 조회하지 않아도 변화 감지가 가능하다. |
+| Monitoring Targets | 점검 대상 레지스트리 | 새로운 점검 대상을 if 분기 누적 없이 추가할 수 있다. |
+| Alert History | 최근 이벤트 유지 | 운영자가 최근 incident / recovery 흐름을 빠르게 읽을 수 있다. |
+| Run Report | 실행 단위 결과 저장 | "점검 1회" 관점으로 범위와 예외를 복기할 수 있다. |
+| Dashboard | 사람이 보는 운영 화면 | 숫자 나열보다 판단 흐름을 빠르게 제공한다. |
+| Admin Action | 운영 조치 API | 조회뿐 아니라 조치 결과도 같은 시스템에서 추적한다. |
 
 ---
 
-## 5. 현재 DB 연결 구조
+## 5. 왜 이런 구조를 선택했는가
 
-현재 FastAPI는 로컬 환경에서 실행되고, PostgreSQL은 Docker 컨테이너에서 실행된다.
+### 5.1 공개 프로브와 운영 API를 분리한 이유
+
+`/livez`, `/readyz`는 외부 헬스 체크와 배포 시스템이 호출할 수 있어야 한다.  
+반면 `/health`, `/alerts`, `/dashboard`는 운영 정보가 많기 때문에 보호되어야 한다.
+
+즉, 같은 "상태 확인" 계열이라도 사용 주체와 민감도가 다르므로 아키텍처 레벨에서 분리하는 편이 맞다.
+
+### 5.2 점검 대상 추상화를 선택한 이유
+
+초기에는 DB와 부가 서비스를 개별 함수로 처리해도 된다.  
+하지만 운영 도구는 시간이 갈수록 다음 대상이 붙는다.
+
+- 캐시
+- 외부 API
+- 백그라운드 워커
+- 업스트림 서버
+
+그래서 "상태 수집 함수 + 기대 상태 + 장애/복구 메시지 + 무시 상태" 구조로 통일해 두는 편이 유지보수에 유리하다.
+
+### 5.3 이벤트 로그와 실행 리포트를 나눈 이유
+
+이벤트 로그만 있으면 장애가 있었는지는 알 수 있다.  
+하지만 아래 정보는 놓치기 쉽다.
+
+- 그 실행에서 어떤 대상을 점검했는지
+- 어떤 대상을 제외했는지
+- 아무 이벤트가 없었지만 실제로 점검은 수행되었는지
+
+그래서 운영 이력을 두 층으로 나눴다.
+
+- 이벤트 로그: incident / recovery / warning
+- 실행 리포트: 점검 1회 단위 요약
+
+### 5.4 FastAPI를 선택한 이유
+
+이 프로젝트는 관측성과 운영 API 설계가 핵심이다.  
+FastAPI는 다음 장점이 있었다.
+
+- 헬스 체크 엔드포인트를 빠르게 분리 가능
+- 의존성 주입으로 인증/운영 액션 처리 구성 용이
+- 테스트 코드 작성이 쉬움
+- 작은 운영 도구를 빠르게 구조화하기 좋음
+
+### 5.5 Docker Compose를 선택한 이유
+
+운영 모니터링 프로젝트는 실행 환경 차이를 줄이는 것이 중요하다.
+
+Compose를 선택한 이유는 아래와 같다.
+
+- 로컬과 운영 시뮬레이션 환경을 맞추기 쉽다.
+- DB 장애/복구 시나리오를 재현하기 좋다.
+- Nginx, app, db 관계를 명시적으로 보여주기 좋다.
+
+---
+
+## 6. 점검 흐름
+
+### 6.1 모니터링 루프 1회 실행
 
 ```text
-FastAPI Local Server
-  ↓
-localhost:5432
-  ↓
-PostgreSQL Container
+1. 설정 로드
+2. 제외 대상 규칙 적용
+3. 활성 점검 대상 목록 확정
+4. 각 대상 상태 수집
+5. 전이 기반 이벤트 판단
+6. 자원 임계치 이벤트 판단
+7. 이벤트 저장 및 알림 전송
+8. 실행 단위 리포트 저장
 ```
 
-FastAPI는 `.env` 파일에 정의된 `DATABASE_URL`을 사용해 PostgreSQL에 연결한다.
+### 6.2 전이 판단 기준
+
+| 이전 상태 | 현재 상태 | 결과 |
+|---|---|---|
+| 정상 | 비정상 | incident |
+| 비정상 | 정상 | recovery |
+| 동일 | 동일 | 이벤트 없음 |
+| 제외 상태 | 제외 상태 | 이벤트 없음 |
+
+---
+
+## 7. 예외 규칙 구조
+
+현재 예외 규칙은 `MONITORING_EXCLUDED_TARGETS`를 통해 특정 점검 대상을 아예 실행 범위에서 제외하는 방식으로 설계한다.
+
+예:
 
 ```env
-DATABASE_URL=postgresql://<DB_USER>:<DB_PASSWORD>@localhost:5432/<DB_NAME>
+MONITORING_EXCLUDED_TARGETS=demo_notes
 ```
 
-실제 DB 계정명, 비밀번호, 데이터베이스명은 `.env`에서 관리하며 GitHub에 업로드하지 않는다.
+선택 이유는 단순하다.
+
+- 운영자가 임시 점검 제외를 쉽게 적용할 수 있다.
+- 점검 로직을 지우지 않고도 예외 시나리오를 만들 수 있다.
+- 제외 정보가 대시보드와 실행 리포트에 함께 남는다.
 
 ---
 
-## 6. 장애 감지 흐름
+## 8. 운영 액션 구조
 
-PostgreSQL 컨테이너가 중지되면 FastAPI는 DB 연결에 실패한다.
+`/admin/database/restart`는 단순히 명령만 실행하는 엔드포인트가 아니다.
 
-이 경우 `/health` API는 API 서버 상태와 DB 상태를 분리해 반환한다.
+다음 정보가 함께 남는다.
 
-```text
-PostgreSQL Container Stop
-  ↓
-GET /health
-  ↓
-FastAPI DB Connection Check
-  ↓
-Connection Failed
-  ↓
-database.status = disconnected
-```
+- 조치 종류
+- 수행자
+- 수행 시각
+- 성공/실패 결과
 
-### 장애 감지 결과
-
-| 단계 | 조치 | 확인 결과 |
-|---|---|---|
-| 1 | PostgreSQL 컨테이너 실행 | connected |
-| 2 | PostgreSQL 컨테이너 중지 | disconnected |
-| 3 | PostgreSQL 컨테이너 재시작 | connected |
+이렇게 한 이유는 운영 도구에서 조치는 조회보다 위험도가 높기 때문이다.  
+누가, 언제, 어떤 결과로 조치를 실행했는지 남기지 않으면 운영 기록의 가치가 떨어진다.
 
 ---
 
-## 7. 복구 확인 흐름
+## 9. 확장 방향
 
-PostgreSQL 컨테이너를 재시작하면 FastAPI의 DB 연결 테스트가 다시 성공한다.
+향후 확장 시 우선순위는 아래와 같다.
 
-```text
-PostgreSQL Container Start
-  ↓
-GET /health
-  ↓
-FastAPI DB Connection Check
-  ↓
-Connection Success
-  ↓
-database.status = connected
-```
+1. 체크 대상 추가
+2. 예외 규칙 세분화
+3. 실행 리포트 비교 기능
+4. 운영 액션 확대
 
-복구 여부는 `/health` API 응답을 통해 확인한다.
+### 예시 확장 대상
+
+- Redis
+- 외부 API 헬스 체크
+- 백그라운드 작업 큐
+- 업스트림 WAS 인스턴스
 
 ---
 
-## 8. 목표 아키텍처
+## 10. 관련 문서
 
-향후 FastAPI와 Nginx를 Docker Compose에 포함해 다음 구조로 확장한다.
-
-```text
-Client
-  ↓
-Nginx Container
-  ↓
-FastAPI Container
-  ↓
-PostgreSQL Container
-```
-
-### 목표 구성 요소
-
-| 구성 요소 | 실행 위치 | 역할 |
-|---|---|---|
-| Client | Local 또는 외부 요청자 | API 요청 수행 |
-| Nginx | Docker Container | Reverse Proxy |
-| FastAPI | Docker Container | API 서버 |
-| PostgreSQL | Docker Container | 데이터 저장소 |
-| Docker Compose | Local 또는 Server | 전체 서비스 실행 관리 |
-| GitHub Actions | GitHub | 코드 검증 자동화 |
-
----
-
-## 9. 목표 요청 흐름
-
-### 9.1 Nginx 적용 후 요청 흐름
-
-```text
-Client
-  ↓
-HTTP Request
-  ↓
-Nginx
-  ↓
-FastAPI
-  ↓
-PostgreSQL
-```
-
-Nginx는 외부 요청을 받아 FastAPI 컨테이너로 전달한다.
-
-FastAPI는 API 요청을 처리하고, 필요한 경우 PostgreSQL에 연결한다.
-
-### 9.2 Health Check 목표 흐름
-
-```text
-Client
-  ↓
-GET /health
-  ↓
-Nginx
-  ↓
-FastAPI
-  ↓
-PostgreSQL Connection Check
-  ↓
-Health Check Response
-```
-
----
-
-## 10. Docker Compose 확장 기준
-
-현재는 PostgreSQL만 Docker Compose로 실행한다.
-
-향후 확장 시 Compose 서비스는 다음과 같이 구성한다.
-
-| Service | 역할 | 상태 |
-|---|---|---|
-| db | PostgreSQL 데이터베이스 | 완료 |
-| app | FastAPI 애플리케이션 | 예정 |
-| nginx | Reverse Proxy | 예정 |
-
-FastAPI가 컨테이너 내부에서 실행되면 DB host는 `localhost`가 아니라 Compose 서비스명인 `db`를 사용한다.
-
-```env
-DATABASE_URL=postgresql://<DB_USER>:<DB_PASSWORD>@db:5432/<DB_NAME>
-```
-
-향후 Nginx를 Reverse Proxy로 추가하여 외부 요청을 FastAPI 컨테이너로 전달한다.
-
----
-
-## 11. 보안 및 설정 관리
-
-| 항목 | 설계 기준 |
+| 문서 | 설명 |
 |---|---|
-| DB 사용자명 | `.env`에서 관리 |
-| DB 비밀번호 | `.env`에서 관리 |
-| DB 연결 문자열 | `.env`에서 관리 |
-| `.env` 파일 | Git 추적 제외 |
-| `.env.example` | 예시값만 작성 |
-| API 응답 | 실제 연결 문자열 및 내부 오류 원문 노출 금지 |
-| 문서 | 실제 계정명, 비밀번호, 로컬 절대경로 블라인드 처리 |
-
----
-
-## 12. 현재 완료 상태
-
-| 항목 | 상태 |
-|---|---|
-| FastAPI 로컬 서버 구성 | 완료 |
-| `/` API 구현 | 완료 |
-| `/health` API 구현 | 완료 |
-| PostgreSQL 연결 상태 확인 | 완료 |
-| Docker Compose로 PostgreSQL 실행 | 완료 |
-| DB 장애 감지 확인 | 완료 |
-| DB 복구 확인 | 완료 |
-| FastAPI 컨테이너화 | 예정 |
-| Nginx Reverse Proxy 구성 | 예정 |
-| GitHub Actions 구성 | 예정 |
-
----
-
-## 13. 설계 고려사항
-
-| 항목 | 고려 내용 |
-|---|---|
-| 운영성 | API와 DB 상태를 분리해 확인 |
-| 장애 대응 | DB 중지 및 재시작 흐름을 Health Check로 검증 |
-| 확장성 | FastAPI, PostgreSQL, Nginx를 Compose 구조로 확장 |
-| 보안성 | 민감정보는 환경변수로 분리하고 문서에는 노출하지 않음 |
-| 유지보수성 | API, DB 연결 로직, 문서를 분리해 관리 |
-| 추적성 | 작업 기록과 트러블슈팅 기록을 별도 문서로 관리 |
-
----
-
-## 14. 다음 작업
-
-| 작업 | 설명 |
-|---|---|
-| FastAPI Dockerfile 작성 | API 서버 컨테이너 실행 환경 구성 |
-| app 서비스 추가 | Docker Compose에 FastAPI 서비스 추가 |
-| DATABASE_URL 변경 | Compose 내부 네트워크 기준으로 DB host를 `db`로 변경 |
-| Nginx 설정 작성 | Reverse Proxy 설정 파일 작성 |
-| nginx 서비스 추가 | Docker Compose에 Nginx 서비스 추가 |
-| 요청 흐름 검증 | Nginx를 통해 `/health` API 호출 확인 |
+| `docs/01_srs.md` | 제품 요구사항 |
+| `docs/03_api_spec.md` | API 명세 |
+| `docs/10_runtime_configuration.md` | 설정과 대시보드 반영 기준 |
+| `docs/13_encoding_policy.md` | 문서/코드 표현 규칙 |

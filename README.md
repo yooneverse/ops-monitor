@@ -1,6 +1,6 @@
 <div align="center">
   <h1>Ops Monitor</h1>
-  <p>Docker 컨테이너 기반 서비스 상태 점검과 운영 흐름 연습을 위한 모니터링 프로젝트</p>
+  <p>WEB/WAS 운영자가 서비스 상태, 점검 결과, 운영 액션을 한 화면에서 다루기 위한 경량 운영 모니터링 도구</p>
   <img src="docs/assets/ops-monitor-wordmark-main.png" alt="Ops Monitor" width="460" />
   <br />
   <br />
@@ -8,56 +8,97 @@
     <code>FastAPI</code>
     <code>PostgreSQL</code>
     <code>Docker Compose</code>
-    <code>demo-notes</code>
     <code>Nginx</code>
+    <code>Dashboard</code>
+    <code>Monitoring Run Report</code>
   </p>
 </div>
 
 ---
 
-## 프로젝트 개요
+## 제품 소개
 
-Ops Monitor는 서비스의 기본 생존 신호, DB 연결 상태, 시스템 자원 사용량, 최근 장애 이벤트를 한곳에서 확인할 수 있도록 만든 운영 모니터링 연습 프로젝트입니다.
+Ops Monitor는 서비스 운영자가 매번 여러 화면을 오가며 확인하던 생존 신호, 준비 상태, 데이터베이스 연결, 부가 서비스 상태, 시스템 자원 사용량, 최근 장애 이벤트를 한곳에서 확인할 수 있도록 설계한 운영 도구입니다.
 
-이 프로젝트는 아래 흐름을 직접 구현하고 검증하는 데 초점을 둡니다.
+이 프로젝트는 단순한 상태판이 아니라 아래 질문에 답하는 제품을 지향합니다.
 
-- 공개 상태 확인 API와 보호된 운영 API 분리
-- 주기적 모니터링 루프와 장애/복구 이벤트 기록
-- 일자별 로그와 간단한 운영 리포트 생성
-- 운영 화면에서 현재 설정 상태까지 함께 확인
+- 지금 서비스는 살아 있는가
+- 지금 요청을 받을 준비가 되었는가
+- 장애는 현재 상태인가, 방금 발생한 전이인가
+- 어떤 점검 대상을 실제로 감시하고 있고, 어떤 대상은 예외 규칙으로 제외했는가
+- 운영자가 방금 수행한 조치가 무엇이며, 그 결과는 어땠는가
 
-## 이번 보강 포인트
+---
 
-최근 변경으로 런타임 설정 안정성, 운영 대시보드, 데모 서비스 연동을 함께 보강했습니다.
+## 핵심 가치
 
-- 잘못된 모니터링 설정값이 들어와도 앱이 안전한 기본값으로 동작
-- `/monitoring/status`에서 임계치, 인증 설정, 설정 경고를 함께 확인 가능
-- `/dashboard`에서 서비스 상태, 최근 알림, 설정 상태, 자원 사용량을 한글 운영 화면으로 확인 가능
-- `/admin/database/restart`로 운영 화면에서 DB 재시작 요청 가능
-- `demo-notes`를 별도 서비스로 분리하고 PostgreSQL 기반 메모 저장/수정/삭제 지원
+### 1. WEB/WAS 운영에 맞춘 상태 분리
 
-자세한 내용은 [docs/10_runtime_configuration.md](docs/10_runtime_configuration.md), [docs/11_dashboard_work_breakdown.md](docs/11_dashboard_work_breakdown.md), [study/dashboard-notes-refinement.md](study/dashboard-notes-refinement.md), [study/why-console-dashboard.md](study/why-console-dashboard.md)에서 확인할 수 있습니다.
+`/livez`와 `/readyz`를 나누어 프로세스 생존과 실제 서비스 가능 상태를 구분합니다.  
+운영자는 단순히 "앱이 떠 있다"가 아니라 "지금 트래픽을 받아도 되는가"를 기준으로 판단할 수 있습니다.
+
+### 2. 전이 기반 장애 감지
+
+장애를 현재 값 하나로만 보지 않고, `정상 -> 비정상`, `비정상 -> 정상` 전이를 기준으로 감지합니다.  
+이 방식은 중복 알림을 줄이고, 복구 확인까지 같은 흐름 안에서 추적하기 좋습니다.
+
+### 3. 실행 단위 리포트
+
+모니터링 루프 1회 실행이 끝날 때마다 어떤 대상을 점검했고, 무엇을 제외했고, 어떤 이벤트가 발생했는지를 실행 단위로 기록합니다.  
+즉, "이벤트 로그"와 "점검 실행 기록"을 분리해 운영 분석에 더 적합한 구조를 제공합니다.
+
+### 4. 운영 액션 추적
+
+대시보드에서 수행한 DB 재시작 요청은 누가 언제 실행했는지 결과와 함께 남깁니다.  
+운영 도구는 조회만 잘하는 것보다, 조치 이력이 남는 것이 더 중요하다고 판단했습니다.
+
+---
 
 ## 주요 기능
 
-| 구분 | 내용 |
+| 구분 | 기능 |
 |---|---|
 | Public Health | `/`, `/livez`, `/readyz` |
 | Protected Ops API | `/health`, `/system`, `/alerts`, `/monitoring/status` |
-| Dashboard | `/dashboard` |
-| Demo Service | `demo-notes` 메모 서비스 (`http://localhost:8010`) |
-| Monitoring | DB 상태, 메모리, 디스크 사용량, 이벤트 감지 |
-| Alerts | 웹훅 기반 장애 및 복구 알림 |
-| Logging | 애플리케이션 로그, 이벤트 로그, 일일 리포트 생성 |
-| Security | Basic Auth, Trusted Host, rate limit, 숨김 경로 차단 |
+| Dashboard | `/dashboard` 운영 화면 |
+| Monitoring Targets | DB, demo-notes, 이후 확장 가능한 체크 대상 레지스트리 |
+| Run Report | `logs/runs`, `logs/run-reports`에 실행 단위 기록 저장 |
+| Alert History | 장애, 복구, 자원 경고, 운영 액션 이력 |
+| Admin Action | `/admin/database/restart`를 통한 보호된 운영 조치 |
+| Security | Basic Auth, Trusted Host, 제한된 CORS, 문서 비노출 기본값 |
 
-## 아키텍처
+---
+
+## 운영 시나리오
+
+### 시나리오 1. 서비스 준비 상태 확인
+
+운영자는 먼저 `/readyz`를 호출해 서비스가 요청을 받을 준비가 되었는지 확인합니다.
+
+- `ready`: DB 연결까지 포함해 준비 완료
+- `not_ready`: 프로세스는 살아 있어도 실제 서비스 준비는 미완료
+
+### 시나리오 2. 대시보드에서 이상 징후 파악
+
+운영자는 `/dashboard`에서 다음을 한 번에 확인할 수 있습니다.
+
+- API / DB / 부가 서비스 상태
+- 메모리 / 디스크 사용량
+- 최근 알림 흐름
+- 설정 경고
+- 활성 점검 대상과 제외된 점검 대상
+
+### 시나리오 3. 운영 액션 수행과 이력 확인
+
+필요 시 보호된 관리자 액션으로 DB 재시작을 요청할 수 있으며, 결과는 이벤트 이력에 함께 기록됩니다.
+
+---
+
+## 아키텍처 개요
 
 <div align="center">
   <img src="docs/assets/ops-monitor-architecture-simple.png" alt="Ops Monitor Architecture" width="920" />
 </div>
-
-전체 흐름은 다음과 같습니다.
 
 ```text
 Client
@@ -66,23 +107,95 @@ Nginx
   ->
 FastAPI
   ->
-PostgreSQL
+Protected Ops APIs
   ->
 Monitoring Loop
   ->
-Discord Webhook
+PostgreSQL / Demo Service / System Resource Checks
+  ->
+Run Report + Alert History + Discord Webhook
 ```
 
 ### 구성 요소
 
-| 구성 요소 | 역할 |
+| 구성 요소 | 선택 이유 |
 |---|---|
-| Nginx | 요청 전달, 기본 보안 헤더, 접근 제어 |
-| FastAPI | 상태 조회 API, 대시보드, 운영 로직 제공 |
-| PostgreSQL | 연결 상태 확인 대상 |
-| Monitoring Loop | 주기적 상태 점검과 이벤트 생성 |
-| Alert Channel | 장애 및 복구 알림 전송 |
-| Daily Logs | 날짜별 로그와 운영 리포트 생성 |
+| FastAPI | 운영 API와 헬스 체크를 빠르게 분리하고 테스트하기 쉬움 |
+| PostgreSQL | 서비스 준비 상태 판단과 저장소 연결 시나리오를 분명하게 검증 가능 |
+| Docker Compose | 운영 환경과 로컬 검증 환경의 차이를 줄이기 쉬움 |
+| Nginx | 리버스 프록시, 기본 보안 헤더, 헬스 체크 진입점 구성에 적합 |
+| Daily Logs | 날짜 기준 운영 추적성과 복기 용이성 확보 |
+
+---
+
+## 점검 대상 추상화
+
+Ops Monitor는 점검 대상이 늘어날 것을 전제로 설계합니다.
+
+현재 기본 대상은 아래 두 가지입니다.
+
+- `database`
+- `demo_notes`
+
+이 대상들은 레지스트리 형태로 관리되며, 같은 패턴으로 새 대상을 추가할 수 있습니다.
+
+- 상태 수집 함수
+- 기대 상태
+- 장애 메시지
+- 복구 메시지
+- 무시할 상태
+
+또한 `MONITORING_EXCLUDED_TARGETS`를 통해 특정 점검 대상을 예외 규칙으로 제외할 수 있습니다.
+
+예:
+
+```env
+MONITORING_EXCLUDED_TARGETS=demo_notes
+```
+
+---
+
+## 실행 단위 리포트
+
+이벤트만 저장하면 "무슨 장애가 있었는지"는 알 수 있지만, "점검 한 번이 어떤 범위로 실행되었는지"는 알기 어렵습니다.
+
+그래서 모니터링 루프는 1회 실행마다 아래 정보를 별도로 남깁니다.
+
+- `run_id`
+- 시작 시각 / 종료 시각
+- 활성 점검 대상
+- 제외된 점검 대상
+- 타깃 경고
+- 서비스별 상태
+- 자원 사용량 요약
+- 해당 실행에서 생성된 이벤트 목록
+
+저장 위치:
+
+| 경로 | 설명 |
+|---|---|
+| `logs/runs/YYYY-MM-DD.jsonl` | 실행 단위 원본 로그 |
+| `logs/run-reports/YYYY-MM-DD.md` | 실행 결과 요약 리포트 |
+| `logs/events/YYYY-MM-DD.jsonl` | 이벤트 원본 로그 |
+| `logs/reports/YYYY-MM-DD.md` | 이벤트 일일 요약 |
+
+---
+
+## 보안 기준
+
+Ops Monitor는 데모 화면처럼 누구나 보는 상태판보다, 운영 자산에 더 가깝게 취급합니다.
+
+### 기본 보안 원칙
+
+- 보호 대상 API는 Basic Auth로 감쌉니다.
+- API 문서는 기본적으로 닫혀 있습니다.
+- 민감 정보는 `.env`로 분리합니다.
+- `Host` 헤더는 허용 목록만 받습니다.
+- 로그에는 연결 문자열과 비밀번호를 남기지 않습니다.
+
+자세한 내용은 `docs/07_security.md`, `docs/08_runtime_security.md`를 참고할 수 있습니다.
+
+---
 
 ## 빠른 시작
 
@@ -90,7 +203,7 @@ Discord Webhook
 
 `.env.example`을 기준으로 `.env`를 준비합니다.
 
-중요 설정:
+주요 변수:
 
 - `DATABASE_URL`
 - `MONITOR_USERNAME`
@@ -98,13 +211,8 @@ Discord Webhook
 - `MONITOR_INTERVAL_SECONDS`
 - `MEMORY_ALERT_THRESHOLD`
 - `DISK_ALERT_THRESHOLD`
-- `DISCORD_WEBHOOK_URL` 선택
-
-유효 범위:
-
-- `MONITOR_INTERVAL_SECONDS`: `5` ~ `3600`
-- `MEMORY_ALERT_THRESHOLD`: `1` ~ `100`
-- `DISK_ALERT_THRESHOLD`: `1` ~ `100`
+- `MONITORING_EXCLUDED_TARGETS`
+- `DISCORD_WEBHOOK_URL`
 
 ### 2. 의존성 설치
 
@@ -124,64 +232,28 @@ uvicorn app.main:app --reload
 docker compose up --build
 ```
 
-### 5. 데모 메모 서비스 확인
+### 5. 점검
 
-브라우저에서 아래 주소로 접속할 수 있습니다.
-
-```text
-http://localhost:8010
-```
-
-헬스체크 경로:
+공개 헬스 체크:
 
 ```text
-http://localhost:8010/healthz
+GET /
+GET /livez
+GET /readyz
 ```
 
-지원 기능:
+보호된 운영 기능:
 
-- 메모 등록
-- 메모 수정
-- 메모 삭제
-- PostgreSQL 기반 영속 저장
+```text
+GET /health
+GET /system
+GET /alerts
+GET /monitoring/status
+GET /dashboard
+POST /admin/database/restart
+```
 
-## 엔드포인트
-
-### 공개 엔드포인트
-
-| Method | Path | 설명 |
-|---|---|---|
-| GET | `/` | 기본 확인 |
-| GET | `/livez` | 프로세스 생존 확인 |
-| GET | `/readyz` | 준비 상태 확인 |
-
-### 보호된 엔드포인트
-
-| Method | Path | 설명 |
-|---|---|---|
-| GET | `/health` | 앱 및 DB 상태 |
-| GET | `/system` | 시스템 자원 상태 |
-| GET | `/alerts` | 최근 이벤트 이력 |
-| GET | `/monitoring/status` | 모니터링 루프 상태와 런타임 설정 메타데이터 |
-| GET | `/dashboard` | 운영 대시보드 |
-
-## 운영 시 확인 포인트
-
-`.env`를 바꾼 뒤에는 아래 세 가지를 같이 확인하는 것을 권장합니다.
-
-1. `GET /monitoring/status`에서 주기, 임계치, `config_warnings` 확인
-2. `/dashboard`에서 설정 상태, DB 상태, 최근 알림 흐름 확인
-3. `/health`에서 `database`, `demo_notes` 상태가 함께 정상인지 확인
-4. 보호된 API가 Basic Auth로 정상 보호되는지 확인
-
-로그는 아래 경로에 날짜별로 쌓입니다.
-
-| 경로 | 설명 |
-|---|---|
-| `logs/application/YYYY-MM-DD.log` | 애플리케이션 로그 |
-| `logs/access/YYYY-MM-DD.log` | 접근 로그 |
-| `logs/events/YYYY-MM-DD.jsonl` | 이벤트 원본 로그 |
-| `logs/reports/YYYY-MM-DD.md` | 일일 리포트 |
+---
 
 ## 테스트
 
@@ -191,40 +263,43 @@ http://localhost:8010/healthz
 .venv\Scripts\python.exe -m unittest discover -s tests
 ```
 
-핵심 설정/대시보드 테스트:
+핵심 안정성 테스트:
 
 ```bash
-.venv\Scripts\python.exe -m unittest tests.test_config tests.test_dashboard_api tests.test_monitoring_status
+.venv\Scripts\python.exe -m unittest ^
+  tests.test_config ^
+  tests.test_monitoring_status ^
+  tests.test_monitoring_targets ^
+  tests.test_daily_runtime_logging ^
+  tests.test_dashboard_api ^
+  tests.test_admin_actions
 ```
 
-## 커밋 원칙
+---
 
-```text
-init   : 프로젝트 초기 설정
-feat   : 기능 추가
-infra  : 인프라 및 실행 환경 변경
-test   : 테스트 추가 또는 보강
-docs   : 문서 작성 및 수정
-fix    : 오류 수정
-chore  : 기타 정리
-ci     : CI 설정 변경
-```
+## 문서 안내
 
-## 문서 모음
-
-| 문서 | 내용 |
+| 문서 | 설명 |
 |---|---|
-| [docs/01_srs.md](docs/01_srs.md) | 요구사항 정리 |
-| [docs/02_architecture.md](docs/02_architecture.md) | 아키텍처 설명 |
-| [docs/03_api_spec.md](docs/03_api_spec.md) | API 명세 |
-| [docs/04_erd.md](docs/04_erd.md) | 데이터 모델 |
-| [docs/05_docker_compose_design.md](docs/05_docker_compose_design.md) | Compose 설계 |
-| [docs/06_troubleshooting.md](docs/06_troubleshooting.md) | 문제 해결 기록 |
-| [docs/07_security.md](docs/07_security.md) | 기본 보안 정리 |
-| [docs/08_runtime_security.md](docs/08_runtime_security.md) | 런타임 보안 보강 |
-| [docs/09_monitoring_interval_update.md](docs/09_monitoring_interval_update.md) | 모니터링 간격 조정 기록 |
-| [docs/10_runtime_configuration.md](docs/10_runtime_configuration.md) | 런타임 설정 검증과 대시보드 보강 가이드 |
-| [docs/11_dashboard_work_breakdown.md](docs/11_dashboard_work_breakdown.md) | 대시보드 개선 작업 분해 |
-| [study/dashboard-notes-refinement.md](study/dashboard-notes-refinement.md) | 대시보드와 메모 서비스 설계 고민 및 복구 기록 |
-| [study/why-console-dashboard.md](study/why-console-dashboard.md) | 대시보드를 콘솔형으로 잡은 이유와 판단 기준 |
-| [docs/operation-log.md](docs/operation-log.md) | 작업 기록 |
+| [docs/01_srs.md](docs/01_srs.md) | 제품 요구사항과 운영 목표 |
+| [docs/02_architecture.md](docs/02_architecture.md) | 현재/목표 아키텍처와 설계 이유 |
+| [docs/03_api_spec.md](docs/03_api_spec.md) | 보호 API와 운영 응답 명세 |
+| [docs/06_troubleshooting.md](docs/06_troubleshooting.md) | 실제 문제와 해결 기록 |
+| [docs/07_security.md](docs/07_security.md) | 기본 보안 정책 |
+| [docs/08_runtime_security.md](docs/08_runtime_security.md) | 런타임 보안 강화 이유 |
+| [docs/10_runtime_configuration.md](docs/10_runtime_configuration.md) | 런타임 설정과 대시보드 반영 기준 |
+| [docs/13_encoding_policy.md](docs/13_encoding_policy.md) | 인코딩과 문서 작성 기준 |
+| [docs/14_web_was_operations_view.md](docs/14_web_was_operations_view.md) | WEB/WAS 운영 관점 설명 |
+| [docs/15_monitoring_run_report_design.md](docs/15_monitoring_run_report_design.md) | 체크 대상 추상화와 실행 리포트 설계 이유 |
+
+---
+
+## Insight
+
+Ops Monitor는 WEB/WAS 운영자가 실제로 고민하는 아래 문제를 작은 범위에서 명확하게 풀어내는 데 집중합니다.
+
+- 준비 상태를 어떻게 신뢰성 있게 구분할 것인가
+- 장애와 복구를 어떤 기준으로 판단할 것인가
+- 점검 대상을 어떻게 확장 가능하게 설계할 것인가
+- 운영 이력을 어떤 단위로 남길 것인가
+
