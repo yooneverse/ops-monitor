@@ -10,6 +10,7 @@ from app.services.runtime_logs import (
     get_daily_path,
     persist_alert_event,
     persist_monitoring_run,
+    read_recent_monitoring_runs,
 )
 
 
@@ -113,6 +114,34 @@ class DailyRuntimeLoggingTests(unittest.TestCase):
         self.assertIn('"run_id": "20260804-101500"', runs_text)
         self.assertIn("Ops Monitor Monitoring Run Report", markdown_text)
         self.assertIn("demo_notes", markdown_text)
+
+    def test_read_recent_monitoring_runs_returns_latest_entries_first(self) -> None:
+        earlier_report = {
+            "run_id": "20260803-221500",
+            "completed_at": "2026-08-03T22:15:02",
+            "overall_status": "ok",
+            "active_targets": ["database"],
+            "excluded_targets": [],
+            "events": [],
+        }
+        latest_report = {
+            "run_id": "20260804-101500",
+            "completed_at": "2026-08-04T10:15:02",
+            "overall_status": "warning",
+            "active_targets": ["database"],
+            "excluded_targets": ["demo_notes"],
+            "events": [{"type": "incident"}],
+        }
+
+        with TemporaryDirectory() as temp_dir:
+            with unittest.mock.patch.dict(os.environ, {"LOG_DIR": temp_dir}, clear=False):
+                reset_settings_cache()
+                persist_monitoring_run(earlier_report, now=datetime(2026, 8, 3, 22, 15, 2))
+                persist_monitoring_run(latest_report, now=datetime(2026, 8, 4, 10, 15, 2))
+
+                recent_reports = read_recent_monitoring_runs(limit=2)
+
+        self.assertEqual([report["run_id"] for report in recent_reports], ["20260804-101500", "20260803-221500"])
 
 
 if __name__ == "__main__":

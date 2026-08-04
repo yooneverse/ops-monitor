@@ -8,6 +8,7 @@ from app.security import require_monitor_auth
 from app.services.alert_history import get_alert_history
 from app.services.admin_actions import restart_database_service
 from app.services.monitoring_loop import get_monitoring_status
+from app.services.runtime_logs import read_recent_monitoring_runs
 
 router = APIRouter()
 
@@ -25,6 +26,11 @@ def get_alerts() -> list[dict]:
 @router.get("/monitoring/status")
 def monitoring_status() -> dict:
     return get_monitoring_status()
+
+
+@router.get("/monitoring/runs/recent")
+def recent_monitoring_runs() -> list[dict]:
+    return read_recent_monitoring_runs()
 
 
 @router.post("/admin/database/restart", response_model=None)

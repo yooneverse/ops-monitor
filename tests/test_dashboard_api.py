@@ -27,6 +27,9 @@ class DashboardApiTests(unittest.TestCase):
         self.assertIn("excluded-target-list", html)
         self.assertIn("target-warning-list", html)
         self.assertIn("renderTargetMetadata", html)
+        self.assertIn("최근 실행 리포트", html)
+        self.assertIn("run-report-list", html)
+        self.assertIn("renderRunReports", html)
 
     def test_dashboard_route_uses_shared_page_builder(self) -> None:
         self.assertEqual(dashboard.dashboard(), get_dashboard_html())
@@ -55,6 +58,21 @@ class DashboardApiTests(unittest.TestCase):
 
         with patch("app.api.dashboard.get_monitoring_status", return_value=monitoring_status):
             self.assertEqual(dashboard.monitoring_status(), monitoring_status)
+
+    def test_recent_monitoring_runs_returns_runtime_log_data(self) -> None:
+        run_reports = [
+            {
+                "run_id": "20260804-101500",
+                "completed_at": "2026-08-04T10:15:02",
+                "overall_status": "warning",
+                "active_targets": ["database"],
+                "excluded_targets": ["demo_notes"],
+                "events": [{"type": "incident"}],
+            }
+        ]
+
+        with patch("app.api.dashboard.read_recent_monitoring_runs", return_value=run_reports):
+            self.assertEqual(dashboard.recent_monitoring_runs(), run_reports)
 
     def test_restart_database_returns_success_payload(self) -> None:
         payload = {

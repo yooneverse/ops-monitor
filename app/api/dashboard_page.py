@@ -942,7 +942,8 @@ def build_dashboard_styles() -> str:
         }
 
         .warning-list,
-        .alerts-list {
+        .alerts-list,
+        .run-report-list {
             display: grid;
             gap: 10px;
         }
@@ -1018,6 +1019,54 @@ def build_dashboard_styles() -> str:
 
         .alert-item.notification_error::before {
             background: #8c6ed6;
+        }
+
+        .run-report-item {
+            padding: 14px 16px;
+            border: 1px solid #e7edf7;
+            border-radius: 12px;
+            background: white;
+            display: grid;
+            gap: 12px;
+        }
+
+        .run-report-item.warning {
+            border-color: #f1d49e;
+            background: #fffdf7;
+        }
+
+        .run-report-item.error {
+            border-color: #f0d1cf;
+            background: #fffaf9;
+        }
+
+        .run-report-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .run-report-title {
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .run-report-copy {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .run-report-status {
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #eef4fb;
+            color: #67809f;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
         }
 
         .alert-side {
@@ -1503,6 +1552,26 @@ def build_detail_surface() -> str:
                         </div>
                     </div>
 
+                    <div class="subpanel" data-panel="run-reports" data-views="overview logs monitoring services">
+                        <div class="subpanel-header">
+                            <div>
+                                <div class="subpanel-title">최근 실행 리포트</div>
+                                <div class="subpanel-copy">이벤트 이력과 별도로 최근 점검 실행 범위와 결과를 빠르게 복기할 수 있습니다.</div>
+                            </div>
+                        </div>
+                        <div id="run-report-list" class="run-report-list">
+                            <div class="run-report-item">
+                                <div class="run-report-head">
+                                    <div>
+                                        <div class="run-report-title">최근 실행 리포트를 불러오는 중입니다.</div>
+                                        <div class="run-report-copy">실행 범위와 결과를 확인할 수 있도록 준비 중입니다.</div>
+                                    </div>
+                                    <div class="run-report-status">loading</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="subpanel" data-panel="alerts" data-views="overview alerts logs notification monitoring services thresholds">
                         <div class="subpanel-header">
                             <div>
@@ -1548,6 +1617,7 @@ def build_dashboard_script() -> str:
             activeMetricFilter: "all",
             activeAlertFilter: "all",
             latestAlerts: [],
+            latestRunReports: [],
             activeSidebarView: "overview",
         };
 
@@ -1670,6 +1740,26 @@ def build_dashboard_script() -> str:
             return labels[filter] || filter;
         }
 
+        function formatTargetSummary(targets, emptyText) {
+            if (!Array.isArray(targets) || targets.length === 0) {
+                return emptyText;
+            }
+
+            return targets.join(", ");
+        }
+
+        function getRunStatusTone(status) {
+            if (status === "error") {
+                return "error";
+            }
+
+            if (status === "warning") {
+                return "warning";
+            }
+
+            return "";
+        }
+
         function updateInteractionBadge() {
             const badge = document.getElementById("interaction-badge");
             if (!badge) {
@@ -1765,9 +1855,15 @@ def build_dashboard_script() -> str:
             }
 
             if (view === "alerts" || view === "logs") {
-                applyMetricFilter("all");
-                applyAlertFilter(view === "alerts" ? "incident" : "all");
-                document.getElementById("alert-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                if (view === "alerts") {
+                    applyMetricFilter("all");
+                    applyAlertFilter("incident");
+                    document.getElementById("alert-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    return;
+                }
+
+                resetInteractions();
+                document.getElementById("run-report-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
                 return;
             }
 
@@ -1906,8 +2002,9 @@ def build_dashboard_script() -> str:
             applySidebarView(dashboardState.activeSidebarView);
         }
 
-        function updateSidebarMeta(health, monitoring, alerts) {
+        function updateSidebarMeta(health, monitoring, alerts, runReports) {
             const alertCount = Array.isArray(alerts) ? alerts.length : 0;
+            const runReportCount = Array.isArray(runReports) ? runReports.length : 0;
             const databaseConnected = health && health.database && health.database.status === "connected";
             const demoNotesConnected = health && health.demo_notes && health.demo_notes.status === "connected";
             const servicesHealthy = health && health.api === "ok" && databaseConnected && demoNotesConnected;
@@ -1924,11 +2021,10 @@ def build_dashboard_script() -> str:
                     : "-"
             );
             setBadgeText("nav-config-badge", warnings > 0 ? "경고 " + warnings : "정상");
-            setBadgeText("nav-logs-badge", alertCount > 0 ? "최근 " + Math.min(alertCount, 9) : "비어 있음");
+            setBadgeText("nav-logs-badge", runReportCount > 0 ? "최근 " + runReportCount + "회" : "비어 있음");
             setBadgeText("nav-auth-badge", monitoring && monitoring.monitor_auth_configured ? "설정됨" : "누락");
             setBadgeText("nav-instance-badge", servicesHealthy ? "활성" : "점검");
             setBadgeText("nav-docs-badge", monitoring && monitoring.api_docs_enabled ? "허용" : "차단");
-            setText("tracked-targets", "3 Services");
         }
 
         function renderWarnings(warnings) {
@@ -2018,6 +2114,73 @@ def build_dashboard_script() -> str:
                 "대상 관련 경고가 없습니다.",
                 "warning"
             );
+        }
+
+        function renderRunReports(runReports) {
+            const runReportList = document.getElementById("run-report-list");
+            if (!runReportList) {
+                return;
+            }
+
+            dashboardState.latestRunReports = Array.isArray(runReports) ? runReports : [];
+            runReportList.innerHTML = "";
+
+            if (dashboardState.latestRunReports.length === 0) {
+                const emptyState = document.createElement("div");
+                emptyState.className = "run-report-item";
+                emptyState.innerHTML =
+                    '<div class="run-report-head">' +
+                        '<div>' +
+                            '<div class="run-report-title">최근 실행 리포트가 없습니다.</div>' +
+                            '<div class="run-report-copy">모니터링 루프가 한 번 이상 실행되면 최근 점검 범위와 결과가 이 영역에 표시됩니다.</div>' +
+                        '</div>' +
+                        '<div class="run-report-status">empty</div>' +
+                    '</div>';
+                runReportList.appendChild(emptyState);
+                return;
+            }
+
+            dashboardState.latestRunReports.forEach(report => {
+                const item = document.createElement("div");
+                const head = document.createElement("div");
+                const titleWrap = document.createElement("div");
+                const title = document.createElement("div");
+                const copy = document.createElement("div");
+                const status = document.createElement("div");
+                const meta = document.createElement("div");
+                const metaItems = [
+                    "이벤트 " + String(Array.isArray(report.events) ? report.events.length : 0) + "건",
+                    "활성: " + formatTargetSummary(report.active_targets, "-"),
+                    "제외: " + formatTargetSummary(report.excluded_targets, "없음"),
+                    "경고: " + formatTargetSummary(report.target_warnings, "없음"),
+                ];
+
+                item.className = "run-report-item " + getRunStatusTone(report.overall_status);
+                head.className = "run-report-head";
+                title.className = "run-report-title";
+                copy.className = "run-report-copy";
+                status.className = "run-report-status";
+                meta.className = "alert-meta";
+
+                title.textContent = report.run_id || "run id 없음";
+                copy.textContent = (report.completed_at || "-") + " 완료";
+                status.textContent = report.overall_status || "unknown";
+
+                metaItems.forEach(itemText => {
+                    const chip = document.createElement("div");
+                    chip.className = "alert-meta-chip";
+                    chip.textContent = itemText;
+                    meta.appendChild(chip);
+                });
+
+                titleWrap.appendChild(title);
+                titleWrap.appendChild(copy);
+                head.appendChild(titleWrap);
+                head.appendChild(status);
+                item.appendChild(head);
+                item.appendChild(meta);
+                runReportList.appendChild(item);
+            });
         }
 
         function renderAlerts(alerts) {
@@ -2156,30 +2319,34 @@ def build_dashboard_script() -> str:
             setDonutValue("memory-donut", "memory-donut-value", 0, "disconnected");
             setDonutValue("disk-donut", "disk-donut-value", 0, "disconnected");
             renderTargetMetadata(null);
+            renderRunReports([]);
         }
 
         async function loadDashboard() {
             bindDashboardInteractions();
 
-            const [healthResult, systemResult, alertsResult, monitoringResult] = await Promise.allSettled([
+            const [healthResult, systemResult, alertsResult, monitoringResult, runReportsResult] = await Promise.allSettled([
                 fetchJson("/health"),
                 fetchJson("/system"),
                 fetchJson("/alerts"),
                 fetchJson("/monitoring/status"),
+                fetchJson("/monitoring/runs/recent"),
             ]);
 
             const health = healthResult.status === "fulfilled" ? healthResult.value : null;
             const system = systemResult.status === "fulfilled" ? systemResult.value : null;
             const alerts = alertsResult.status === "fulfilled" ? alertsResult.value : [];
             const monitoring = monitoringResult.status === "fulfilled" ? monitoringResult.value : null;
+            const runReports = runReportsResult.status === "fulfilled" ? runReportsResult.value : [];
 
             if (!health && !system && !monitoring) {
                 fillUnavailableState();
-                updateSidebarMeta(null, null, alerts);
+                updateSidebarMeta(null, null, alerts, runReports);
                 document.getElementById("summary-status").textContent = "대시보드 요청 실패";
                 document.getElementById("summary-status").className = "summary-status danger";
                 document.getElementById("summary-copy").textContent = "상태 데이터를 전혀 가져오지 못했습니다. 인증 정보와 백엔드 연결을 먼저 확인해 주세요.";
                 renderWarnings(["대시보드 상태 데이터를 불러오지 못했습니다."]);
+                renderRunReports(runReports);
                 renderAlerts(alerts);
                 scheduleAutoRefresh(30);
                 return;
@@ -2245,7 +2412,7 @@ def build_dashboard_script() -> str:
                 renderTargetMetadata(monitoring);
                 renderWarnings(warningMessages);
                 renderSummary(health, monitoring);
-                updateSidebarMeta(health, monitoring, alerts);
+                updateSidebarMeta(health, monitoring, alerts, runReports);
                 scheduleAutoRefresh(monitoring.interval_seconds);
             } else {
                 setStatusValue(document.getElementById("monitoring-status"), "알 수 없음", "disconnected");
@@ -2260,10 +2427,11 @@ def build_dashboard_script() -> str:
                 renderTargetMetadata(null);
                 renderWarnings(["모니터링 설정 상태를 불러오지 못했습니다."]);
                 renderSummary(health, null);
-                updateSidebarMeta(health, null, alerts);
+                updateSidebarMeta(health, null, alerts, runReports);
                 scheduleAutoRefresh(30);
             }
 
+            renderRunReports(runReports);
             renderAlerts(alerts);
         }
 
