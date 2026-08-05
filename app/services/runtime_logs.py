@@ -108,6 +108,47 @@ def persist_monitoring_run(report: dict, now: datetime | None = None) -> None:
     append_text_line(markdown_path, report_row)
 
 
+def read_recent_monitoring_runs(limit: int = 5) -> list[dict]:
+    if limit <= 0:
+        return []
+
+    runs_dir = get_log_dir() / "runs"
+    if not runs_dir.exists():
+        return []
+
+    recent_reports: list[dict] = []
+    run_files = sorted(runs_dir.glob("*.jsonl"), reverse=True)
+
+    for run_file in run_files:
+        try:
+            lines = run_file.read_text(encoding="utf-8").splitlines()
+        except OSError:
+            logging.getLogger("uvicorn.error").exception(
+                "Failed to read monitoring run log: %s",
+                run_file,
+            )
+            continue
+
+        for line in reversed(lines):
+            normalized_line = line.strip()
+            if not normalized_line:
+                continue
+
+            try:
+                recent_reports.append(json.loads(normalized_line))
+            except json.JSONDecodeError:
+                logging.getLogger("uvicorn.error").warning(
+                    "Skipping invalid monitoring run entry from %s",
+                    run_file,
+                )
+                continue
+
+            if len(recent_reports) >= limit:
+                return recent_reports
+
+    return recent_reports
+
+
 class DailyLogFileHandler(logging.Handler):
     def __init__(
         self,

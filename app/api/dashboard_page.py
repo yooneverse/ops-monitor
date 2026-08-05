@@ -859,6 +859,60 @@ def build_dashboard_styles() -> str:
             line-height: 1.5;
         }
 
+        .target-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .target-card {
+            padding: 14px;
+            border: 1px solid #dce8f8;
+            border-radius: 12px;
+            background: white;
+        }
+
+        .target-card-title {
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #60748f;
+        }
+
+        .target-card-copy {
+            margin-bottom: 10px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .target-chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .target-chip {
+            padding: 7px 10px;
+            border-radius: 999px;
+            border: 1px solid #dbe7f7;
+            background: #f8fbff;
+            color: #4f6885;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .target-chip.warning {
+            border-color: #f1d49e;
+            background: var(--warn-soft);
+            color: #8d5105;
+        }
+
+        .target-chip.empty {
+            border-color: #d6eadb;
+            background: #f3fbf5;
+            color: #3f7d55;
+        }
+
         .interaction-state {
             margin-top: 12px;
             display: flex;
@@ -888,7 +942,8 @@ def build_dashboard_styles() -> str:
         }
 
         .warning-list,
-        .alerts-list {
+        .alerts-list,
+        .run-report-list {
             display: grid;
             gap: 10px;
         }
@@ -964,6 +1019,54 @@ def build_dashboard_styles() -> str:
 
         .alert-item.notification_error::before {
             background: #8c6ed6;
+        }
+
+        .run-report-item {
+            padding: 14px 16px;
+            border: 1px solid #e7edf7;
+            border-radius: 12px;
+            background: white;
+            display: grid;
+            gap: 12px;
+        }
+
+        .run-report-item.warning {
+            border-color: #f1d49e;
+            background: #fffdf7;
+        }
+
+        .run-report-item.error {
+            border-color: #f0d1cf;
+            background: #fffaf9;
+        }
+
+        .run-report-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .run-report-title {
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .run-report-copy {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .run-report-status {
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #eef4fb;
+            color: #67809f;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
         }
 
         .alert-side {
@@ -1166,6 +1269,7 @@ def build_sidebar() -> str:
                     <div class="nav-title">보호된 영역</div>
                     <button class="nav-item" type="button" data-nav-view="auth"><span>인증 상태</span><span id="nav-auth-badge" class="nav-badge">확인 중</span></button>
                     <button class="nav-item" type="button" data-nav-view="services"><span>인스턴스 점검</span><span id="nav-instance-badge" class="nav-badge">확인 중</span></button>
+                    <button class="nav-item" type="button" data-nav-view="actions"><span>운영 액션</span><span id="nav-actions-badge" class="nav-badge">확인 중</span></button>
                     <button class="nav-item" type="button" data-nav-view="docs"><span>문서 노출 제어</span><span id="nav-docs-badge" class="nav-badge">확인 중</span></button>
                 </div>
 
@@ -1213,21 +1317,21 @@ def build_page_header() -> str:
             <div class="control-strip">
                 <div class="control-panel">
                     <div class="control-panel-title">운영 개요</div>
-                    <div class="control-grid">
-                        <div class="control-item">
-                            <div class="control-label">운영 환경</div>
-                            <div class="control-value">Production</div>
-                        </div>
-                        <div class="control-item">
-                            <div class="control-label">보호 상태</div>
-                            <div class="control-value">Basic Auth</div>
-                        </div>
-                        <div class="control-item">
-                            <div class="control-label">감시 대상</div>
-                            <div id="tracked-targets" class="control-value">3 Services</div>
+                        <div class="control-grid">
+                            <div class="control-item">
+                                <div class="control-label">운영 환경</div>
+                                <div id="environment-label" class="control-value">확인 중...</div>
+                            </div>
+                            <div class="control-item">
+                                <div class="control-label">보호 상태</div>
+                                <div id="protection-status" class="control-value">확인 중...</div>
+                            </div>
+                            <div class="control-item">
+                                <div class="control-label">감시 대상</div>
+                                <div id="tracked-targets" class="control-value">확인 중...</div>
+                            </div>
                         </div>
                     </div>
-                </div>
                 <div class="control-panel">
                     <div class="control-panel-title">빠른 실행</div>
                     <div class="launch-list">
@@ -1385,6 +1489,8 @@ def build_summary_surface() -> str:
                         <div class="summary-note-row"><span>모니터링 마지막 점검</span><strong id="monitor-last-check">-</strong></div>
                         <div class="summary-note-row"><span>데모 서비스</span><strong id="demo-notes-status">-</strong></div>
                         <div class="summary-note-row"><span>설정 경고 수</span><strong id="config-warning-count">-</strong></div>
+                        <div class="summary-note-row"><span>활성 점검 대상</span><strong id="active-target-count">-</strong></div>
+                        <div class="summary-note-row"><span>제외 대상</span><strong id="excluded-target-count">-</strong></div>
                         <div class="summary-note-row compact"><span>알림 기준</span><strong id="threshold-summary">-</strong></div>
                     </div>
                 </div>
@@ -1412,6 +1518,78 @@ def build_detail_surface() -> str:
                         </div>
                         <div id="warning-list" class="warning-list">
                             <div class="warning-item empty">설정 경고가 없습니다.</div>
+                        </div>
+                    </div>
+
+                    <div class="subpanel" data-panel="targets" data-views="overview monitoring services config">
+                        <div class="subpanel-header">
+                            <div>
+                                <div class="subpanel-title">점검 대상</div>
+                                <div class="subpanel-copy">현재 루프에서 실제로 점검 중인 대상과 예외 규칙을 함께 보여줍니다.</div>
+                            </div>
+                        </div>
+                        <div class="target-grid">
+                            <div class="target-card">
+                                <div class="target-card-title">활성 대상</div>
+                                <div class="target-card-copy">이번 실행에서 상태를 수집하는 대상입니다.</div>
+                                <div id="active-target-list" class="target-chip-list">
+                                    <div class="target-chip empty">확인 중...</div>
+                                </div>
+                            </div>
+                            <div class="target-card">
+                                <div class="target-card-title">제외 대상</div>
+                                <div class="target-card-copy">설정으로 임시 제외된 대상입니다.</div>
+                                <div id="excluded-target-list" class="target-chip-list">
+                                    <div class="target-chip empty">확인 중...</div>
+                                </div>
+                            </div>
+                            <div class="target-card">
+                                <div class="target-card-title">대상 경고</div>
+                                <div class="target-card-copy">알 수 없는 제외 대상이나 전체 제외 같은 운영 경고를 표시합니다.</div>
+                                <div id="target-warning-list" class="target-chip-list">
+                                    <div class="target-chip empty">확인 중...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subpanel" data-panel="run-reports" data-views="overview logs monitoring services">
+                        <div class="subpanel-header">
+                            <div>
+                                <div class="subpanel-title">최근 실행 리포트</div>
+                                <div class="subpanel-copy">이벤트 이력과 별도로 최근 점검 실행 범위와 결과를 빠르게 복기할 수 있습니다.</div>
+                            </div>
+                        </div>
+                        <div id="run-report-list" class="run-report-list">
+                            <div class="run-report-item">
+                                <div class="run-report-head">
+                                    <div>
+                                        <div class="run-report-title">최근 실행 리포트를 불러오는 중입니다.</div>
+                                        <div class="run-report-copy">실행 범위와 결과를 확인할 수 있도록 준비 중입니다.</div>
+                                    </div>
+                                    <div class="run-report-status">loading</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subpanel" data-panel="admin-actions" data-views="overview actions services auth">
+                        <div class="subpanel-header">
+                            <div>
+                                <div class="subpanel-title">운영 액션 이력</div>
+                                <div class="subpanel-copy">보호된 조치 요청이 언제 누구에 의해 실행되었는지와 성공 여부를 분리해서 보여줍니다.</div>
+                            </div>
+                        </div>
+                        <div id="action-history-list" class="run-report-list">
+                            <div class="run-report-item">
+                                <div class="run-report-head">
+                                    <div>
+                                        <div class="run-report-title">운영 액션 이력을 불러오는 중입니다.</div>
+                                        <div class="run-report-copy">최근 보호된 조치와 결과를 정리하는 중입니다.</div>
+                                    </div>
+                                    <div class="run-report-status">loading</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -1460,6 +1638,7 @@ def build_dashboard_script() -> str:
             activeMetricFilter: "all",
             activeAlertFilter: "all",
             latestAlerts: [],
+            latestRunReports: [],
             activeSidebarView: "overview",
         };
 
@@ -1582,6 +1761,42 @@ def build_dashboard_script() -> str:
             return labels[filter] || filter;
         }
 
+        function formatTargetSummary(targets, emptyText) {
+            if (!Array.isArray(targets) || targets.length === 0) {
+                return emptyText;
+            }
+
+            return targets.join(", ");
+        }
+
+        function getRunStatusTone(status) {
+            if (status === "error") {
+                return "error";
+            }
+
+            if (status === "warning") {
+                return "warning";
+            }
+
+            return "";
+        }
+
+        function getAdminActionTone(actionEvent) {
+            if (!actionEvent) {
+                return "";
+            }
+
+            if (actionEvent.type === "admin_action_error" || actionEvent.status === "failed") {
+                return "error";
+            }
+
+            if (actionEvent.type === "admin_action" || actionEvent.status === "completed") {
+                return "warning";
+            }
+
+            return "";
+        }
+
         function updateInteractionBadge() {
             const badge = document.getElementById("interaction-badge");
             if (!badge) {
@@ -1677,9 +1892,15 @@ def build_dashboard_script() -> str:
             }
 
             if (view === "alerts" || view === "logs") {
-                applyMetricFilter("all");
-                applyAlertFilter(view === "alerts" ? "incident" : "all");
-                document.getElementById("alert-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                if (view === "alerts") {
+                    applyMetricFilter("all");
+                    applyAlertFilter("incident");
+                    document.getElementById("alert-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    return;
+                }
+
+                resetInteractions();
+                document.getElementById("run-report-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
                 return;
             }
 
@@ -1687,6 +1908,12 @@ def build_dashboard_script() -> str:
                 applyMetricFilter("notification");
                 applyAlertFilter("all");
                 document.getElementById("alert-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                return;
+            }
+
+            if (view === "actions") {
+                resetInteractions();
+                document.getElementById("action-history-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
                 return;
             }
 
@@ -1818,8 +2045,12 @@ def build_dashboard_script() -> str:
             applySidebarView(dashboardState.activeSidebarView);
         }
 
-        function updateSidebarMeta(health, monitoring, alerts) {
+        function updateSidebarMeta(health, monitoring, alerts, runReports) {
             const alertCount = Array.isArray(alerts) ? alerts.length : 0;
+            const adminActionCount = Array.isArray(alerts)
+                ? alerts.filter(alert => alert.type === "admin_action" || alert.type === "admin_action_error").length
+                : 0;
+            const runReportCount = Array.isArray(runReports) ? runReports.length : 0;
             const databaseConnected = health && health.database && health.database.status === "connected";
             const demoNotesConnected = health && health.demo_notes && health.demo_notes.status === "connected";
             const servicesHealthy = health && health.api === "ok" && databaseConnected && demoNotesConnected;
@@ -1836,11 +2067,11 @@ def build_dashboard_script() -> str:
                     : "-"
             );
             setBadgeText("nav-config-badge", warnings > 0 ? "경고 " + warnings : "정상");
-            setBadgeText("nav-logs-badge", alertCount > 0 ? "최근 " + Math.min(alertCount, 9) : "비어 있음");
+            setBadgeText("nav-logs-badge", runReportCount > 0 ? "최근 " + runReportCount + "회" : "비어 있음");
             setBadgeText("nav-auth-badge", monitoring && monitoring.monitor_auth_configured ? "설정됨" : "누락");
             setBadgeText("nav-instance-badge", servicesHealthy ? "활성" : "점검");
+            setBadgeText("nav-actions-badge", adminActionCount > 0 ? "최근 " + adminActionCount : "없음");
             setBadgeText("nav-docs-badge", monitoring && monitoring.api_docs_enabled ? "허용" : "차단");
-            setText("tracked-targets", "3 Services");
         }
 
         function renderWarnings(warnings) {
@@ -1860,6 +2091,213 @@ def build_dashboard_script() -> str:
                 item.className = "warning-item";
                 item.textContent = message;
                 warningList.appendChild(item);
+            });
+        }
+
+        function renderTargetChips(containerId, items, emptyMessage, tone) {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                return;
+            }
+
+            container.innerHTML = "";
+
+            if (!items || items.length === 0) {
+                const emptyChip = document.createElement("div");
+                emptyChip.className = "target-chip empty";
+                emptyChip.textContent = emptyMessage;
+                container.appendChild(emptyChip);
+                return;
+            }
+
+            items.forEach(itemText => {
+                const chip = document.createElement("div");
+                chip.className = "target-chip" + (tone ? " " + tone : "");
+                chip.textContent = itemText;
+                container.appendChild(chip);
+            });
+        }
+
+        function renderTargetMetadata(monitoring) {
+            const activeTargets = monitoring && Array.isArray(monitoring.active_targets)
+                ? monitoring.active_targets
+                : [];
+            const excludedTargets = monitoring && Array.isArray(monitoring.excluded_targets)
+                ? monitoring.excluded_targets
+                : [];
+            const targetWarnings = monitoring && Array.isArray(monitoring.target_warnings)
+                ? monitoring.target_warnings
+                : [];
+
+            setText("environment-label", window.location.host || "로컬 실행");
+            setText(
+                "protection-status",
+                monitoring && monitoring.monitor_auth_configured
+                    ? "Basic Auth 적용"
+                    : "인증 보완 필요"
+            );
+            setText(
+                "tracked-targets",
+                "활성 " + activeTargets.length + "개 / 제외 " + excludedTargets.length + "개"
+            );
+            setText("active-target-count", String(activeTargets.length));
+            setText("excluded-target-count", String(excludedTargets.length));
+
+            renderTargetChips(
+                "active-target-list",
+                activeTargets,
+                "현재 활성 점검 대상이 없습니다.",
+                ""
+            );
+            renderTargetChips(
+                "excluded-target-list",
+                excludedTargets,
+                "제외된 점검 대상이 없습니다.",
+                ""
+            );
+            renderTargetChips(
+                "target-warning-list",
+                targetWarnings,
+                "대상 관련 경고가 없습니다.",
+                "warning"
+            );
+        }
+
+        function renderRunReports(runReports) {
+            const runReportList = document.getElementById("run-report-list");
+            if (!runReportList) {
+                return;
+            }
+
+            dashboardState.latestRunReports = Array.isArray(runReports) ? runReports : [];
+            runReportList.innerHTML = "";
+
+            if (dashboardState.latestRunReports.length === 0) {
+                const emptyState = document.createElement("div");
+                emptyState.className = "run-report-item";
+                emptyState.innerHTML =
+                    '<div class="run-report-head">' +
+                        '<div>' +
+                            '<div class="run-report-title">최근 실행 리포트가 없습니다.</div>' +
+                            '<div class="run-report-copy">모니터링 루프가 한 번 이상 실행되면 최근 점검 범위와 결과가 이 영역에 표시됩니다.</div>' +
+                        '</div>' +
+                        '<div class="run-report-status">empty</div>' +
+                    '</div>';
+                runReportList.appendChild(emptyState);
+                return;
+            }
+
+            dashboardState.latestRunReports.forEach(report => {
+                const item = document.createElement("div");
+                const head = document.createElement("div");
+                const titleWrap = document.createElement("div");
+                const title = document.createElement("div");
+                const copy = document.createElement("div");
+                const status = document.createElement("div");
+                const meta = document.createElement("div");
+                const metaItems = [
+                    "이벤트 " + String(Array.isArray(report.events) ? report.events.length : 0) + "건",
+                    "활성: " + formatTargetSummary(report.active_targets, "-"),
+                    "제외: " + formatTargetSummary(report.excluded_targets, "없음"),
+                    "경고: " + formatTargetSummary(report.target_warnings, "없음"),
+                ];
+
+                item.className = "run-report-item " + getRunStatusTone(report.overall_status);
+                head.className = "run-report-head";
+                title.className = "run-report-title";
+                copy.className = "run-report-copy";
+                status.className = "run-report-status";
+                meta.className = "alert-meta";
+
+                title.textContent = report.run_id || "run id 없음";
+                copy.textContent = (report.completed_at || "-") + " 완료";
+                status.textContent = report.overall_status || "unknown";
+
+                metaItems.forEach(itemText => {
+                    const chip = document.createElement("div");
+                    chip.className = "alert-meta-chip";
+                    chip.textContent = itemText;
+                    meta.appendChild(chip);
+                });
+
+                titleWrap.appendChild(title);
+                titleWrap.appendChild(copy);
+                head.appendChild(titleWrap);
+                head.appendChild(status);
+                item.appendChild(head);
+                item.appendChild(meta);
+                runReportList.appendChild(item);
+            });
+        }
+
+        function renderAdminActions(alerts) {
+            const actionHistoryList = document.getElementById("action-history-list");
+            if (!actionHistoryList) {
+                return;
+            }
+
+            const adminActions = Array.isArray(alerts)
+                ? alerts.filter(alert => alert.type === "admin_action" || alert.type === "admin_action_error")
+                : [];
+
+            actionHistoryList.innerHTML = "";
+
+            if (adminActions.length === 0) {
+                const emptyState = document.createElement("div");
+                emptyState.className = "run-report-item";
+                emptyState.innerHTML =
+                    '<div class="run-report-head">' +
+                        '<div>' +
+                            '<div class="run-report-title">최근 운영 액션 이력이 없습니다.</div>' +
+                            '<div class="run-report-copy">보호된 관리자 조치가 실행되면 요청자와 결과가 이 영역에 표시됩니다.</div>' +
+                        '</div>' +
+                        '<div class="run-report-status">empty</div>' +
+                    '</div>';
+                actionHistoryList.appendChild(emptyState);
+                return;
+            }
+
+            adminActions.forEach(actionEvent => {
+                const item = document.createElement("div");
+                const head = document.createElement("div");
+                const titleWrap = document.createElement("div");
+                const title = document.createElement("div");
+                const copy = document.createElement("div");
+                const status = document.createElement("div");
+                const meta = document.createElement("div");
+                const metaItems = [
+                    "요청자: " + (actionEvent.requested_by || "-"),
+                    "대상: " + (actionEvent.target || "-"),
+                    "시각: " + (actionEvent.timestamp || "-"),
+                ];
+
+                item.className = "run-report-item " + getAdminActionTone(actionEvent);
+                head.className = "run-report-head";
+                title.className = "run-report-title";
+                copy.className = "run-report-copy";
+                status.className = "run-report-status";
+                meta.className = "alert-meta";
+
+                title.textContent = actionEvent.message || "운영 액션 메시지 없음";
+                copy.textContent = actionEvent.type === "admin_action_error"
+                    ? "보호된 조치가 실패로 기록되었습니다."
+                    : "보호된 조치가 성공으로 기록되었습니다.";
+                status.textContent = actionEvent.status || actionEvent.type || "unknown";
+
+                metaItems.forEach(itemText => {
+                    const chip = document.createElement("div");
+                    chip.className = "alert-meta-chip";
+                    chip.textContent = itemText;
+                    meta.appendChild(chip);
+                });
+
+                titleWrap.appendChild(title);
+                titleWrap.appendChild(copy);
+                head.appendChild(titleWrap);
+                head.appendChild(status);
+                item.appendChild(head);
+                item.appendChild(meta);
+                actionHistoryList.appendChild(item);
             });
         }
 
@@ -1992,34 +2430,43 @@ def build_dashboard_script() -> str:
             document.getElementById("checked-time").textContent = "-";
             document.getElementById("monitor-last-check").textContent = "-";
             document.getElementById("config-warning-count").textContent = "-";
+            document.getElementById("active-target-count").textContent = "-";
+            document.getElementById("excluded-target-count").textContent = "-";
             setBarWidth("api-bar", 20);
             setBarWidth("db-bar", 20);
             setDonutValue("memory-donut", "memory-donut-value", 0, "disconnected");
             setDonutValue("disk-donut", "disk-donut-value", 0, "disconnected");
+            renderTargetMetadata(null);
+            renderRunReports([]);
+            renderAdminActions([]);
         }
 
         async function loadDashboard() {
             bindDashboardInteractions();
 
-            const [healthResult, systemResult, alertsResult, monitoringResult] = await Promise.allSettled([
+            const [healthResult, systemResult, alertsResult, monitoringResult, runReportsResult] = await Promise.allSettled([
                 fetchJson("/health"),
                 fetchJson("/system"),
                 fetchJson("/alerts"),
                 fetchJson("/monitoring/status"),
+                fetchJson("/monitoring/runs/recent"),
             ]);
 
             const health = healthResult.status === "fulfilled" ? healthResult.value : null;
             const system = systemResult.status === "fulfilled" ? systemResult.value : null;
             const alerts = alertsResult.status === "fulfilled" ? alertsResult.value : [];
             const monitoring = monitoringResult.status === "fulfilled" ? monitoringResult.value : null;
+            const runReports = runReportsResult.status === "fulfilled" ? runReportsResult.value : [];
 
             if (!health && !system && !monitoring) {
                 fillUnavailableState();
-                updateSidebarMeta(null, null, alerts);
+                updateSidebarMeta(null, null, alerts, runReports);
                 document.getElementById("summary-status").textContent = "대시보드 요청 실패";
                 document.getElementById("summary-status").className = "summary-status danger";
                 document.getElementById("summary-copy").textContent = "상태 데이터를 전혀 가져오지 못했습니다. 인증 정보와 백엔드 연결을 먼저 확인해 주세요.";
                 renderWarnings(["대시보드 상태 데이터를 불러오지 못했습니다."]);
+                renderRunReports(runReports);
+                renderAdminActions(alerts);
                 renderAlerts(alerts);
                 scheduleAutoRefresh(30);
                 return;
@@ -2082,9 +2529,10 @@ def build_dashboard_script() -> str:
                 document.getElementById("config-desc").textContent = "인증 " + (monitoring.monitor_auth_configured ? "설정됨" : "누락") + " | 검증 경고 " + warningCount + "건";
                 document.getElementById("monitor-last-check").textContent = monitoring.last_check || "-";
                 document.getElementById("config-warning-count").textContent = String(warningCount);
+                renderTargetMetadata(monitoring);
                 renderWarnings(warningMessages);
                 renderSummary(health, monitoring);
-                updateSidebarMeta(health, monitoring, alerts);
+                updateSidebarMeta(health, monitoring, alerts, runReports);
                 scheduleAutoRefresh(monitoring.interval_seconds);
             } else {
                 setStatusValue(document.getElementById("monitoring-status"), "알 수 없음", "disconnected");
@@ -2096,12 +2544,15 @@ def build_dashboard_script() -> str:
                 document.getElementById("config-desc").textContent = "설정 검증 상태를 가져오지 못했습니다.";
                 document.getElementById("monitor-last-check").textContent = "-";
                 document.getElementById("config-warning-count").textContent = "-";
+                renderTargetMetadata(null);
                 renderWarnings(["모니터링 설정 상태를 불러오지 못했습니다."]);
                 renderSummary(health, null);
-                updateSidebarMeta(health, null, alerts);
+                updateSidebarMeta(health, null, alerts, runReports);
                 scheduleAutoRefresh(30);
             }
 
+            renderRunReports(runReports);
+            renderAdminActions(alerts);
             renderAlerts(alerts);
         }
 
