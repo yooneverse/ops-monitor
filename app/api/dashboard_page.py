@@ -1269,6 +1269,7 @@ def build_sidebar() -> str:
                     <div class="nav-title">보호된 영역</div>
                     <button class="nav-item" type="button" data-nav-view="auth"><span>인증 상태</span><span id="nav-auth-badge" class="nav-badge">확인 중</span></button>
                     <button class="nav-item" type="button" data-nav-view="services"><span>인스턴스 점검</span><span id="nav-instance-badge" class="nav-badge">확인 중</span></button>
+                    <button class="nav-item" type="button" data-nav-view="actions"><span>운영 액션</span><span id="nav-actions-badge" class="nav-badge">확인 중</span></button>
                     <button class="nav-item" type="button" data-nav-view="docs"><span>문서 노출 제어</span><span id="nav-docs-badge" class="nav-badge">확인 중</span></button>
                 </div>
 
@@ -1572,6 +1573,26 @@ def build_detail_surface() -> str:
                         </div>
                     </div>
 
+                    <div class="subpanel" data-panel="admin-actions" data-views="overview actions services auth">
+                        <div class="subpanel-header">
+                            <div>
+                                <div class="subpanel-title">운영 액션 이력</div>
+                                <div class="subpanel-copy">보호된 조치 요청이 언제 누구에 의해 실행되었는지와 성공 여부를 분리해서 보여줍니다.</div>
+                            </div>
+                        </div>
+                        <div id="action-history-list" class="run-report-list">
+                            <div class="run-report-item">
+                                <div class="run-report-head">
+                                    <div>
+                                        <div class="run-report-title">운영 액션 이력을 불러오는 중입니다.</div>
+                                        <div class="run-report-copy">최근 보호된 조치와 결과를 정리하는 중입니다.</div>
+                                    </div>
+                                    <div class="run-report-status">loading</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="subpanel" data-panel="alerts" data-views="overview alerts logs notification monitoring services thresholds">
                         <div class="subpanel-header">
                             <div>
@@ -1760,6 +1781,22 @@ def build_dashboard_script() -> str:
             return "";
         }
 
+        function getAdminActionTone(actionEvent) {
+            if (!actionEvent) {
+                return "";
+            }
+
+            if (actionEvent.type === "admin_action_error" || actionEvent.status === "failed") {
+                return "error";
+            }
+
+            if (actionEvent.type === "admin_action" || actionEvent.status === "completed") {
+                return "warning";
+            }
+
+            return "";
+        }
+
         function updateInteractionBadge() {
             const badge = document.getElementById("interaction-badge");
             if (!badge) {
@@ -1871,6 +1908,12 @@ def build_dashboard_script() -> str:
                 applyMetricFilter("notification");
                 applyAlertFilter("all");
                 document.getElementById("alert-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                return;
+            }
+
+            if (view === "actions") {
+                resetInteractions();
+                document.getElementById("action-history-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
                 return;
             }
 
@@ -2004,6 +2047,9 @@ def build_dashboard_script() -> str:
 
         function updateSidebarMeta(health, monitoring, alerts, runReports) {
             const alertCount = Array.isArray(alerts) ? alerts.length : 0;
+            const adminActionCount = Array.isArray(alerts)
+                ? alerts.filter(alert => alert.type === "admin_action" || alert.type === "admin_action_error").length
+                : 0;
             const runReportCount = Array.isArray(runReports) ? runReports.length : 0;
             const databaseConnected = health && health.database && health.database.status === "connected";
             const demoNotesConnected = health && health.demo_notes && health.demo_notes.status === "connected";
@@ -2024,6 +2070,7 @@ def build_dashboard_script() -> str:
             setBadgeText("nav-logs-badge", runReportCount > 0 ? "최근 " + runReportCount + "회" : "비어 있음");
             setBadgeText("nav-auth-badge", monitoring && monitoring.monitor_auth_configured ? "설정됨" : "누락");
             setBadgeText("nav-instance-badge", servicesHealthy ? "활성" : "점검");
+            setBadgeText("nav-actions-badge", adminActionCount > 0 ? "최근 " + adminActionCount : "없음");
             setBadgeText("nav-docs-badge", monitoring && monitoring.api_docs_enabled ? "허용" : "차단");
         }
 
@@ -2183,6 +2230,77 @@ def build_dashboard_script() -> str:
             });
         }
 
+        function renderAdminActions(alerts) {
+            const actionHistoryList = document.getElementById("action-history-list");
+            if (!actionHistoryList) {
+                return;
+            }
+
+            const adminActions = Array.isArray(alerts)
+                ? alerts.filter(alert => alert.type === "admin_action" || alert.type === "admin_action_error")
+                : [];
+
+            actionHistoryList.innerHTML = "";
+
+            if (adminActions.length === 0) {
+                const emptyState = document.createElement("div");
+                emptyState.className = "run-report-item";
+                emptyState.innerHTML =
+                    '<div class="run-report-head">' +
+                        '<div>' +
+                            '<div class="run-report-title">최근 운영 액션 이력이 없습니다.</div>' +
+                            '<div class="run-report-copy">보호된 관리자 조치가 실행되면 요청자와 결과가 이 영역에 표시됩니다.</div>' +
+                        '</div>' +
+                        '<div class="run-report-status">empty</div>' +
+                    '</div>';
+                actionHistoryList.appendChild(emptyState);
+                return;
+            }
+
+            adminActions.forEach(actionEvent => {
+                const item = document.createElement("div");
+                const head = document.createElement("div");
+                const titleWrap = document.createElement("div");
+                const title = document.createElement("div");
+                const copy = document.createElement("div");
+                const status = document.createElement("div");
+                const meta = document.createElement("div");
+                const metaItems = [
+                    "요청자: " + (actionEvent.requested_by || "-"),
+                    "대상: " + (actionEvent.target || "-"),
+                    "시각: " + (actionEvent.timestamp || "-"),
+                ];
+
+                item.className = "run-report-item " + getAdminActionTone(actionEvent);
+                head.className = "run-report-head";
+                title.className = "run-report-title";
+                copy.className = "run-report-copy";
+                status.className = "run-report-status";
+                meta.className = "alert-meta";
+
+                title.textContent = actionEvent.message || "운영 액션 메시지 없음";
+                copy.textContent = actionEvent.type === "admin_action_error"
+                    ? "보호된 조치가 실패로 기록되었습니다."
+                    : "보호된 조치가 성공으로 기록되었습니다.";
+                status.textContent = actionEvent.status || actionEvent.type || "unknown";
+
+                metaItems.forEach(itemText => {
+                    const chip = document.createElement("div");
+                    chip.className = "alert-meta-chip";
+                    chip.textContent = itemText;
+                    meta.appendChild(chip);
+                });
+
+                titleWrap.appendChild(title);
+                titleWrap.appendChild(copy);
+                head.appendChild(titleWrap);
+                head.appendChild(status);
+                item.appendChild(head);
+                item.appendChild(meta);
+                actionHistoryList.appendChild(item);
+            });
+        }
+
         function renderAlerts(alerts) {
             const alertList = document.getElementById("alert-list");
             dashboardState.latestAlerts = Array.isArray(alerts) ? alerts : [];
@@ -2320,6 +2438,7 @@ def build_dashboard_script() -> str:
             setDonutValue("disk-donut", "disk-donut-value", 0, "disconnected");
             renderTargetMetadata(null);
             renderRunReports([]);
+            renderAdminActions([]);
         }
 
         async function loadDashboard() {
@@ -2347,6 +2466,7 @@ def build_dashboard_script() -> str:
                 document.getElementById("summary-copy").textContent = "상태 데이터를 전혀 가져오지 못했습니다. 인증 정보와 백엔드 연결을 먼저 확인해 주세요.";
                 renderWarnings(["대시보드 상태 데이터를 불러오지 못했습니다."]);
                 renderRunReports(runReports);
+                renderAdminActions(alerts);
                 renderAlerts(alerts);
                 scheduleAutoRefresh(30);
                 return;
@@ -2432,6 +2552,7 @@ def build_dashboard_script() -> str:
             }
 
             renderRunReports(runReports);
+            renderAdminActions(alerts);
             renderAlerts(alerts);
         }
 

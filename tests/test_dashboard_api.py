@@ -30,6 +30,10 @@ class DashboardApiTests(unittest.TestCase):
         self.assertIn("최근 실행 리포트", html)
         self.assertIn("run-report-list", html)
         self.assertIn("renderRunReports", html)
+        self.assertIn("운영 액션 이력", html)
+        self.assertIn("action-history-list", html)
+        self.assertIn("renderAdminActions", html)
+        self.assertIn("nav-actions-badge", html)
 
     def test_dashboard_route_uses_shared_page_builder(self) -> None:
         self.assertEqual(dashboard.dashboard(), get_dashboard_html())
