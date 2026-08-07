@@ -70,6 +70,85 @@ def persist_alert_event(event: dict, now: datetime | None = None) -> None:
     append_text_line(report_path, report_row)
 
 
+def build_run_report_header(report_date: str) -> str:
+    return "\n".join(
+        [
+            "# Ops Monitor Monitoring Run Report",
+            "",
+            f"Date: {report_date}",
+            "",
+            "| Completed At | Run ID | Status | Active Targets | Event Count | Excluded Targets |",
+            "|---|---|---|---|---|---|",
+        ]
+    )
+
+
+def persist_monitoring_run(report: dict, now: datetime | None = None) -> None:
+    target_time = now or datetime.now()
+
+    jsonl_path = get_daily_path("runs", "jsonl", target_time)
+    append_text_line(jsonl_path, json.dumps(report, ensure_ascii=False))
+
+    markdown_path = get_daily_path("run-reports", "md", target_time)
+    report_date = target_time.strftime("%Y-%m-%d")
+
+    if not markdown_path.exists():
+        append_text_line(markdown_path, build_run_report_header(report_date))
+
+    active_targets = ", ".join(report.get("active_targets", [])) or "-"
+    excluded_targets = ", ".join(report.get("excluded_targets", [])) or "-"
+    report_row = (
+        f"| {sanitize_report_value(report.get('completed_at', ''))} "
+        f"| {sanitize_report_value(report.get('run_id', ''))} "
+        f"| {sanitize_report_value(report.get('overall_status', ''))} "
+        f"| {sanitize_report_value(active_targets)} "
+        f"| {sanitize_report_value(str(len(report.get('events', []))))} "
+        f"| {sanitize_report_value(excluded_targets)} |"
+    )
+    append_text_line(markdown_path, report_row)
+
+
+def read_recent_monitoring_runs(limit: int = 5) -> list[dict]:
+    if limit <= 0:
+        return []
+
+    runs_dir = get_log_dir() / "runs"
+    if not runs_dir.exists():
+        return []
+
+    recent_reports: list[dict] = []
+    run_files = sorted(runs_dir.glob("*.jsonl"), reverse=True)
+
+    for run_file in run_files:
+        try:
+            lines = run_file.read_text(encoding="utf-8").splitlines()
+        except OSError:
+            logging.getLogger("uvicorn.error").exception(
+                "Failed to read monitoring run log: %s",
+                run_file,
+            )
+            continue
+
+        for line in reversed(lines):
+            normalized_line = line.strip()
+            if not normalized_line:
+                continue
+
+            try:
+                recent_reports.append(json.loads(normalized_line))
+            except json.JSONDecodeError:
+                logging.getLogger("uvicorn.error").warning(
+                    "Skipping invalid monitoring run entry from %s",
+                    run_file,
+                )
+                continue
+
+            if len(recent_reports) >= limit:
+                return recent_reports
+
+    return recent_reports
+
+
 class DailyLogFileHandler(logging.Handler):
     def __init__(
         self,

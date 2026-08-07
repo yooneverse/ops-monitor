@@ -4,25 +4,24 @@ def build_dashboard_styles() -> str:
         :root {
             color-scheme: light;
             --bg: #f4f9ff;
-            --bg-strong: #e8f3ff;
+            --sidebar-bg: #ffffff;
+            --content-bg: #f7fbff;
             --panel: #ffffff;
-            --panel-soft: #f6fbff;
-            --panel-strong: #eef7ff;
-            --sidebar: #eff7ff;
-            --line: #d4e4f4;
-            --line-strong: #bdd7ee;
-            --text: #17324d;
-            --muted: #5f7894;
-            --accent: #1a74d8;
-            --accent-strong: #0f5fc0;
-            --accent-soft: #e8f4ff;
-            --ok: #258f63;
-            --ok-soft: #edf8f1;
-            --warn: #c48218;
-            --warn-soft: #fff7e6;
-            --danger: #d25b4b;
+            --panel-muted: #fbfdff;
+            --border: #d8e3f1;
+            --border-strong: #c5d6ea;
+            --text: #1d2a3b;
+            --muted: #677991;
+            --accent: #2c84d8;
+            --accent-soft: #eaf5ff;
+            --mint: #8ac756;
+            --mint-soft: #f1f9e8;
+            --ok: #2d9659;
+            --warn: #d19324;
+            --warn-soft: #fff7e7;
+            --danger: #d95849;
             --danger-soft: #fff1ee;
-            --shadow: 0 28px 60px rgba(40, 95, 151, 0.10);
+            --shadow: 0 18px 42px rgba(44, 88, 142, 0.08);
         }
 
         * {
@@ -31,12 +30,9 @@ def build_dashboard_styles() -> str:
 
         body {
             margin: 0;
-            font-family: "Segoe UI", "Noto Sans KR", sans-serif;
+            font-family: "Segoe UI", Arial, sans-serif;
             color: var(--text);
-            background:
-                radial-gradient(circle at top right, rgba(26, 116, 216, 0.14), transparent 30%),
-                radial-gradient(circle at left top, rgba(111, 195, 255, 0.20), transparent 26%),
-                linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);
+            background: linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);
             word-break: keep-all;
             overflow-wrap: anywhere;
         }
@@ -46,507 +42,389 @@ def build_dashboard_styles() -> str:
             font: inherit;
         }
 
-        button {
-            appearance: none;
-        }
-
-        .site-shell {
+        .dashboard-shell {
             display: grid;
-            grid-template-columns: 268px minmax(0, 1fr);
+            grid-template-columns: 252px minmax(0, 1fr);
             min-height: 100vh;
+            transition: grid-template-columns 180ms ease;
         }
 
-        .site-shell.sidebar-collapsed {
+        .dashboard-shell.sidebar-collapsed {
             grid-template-columns: 92px minmax(0, 1fr);
         }
 
         .sidebar {
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            background:
-                linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(239, 247, 255, 0.94)),
-                var(--sidebar);
-            border-right: 1px solid rgba(189, 215, 238, 0.9);
             min-width: 0;
-            box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.6);
         }
 
         .brand {
-            padding: 22px 20px 18px;
-            background: linear-gradient(180deg, rgba(248, 252, 255, 0.95), rgba(231, 243, 255, 0.96));
-            color: var(--text);
-            border-bottom: 1px solid rgba(189, 215, 238, 0.78);
-        }
-
-        .brand-title-row {
             display: flex;
             align-items: center;
-            gap: 14px;
+            height: 86px;
+            padding: 0 22px;
+            background: linear-gradient(135deg, #2bc0c8, #2c84d8);
+            color: white;
         }
 
         .brand-mark {
-            width: 42px;
-            height: 42px;
-            border-radius: 14px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #1a74d8, #66c2ff);
-            color: white;
-            font-size: 13px;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            box-shadow: 0 14px 26px rgba(26, 116, 216, 0.20);
-        }
-
-        .brand-label {
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: #7391af;
-        }
-
-        .brand-title {
-            margin-top: 6px;
-            font-size: 28px;
+            font-size: 34px;
             font-weight: 800;
             letter-spacing: -0.04em;
         }
 
-        .brand-copy {
-            margin-top: 8px;
-            font-size: 13px;
-            line-height: 1.6;
-            opacity: 0.88;
-        }
-
         .sidebar-body {
-            padding: 20px 14px 24px;
+            padding: 16px 14px 22px;
             overflow: auto;
         }
 
         .search-box {
             width: 100%;
-            padding: 11px 12px;
-            border: 1px solid var(--line);
+            border: 1px solid var(--border);
             border-radius: 10px;
-            background: white;
+            background: #f8fbff;
+            padding: 10px 12px;
             color: var(--muted);
+            margin-bottom: 18px;
         }
 
-        .nav-group {
-            margin-top: 18px;
+        .nav-section {
+            margin-bottom: 18px;
         }
 
         .nav-title {
             padding: 12px 8px 10px;
-            color: #7b8da2;
+            border-top: 1px solid #edf2f8;
             font-size: 12px;
             font-weight: 800;
-            letter-spacing: 0.05em;
+            color: #7a8ea7;
+            letter-spacing: 0.04em;
             text-transform: uppercase;
         }
 
         .nav-item {
-            width: 100%;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            gap: 10px;
-            margin-top: 6px;
-            padding: 12px 12px;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 8px;
+            border-radius: 10px;
             border: 0;
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.52);
+            width: 100%;
+            background: transparent;
             color: var(--text);
             font-size: 14px;
             text-align: left;
             cursor: pointer;
-            transition: background 140ms ease, box-shadow 140ms ease, transform 140ms ease;
-        }
-
-        .nav-item:hover {
-            background: rgba(255, 255, 255, 0.92);
-            box-shadow: 0 10px 24px rgba(54, 112, 176, 0.08);
-            transform: translateY(-1px);
-        }
-
-        .nav-item.active {
-            background: linear-gradient(135deg, rgba(232, 244, 255, 0.96), rgba(255, 255, 255, 0.98));
-            color: var(--accent-strong);
-            font-weight: 700;
-            box-shadow: 0 12px 30px rgba(26, 116, 216, 0.12);
         }
 
         .nav-item.is-hidden,
-        .nav-group.is-hidden {
+        .nav-section.is-hidden {
             display: none;
         }
 
+        .nav-item.active {
+            background: linear-gradient(90deg, var(--accent-soft), #f8fcff);
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .nav-item:focus-visible {
+            outline: 2px solid rgba(44, 132, 216, 0.28);
+            outline-offset: 2px;
+        }
+
         .nav-badge {
-            min-width: 28px;
-            padding: 0 8px;
+            min-width: 24px;
             height: 24px;
+            padding: 0 8px;
             border-radius: 999px;
+            background: #edf4fb;
+            color: #6b7f98;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: #e7f2ff;
-            color: #5d84ae;
             font-size: 11px;
             font-weight: 800;
         }
 
         .nav-item.active .nav-badge {
-            background: linear-gradient(135deg, var(--accent), #4db7ff);
+            background: var(--accent);
             color: white;
         }
 
         .sidebar-footer {
-            margin-top: 20px;
-            padding: 16px 14px;
-            border: 1px solid rgba(189, 215, 238, 0.9);
-            border-radius: 18px;
-            background: rgba(255, 255, 255, 0.82);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-        }
-
-        .workspace-badge {
-            display: inline-flex;
-            align-items: center;
-            margin-bottom: 12px;
-            padding: 7px 10px;
-            border-radius: 999px;
-            background: rgba(26, 116, 216, 0.10);
-            color: var(--accent-strong);
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 0.06em;
+            margin-top: 18px;
+            padding: 14px 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: linear-gradient(180deg, #f9fcff, #f3f9ff);
         }
 
         .sidebar-footer-title {
             margin-bottom: 10px;
-            color: #70849a;
             font-size: 12px;
             font-weight: 800;
-            letter-spacing: 0.05em;
+            color: #70839d;
+            letter-spacing: 0.04em;
             text-transform: uppercase;
         }
 
         .sidebar-footer-row {
             display: flex;
             justify-content: space-between;
-            gap: 10px;
-            color: var(--muted);
+            gap: 12px;
             font-size: 13px;
+            color: var(--muted);
         }
 
-        .site-shell.sidebar-collapsed .brand-copy,
-        .site-shell.sidebar-collapsed .nav-title,
-        .site-shell.sidebar-collapsed .search-box,
-        .site-shell.sidebar-collapsed .sidebar-footer-title,
-        .site-shell.sidebar-collapsed .sidebar-footer-row span,
-        .site-shell.sidebar-collapsed .sidebar-footer-row strong,
-        .site-shell.sidebar-collapsed .nav-item > span:first-child {
+        .dashboard-shell.sidebar-collapsed .brand {
+            justify-content: center;
+            padding: 0;
+        }
+
+        .dashboard-shell.sidebar-collapsed .brand-mark {
+            font-size: 28px;
+        }
+
+        .dashboard-shell.sidebar-collapsed .search-box,
+        .dashboard-shell.sidebar-collapsed .nav-title,
+        .dashboard-shell.sidebar-collapsed .sidebar-footer-title,
+        .dashboard-shell.sidebar-collapsed .sidebar-footer-row span,
+        .dashboard-shell.sidebar-collapsed .sidebar-footer-row strong,
+        .dashboard-shell.sidebar-collapsed .nav-item > span:first-child {
             display: none;
         }
 
-        .site-shell.sidebar-collapsed .brand {
-            padding: 22px 14px;
-            text-align: center;
-        }
-
-        .site-shell.sidebar-collapsed .brand-title {
-            font-size: 24px;
-        }
-
-        .site-shell.sidebar-collapsed .nav-item {
+        .dashboard-shell.sidebar-collapsed .nav-item {
             justify-content: center;
-            padding: 11px 0;
+            padding: 10px 0;
+        }
+
+        .dashboard-shell.sidebar-collapsed .nav-badge {
+            min-width: 30px;
+            height: 30px;
+            padding: 0;
         }
 
         .main {
             min-width: 0;
+            background: var(--content-bg);
         }
 
-        .topbar {
-            height: 76px;
-            padding: 0 28px;
+        .utility-bar {
+            height: 60px;
+            padding: 0 22px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 16px;
-            border-bottom: 1px solid rgba(189, 215, 238, 0.72);
-            background: rgba(255, 255, 255, 0.74);
-            backdrop-filter: blur(18px);
-            position: sticky;
-            top: 0;
-            z-index: 10;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(10px);
         }
 
-        .topbar-left,
-        .topbar-right {
+        .utility-left,
+        .utility-right {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
         }
 
         .icon-button {
-            width: 42px;
-            height: 42px;
-            border: 1px solid rgba(189, 215, 238, 0.9);
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.88);
-            color: var(--accent-strong);
-            cursor: pointer;
-            box-shadow: 0 12px 24px rgba(54, 112, 176, 0.08);
-        }
-
-        .topbar-search-shell {
-            min-width: min(460px, 58vw);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 0 14px 0 16px;
-            height: 46px;
-            border: 1px solid rgba(189, 215, 238, 0.96);
-            border-radius: 16px;
-            background: rgba(248, 252, 255, 0.96);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-        }
-
-        .topbar-search {
-            flex: 1;
-            border: 0;
-            outline: none;
-            background: transparent;
-            color: var(--text);
-        }
-
-        .topbar-search::placeholder {
-            color: #8ca3bc;
-        }
-
-        .topbar-search-shortcut {
-            min-width: 24px;
-            height: 24px;
-            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: white;
+            color: var(--accent);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: #e8f3ff;
-            color: #6c8eb4;
-            font-size: 11px;
-            font-weight: 800;
+            cursor: pointer;
         }
 
-        .topbar-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 0 14px;
-            height: 42px;
-            border: 1px solid rgba(189, 215, 238, 0.92);
-            border-radius: 14px;
-            background: rgba(248, 252, 255, 0.92);
-        }
-
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #35c777, #2a8fdd);
-            box-shadow: 0 0 0 5px rgba(53, 199, 119, 0.12);
-        }
-
-        .topbar-copy {
+        .utility-text {
             color: var(--muted);
             font-size: 13px;
         }
 
         .avatar {
-            width: 42px;
-            height: 42px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #1a74d8, #73d3ff);
+            background: linear-gradient(135deg, #2c84d8, #8ac756);
             color: white;
             font-size: 13px;
             font-weight: 800;
-            box-shadow: 0 16px 26px rgba(26, 116, 216, 0.18);
         }
 
         .content {
-            padding: 24px 26px 28px;
+            padding: 22px;
         }
 
         .page-header {
-            display: grid;
-            grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 14px;
+            padding: 10px 4px 18px;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 34px;
+            letter-spacing: -0.03em;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             gap: 16px;
-            margin-bottom: 18px;
-            min-width: 0;
         }
 
-        .hero-panel,
-        .quick-panel,
-        .surface {
-            border: 1px solid var(--line);
-            border-radius: 18px;
-            background: var(--panel);
-            box-shadow: var(--shadow);
-        }
-
-        .hero-panel {
-            padding: 26px;
-            background:
-                radial-gradient(circle at top right, rgba(115, 211, 255, 0.18), transparent 24%),
-                linear-gradient(135deg, rgba(26, 116, 216, 0.08), rgba(255, 255, 255, 0.96)),
-                white;
-        }
-
-        .hero-kicker,
-        .panel-kicker,
-        .surface-title {
-            color: #73879d;
+        .header-kicker {
+            color: #70839d;
             font-size: 12px;
             font-weight: 800;
             letter-spacing: 0.06em;
             text-transform: uppercase;
+            margin-bottom: 6px;
         }
 
-        .hero-headline {
-            margin-top: 10px;
-            font-size: 34px;
-            font-weight: 800;
-            letter-spacing: -0.04em;
-            line-height: 1.18;
-        }
-
-        .hero-summary {
-            margin-top: 10px;
-            color: var(--muted);
-            font-size: 14px;
-            line-height: 1.7;
-        }
-
-        .hero-meta {
+        .control-strip {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 12px;
-            margin-top: 18px;
-        }
-
-        .hero-meta-card {
-            padding: 16px;
-            border: 1px solid rgba(189, 215, 238, 0.9);
-            border-radius: 18px;
-            background: rgba(255, 255, 255, 0.88);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
-        }
-
-        .hero-meta-label {
-            color: var(--muted);
-            font-size: 12px;
-            margin-bottom: 8px;
-        }
-
-        .hero-meta-value {
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-        }
-
-        .quick-panel {
-            padding: 20px;
-            display: grid;
+            grid-template-columns: 1.35fr minmax(280px, 0.9fr);
             gap: 14px;
-            background:
-                radial-gradient(circle at top left, rgba(115, 211, 255, 0.14), transparent 26%),
-                linear-gradient(180deg, #fbfdff, #f1f8ff);
-            min-width: 0;
         }
 
-        .panel-heading {
+        .control-panel {
+            padding: 16px 18px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: linear-gradient(135deg, #fafdff, #f3f8ff);
+            box-shadow: var(--shadow);
+        }
+
+        .control-panel-title {
+            font-size: 12px;
+            font-weight: 800;
+            color: #6e829c;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .control-item {
+            min-width: 0;
+            padding: 12px 14px;
+            border: 1px solid #dce8f8;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .control-label {
+            color: #6a7f99;
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        .control-value {
             font-size: 18px;
             font-weight: 800;
-            letter-spacing: -0.03em;
+            letter-spacing: -0.02em;
         }
 
-        .panel-copy {
-            color: var(--muted);
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .quick-actions {
+        .launch-list {
             display: grid;
             gap: 10px;
         }
 
-        .action-button,
-        .confirm-button {
+        .launch-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
             padding: 12px 14px;
-            border: 1px solid rgba(189, 215, 238, 0.94);
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid #dce8f8;
+            border-radius: 12px;
+            background: white;
             color: var(--text);
-            cursor: pointer;
-            box-shadow: 0 10px 20px rgba(54, 112, 176, 0.06);
+            text-decoration: none;
         }
 
-        .action-button.primary,
-        .confirm-button.primary {
-            border-color: var(--accent);
-            background: linear-gradient(135deg, var(--accent-strong), #42a9f4);
-            color: white;
+        .launch-link strong {
+            font-size: 14px;
         }
 
-        .quick-hint,
-        .action-feedback {
+        .launch-link span {
             color: var(--muted);
             font-size: 12px;
-            line-height: 1.6;
         }
 
-        .section-stack {
-            display: grid;
-            gap: 18px;
+        .page-subtitle {
+            padding-bottom: 4px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
         }
 
         .surface {
             overflow: hidden;
-            border-color: rgba(189, 215, 238, 0.92);
-            box-shadow: 0 22px 54px rgba(45, 100, 156, 0.08);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--panel);
+            box-shadow: var(--shadow);
+        }
+
+        .surface + .surface {
+            margin-top: 18px;
         }
 
         .surface-header {
-            padding: 20px 22px;
-            border-bottom: 1px solid rgba(212, 228, 244, 0.92);
+            padding: 18px 22px;
+            border-bottom: 1px solid #edf3f8;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             gap: 16px;
         }
 
+        .surface-title {
+            margin-bottom: 6px;
+            font-size: 12px;
+            font-weight: 800;
+            color: #71839d;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
         .surface-heading {
-            margin-top: 6px;
             font-size: 22px;
             font-weight: 800;
             letter-spacing: -0.03em;
         }
 
         .surface-copy {
-            margin-top: 8px;
             color: var(--muted);
             font-size: 13px;
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
-        .surface-tools {
+        .surface-tools,
+        .subpanel-actions {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
@@ -554,387 +432,757 @@ def build_dashboard_styles() -> str:
             justify-content: flex-end;
         }
 
-        .tool-chip {
+        .tool-chip,
+        .filter-chip {
             padding: 8px 12px;
             border-radius: 999px;
-            border: 1px solid rgba(189, 215, 238, 0.9);
-            background: #f3f9ff;
-            color: #6488ad;
+            border: 1px solid #dce8f8;
+            background: #f8fbff;
+            color: #68809f;
             font-size: 12px;
             font-weight: 700;
         }
 
-        .surface-body {
-            padding: 20px;
-        }
-
-        .report-center-grid {
-            display: grid;
-            grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr);
-            gap: 18px;
-            min-width: 0;
-        }
-
-        .report-queue {
-            display: grid;
-            gap: 10px;
-            min-width: 0;
-        }
-
-        .report-list-item {
-            width: 100%;
-            padding: 16px;
-            border: 1px solid rgba(189, 215, 238, 0.88);
-            border-radius: 18px;
-            background: linear-gradient(180deg, #fbfdff, #f3f9ff);
+        .filter-chip {
             cursor: pointer;
-            text-align: left;
-            transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
         }
 
-        .report-list-item:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 12px 28px rgba(16, 53, 87, 0.06);
+        .filter-chip.is-active {
+            border-color: #2371c4;
+            background: var(--accent-soft);
+            color: var(--accent);
         }
 
-        .report-list-item.active {
-            border-color: #87beee;
-            background: linear-gradient(135deg, #edf7ff, #fafdff);
+        .primary-button {
+            padding: 10px 16px;
+            border: 1px solid #2371c4;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent), #31a0d4);
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
         }
 
-        .report-list-top {
+        .helper-text {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .surface-body {
+            padding: 18px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .metric-card {
+            min-width: 0;
+            display: grid;
+            gap: 12px;
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--panel-muted);
+            cursor: pointer;
+            transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 26px rgba(44, 132, 216, 0.08);
+        }
+
+        .metric-card.is-active {
+            border-color: #69ace8;
+            box-shadow: 0 0 0 2px rgba(44, 132, 216, 0.12);
+        }
+
+        .metric-card.is-hidden-view,
+        .subpanel.is-hidden-view {
+            display: none;
+        }
+
+        .metric-card.primary {
+            background: linear-gradient(135deg, #f3f8ff, #fbfdff);
+            border-color: var(--border-strong);
+        }
+
+        .metric-card.composite {
+            grid-column: span 2;
+            gap: 16px;
+        }
+
+        .metric-card.composite.wide {
+            grid-column: span 4;
+        }
+
+        .metric-card.composite.status-group {
+            grid-column: span 4;
+        }
+
+        .metric-top {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
             gap: 12px;
+            align-items: flex-start;
         }
 
-        .report-title {
-            font-size: 16px;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-        }
-
-        .report-summary {
-            margin-top: 8px;
-            color: var(--muted);
+        .metric-label {
             font-size: 13px;
-            line-height: 1.6;
+            font-weight: 700;
+            color: #60748f;
         }
 
-        .report-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .status-pill,
-        .meta-pill {
-            padding: 6px 10px;
+        .metric-status-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 10px;
             border-radius: 999px;
+            background: #eef4fb;
+            color: #69809f;
             font-size: 11px;
             font-weight: 800;
         }
 
-        .status-pill {
-            background: #ecf1f8;
-            color: #687d94;
-            text-transform: uppercase;
+        .metric-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--accent-soft), #f9fcff);
+            color: var(--accent);
+            font-size: 22px;
+            font-weight: 800;
         }
 
-        .status-pill.critical {
-            background: var(--danger-soft);
-            color: var(--danger);
+        .metric-icon.lime {
+            background: linear-gradient(135deg, var(--mint-soft), #fbfff6);
+            color: #6aa62e;
         }
 
-        .status-pill.high {
-            background: #fff3e1;
-            color: #b06e12;
-        }
-
-        .status-pill.medium {
-            background: var(--warn-soft);
+        .metric-icon.warn {
+            background: linear-gradient(135deg, var(--warn-soft), #fffaf1);
             color: var(--warn);
         }
 
-        .status-pill.low {
-            background: var(--ok-soft);
-            color: var(--ok);
+        .metric-icon.danger {
+            background: linear-gradient(135deg, var(--danger-soft), #fff8f6);
+            color: var(--danger);
         }
 
-        .status-pill.confirmed {
-            background: var(--ok-soft);
-            color: var(--ok);
+        .metric-value {
+            font-size: 31px;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1.05;
         }
 
-        .meta-pill {
-            border: 1px solid var(--line);
-            background: white;
-            color: #678099;
+        .metric-subvalue {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.55;
         }
 
-        .report-detail {
-            display: grid;
-            gap: 16px;
-            padding: 22px;
-            border: 1px solid rgba(189, 215, 238, 0.92);
-            border-radius: 22px;
-            background:
-                radial-gradient(circle at top right, rgba(115, 211, 255, 0.12), transparent 24%),
-                linear-gradient(180deg, #ffffff, #f8fcff);
-            min-height: 100%;
-            min-width: 0;
-        }
-
-        .detail-head {
+        .metric-visual {
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: flex-start;
             gap: 16px;
         }
 
-        .detail-title {
-            font-size: 24px;
+        .metric-visual-copy {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .metric-donut {
+            --percent: 0;
+            --donut-color: var(--accent);
+            width: 92px;
+            height: 92px;
+            border-radius: 50%;
+            background:
+                radial-gradient(closest-side, white 66%, transparent 67% 100%),
+                conic-gradient(var(--donut-color) calc(var(--percent) * 1%), #e8eef8 0);
+            display: grid;
+            place-items: center;
+            flex: 0 0 auto;
+        }
+
+        .metric-donut.connected {
+            --donut-color: var(--ok);
+        }
+
+        .metric-donut.warning {
+            --donut-color: var(--warn);
+        }
+
+        .metric-donut.disconnected {
+            --donut-color: var(--danger);
+        }
+
+        .metric-donut-value {
+            font-size: 18px;
             font-weight: 800;
             letter-spacing: -0.03em;
-            line-height: 1.3;
-        }
-
-        .detail-headline {
-            margin-top: 8px;
-            color: #365b7e;
-            font-size: 15px;
-            line-height: 1.6;
-        }
-
-        .detail-summary {
-            color: var(--muted);
-            font-size: 14px;
-            line-height: 1.7;
-        }
-
-        .detail-section {
-            display: grid;
-            gap: 10px;
-        }
-
-        .detail-section-title {
-            font-size: 13px;
-            font-weight: 800;
-            color: #6d8299;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        .detail-list {
-            margin: 0;
-            padding-left: 18px;
             color: var(--text);
-            font-size: 14px;
-            line-height: 1.7;
         }
 
-        .detail-actions {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .detail-feedback {
-            color: var(--muted);
-            font-size: 12px;
-            line-height: 1.5;
-        }
-
-        .board-grid {
+        .composite-top {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 14px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #e7eef8;
+        }
+
+        .composite-top.status-five {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+        }
+
+        .composite-top.no-divider {
+            padding-bottom: 0;
+            border-bottom: 0;
+        }
+
+        .composite-bottom {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .mini-metric {
             min-width: 0;
+            padding: 14px;
+            border: 1px solid #e4ecf8;
+            border-radius: 12px;
+            background: #ffffff;
+            display: grid;
+            gap: 12px;
         }
 
-        .board-card {
-            padding: 16px;
-            border: 1px solid rgba(189, 215, 238, 0.9);
-            border-radius: 18px;
-            background: linear-gradient(180deg, #fbfdff, #f5faff);
-            min-width: 0;
-        }
-
-        .board-card.wide {
-            grid-column: span 2;
-        }
-
-        .board-card.full {
-            grid-column: span 4;
-        }
-
-        .board-card-title {
+        .mini-metric-title {
             font-size: 13px;
-            font-weight: 800;
-            color: #64788f;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
+            font-weight: 700;
+            color: #60748f;
         }
 
-        .board-list {
+        .status-tile {
+            min-width: 0;
+            padding: 14px;
+            border: 1px solid #e4ecf8;
+            border-radius: 12px;
+            background: #ffffff;
             display: grid;
             gap: 10px;
-            margin-top: 14px;
         }
 
-        .board-item {
-            padding: 12px 14px;
-            border: 1px solid rgba(212, 228, 244, 0.94);
-            border-radius: 14px;
-            background: white;
+        .status-tile.primary {
+            background: linear-gradient(135deg, #f3f8ff, #fbfdff);
         }
 
-        .board-item-top {
+        .status-tile-head {
             display: flex;
             justify-content: space-between;
             gap: 12px;
             align-items: flex-start;
         }
 
-        .board-item-label {
-            font-size: 14px;
-            font-weight: 700;
+        .metric-bar {
+            height: 8px;
+            border-radius: 999px;
+            background: #e8eef8;
+            overflow: hidden;
         }
 
-        .board-item-value {
+        .metric-bar > span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--accent), #53b8d9);
+        }
+
+        .metric-bar.lime > span {
+            background: linear-gradient(90deg, #4ca66b, #8ac756);
+        }
+
+        .metric-bar.warn > span {
+            background: linear-gradient(90deg, #dda13a, #f1c56e);
+        }
+
+        .metric-meta,
+        .alert-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .meta-chip,
+        .alert-meta-chip {
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid #e7eef8;
+            background: white;
+            color: #6f839d;
+            font-size: 12px;
+        }
+
+        .status-action-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .secondary-button {
+            padding: 8px 12px;
+            border: 1px solid #d4e1f1;
+            border-radius: 10px;
+            background: white;
+            color: #56708f;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .action-feedback {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .metrics-caption {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .summary-note {
+            margin-top: 16px;
+            padding: 14px 16px;
+            border: 1px solid #dce8f8;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #f8fbff, #fcfeff);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .summary-note-label {
+            margin-bottom: 6px;
+            color: #70839d;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .summary-status {
             font-size: 18px;
             font-weight: 800;
-            letter-spacing: -0.03em;
+            letter-spacing: -0.02em;
         }
 
-        .board-item-detail {
+        .summary-copy {
             margin-top: 6px;
             color: var(--muted);
             font-size: 13px;
             line-height: 1.6;
         }
 
-        .tone-ok {
-            color: var(--ok);
-        }
-
-        .tone-warning {
-            color: var(--warn);
-        }
-
-        .tone-critical {
-            color: var(--danger);
-        }
-
-        .timeline-grid {
+        .summary-note-meta {
+            min-width: 220px;
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-            gap: 16px;
-            min-width: 0;
+            gap: 8px;
         }
 
-        .timeline-list,
-        .alert-list {
+        .summary-note-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .summary-note-row.compact {
+            align-items: flex-start;
+        }
+
+        .summary-note-row.compact strong {
+            max-width: 150px;
+            text-align: right;
+            line-height: 1.5;
+            font-size: 11px;
+            color: #5f7490;
+        }
+
+        .detail-grid {
             display: grid;
-            gap: 10px;
-            min-width: 0;
+            grid-template-columns: 1.08fr 1fr;
+            gap: 18px;
         }
 
-        .timeline-item,
-        .alert-item {
-            padding: 14px 15px;
-            border: 1px solid rgba(212, 228, 244, 0.94);
-            border-radius: 16px;
+        .subpanel {
+            min-width: 0;
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--panel-muted);
+        }
+
+        .subpanel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .subpanel-title {
+            margin-bottom: 6px;
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .subpanel-copy {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .target-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .target-card {
+            padding: 14px;
+            border: 1px solid #dce8f8;
+            border-radius: 12px;
             background: white;
         }
 
-        .timeline-item-top,
-        .alert-item-top {
+        .target-card-title {
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #60748f;
+        }
+
+        .target-card-copy {
+            margin-bottom: 10px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .target-chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .target-chip {
+            padding: 7px 10px;
+            border-radius: 999px;
+            border: 1px solid #dbe7f7;
+            background: #f8fbff;
+            color: #4f6885;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .target-chip.warning {
+            border-color: #f1d49e;
+            background: var(--warn-soft);
+            color: #8d5105;
+        }
+
+        .target-chip.empty {
+            border-color: #d6eadb;
+            background: #f3fbf5;
+            color: #3f7d55;
+        }
+
+        .interaction-state {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .interaction-badge {
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: #eef5ff;
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .interaction-reset {
+            padding: 7px 12px;
+            border: 1px solid #d8e4f5;
+            border-radius: 999px;
+            background: white;
+            color: #65809f;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .warning-list,
+        .alerts-list,
+        .run-report-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .warning-item {
+            padding: 12px 14px;
+            border: 1px solid #f1d49e;
+            border-radius: 10px;
+            background: var(--warn-soft);
+            color: #8d5105;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .warning-item.empty {
+            border-color: #d6eadb;
+            background: #f3fbf5;
+            color: #3f7d55;
+        }
+
+        .alert-item {
+            position: relative;
+            display: grid;
+            grid-template-columns: 140px minmax(0, 1fr);
+            gap: 14px;
+            padding: 14px 16px;
+            border: 1px solid #e7edf7;
+            border-radius: 12px;
+            background: white;
+        }
+
+        .alert-item::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            border-radius: 12px 0 0 12px;
+            background: var(--accent);
+        }
+
+        .alert-item.incident {
+            border-color: #f0d1cf;
+            background: #fffaf9;
+        }
+
+        .alert-item.incident::before {
+            background: var(--danger);
+        }
+
+        .alert-item.recovery {
+            border-color: #d8ebdd;
+            background: #fbfffc;
+        }
+
+        .alert-item.recovery::before {
+            background: var(--ok);
+        }
+
+        .alert-item.resource_alert {
+            border-color: #f0ddb7;
+            background: #fffdf8;
+        }
+
+        .alert-item.resource_alert::before {
+            background: var(--warn);
+        }
+
+        .alert-item.resource_recovery::before {
+            background: var(--mint);
+        }
+
+        .alert-item.notification_error::before {
+            background: #8c6ed6;
+        }
+
+        .run-report-item {
+            padding: 14px 16px;
+            border: 1px solid #e7edf7;
+            border-radius: 12px;
+            background: white;
+            display: grid;
+            gap: 12px;
+        }
+
+        .run-report-item.warning {
+            border-color: #f1d49e;
+            background: #fffdf7;
+        }
+
+        .run-report-item.error {
+            border-color: #f0d1cf;
+            background: #fffaf9;
+        }
+
+        .run-report-head {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
             gap: 12px;
         }
 
-        .timeline-title,
-        .alert-title {
+        .run-report-title {
             font-size: 15px;
-            font-weight: 700;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .run-report-copy {
+            color: var(--muted);
+            font-size: 12px;
             line-height: 1.5;
         }
 
-        .timeline-summary,
-        .alert-summary {
-            margin-top: 8px;
-            color: var(--muted);
-            font-size: 13px;
-            line-height: 1.6;
+        .run-report-status {
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #eef4fb;
+            color: #67809f;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
         }
 
-        .timestamp {
-            color: #7b90a7;
+        .alert-side {
+            display: grid;
+            gap: 8px;
+        }
+
+        .alert-kind {
+            width: fit-content;
+            min-width: 72px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #eef4fb;
+            color: #6980a0;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .alert-time,
+        .alert-message {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .alert-title {
+            margin-bottom: 6px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .status-signal {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: #eff5fb;
+            color: #6c8199;
             font-size: 12px;
-            white-space: nowrap;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
         }
 
-        .empty-state {
-            padding: 18px;
-            border: 1px dashed rgba(157, 199, 235, 0.96);
-            border-radius: 16px;
-            background: #f7fbff;
-            color: var(--muted);
-            font-size: 13px;
-            line-height: 1.7;
+        .status-signal-light {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #d7e2ef;
+            box-shadow: 0 0 0 4px rgba(156, 173, 192, 0.18);
+            transition: background 180ms ease, box-shadow 180ms ease;
         }
 
-        .is-hidden-view {
-            display: none;
+        .status-signal.pending {
+            background: #fff6e7;
+            color: #b17a13;
+        }
+
+        .status-signal.pending .status-signal-light {
+            background: #e7b554;
+            box-shadow: 0 0 0 4px rgba(231, 181, 84, 0.2);
+        }
+
+        .status-signal.connected {
+            background: #edf8f1;
+            color: var(--ok);
+        }
+
+        .status-signal.connected .status-signal-light {
+            background: var(--ok);
+            box-shadow: 0 0 0 4px rgba(45, 150, 89, 0.2), 0 0 18px rgba(45, 150, 89, 0.24);
+        }
+
+        .status-signal.disconnected {
+            background: #fff1ee;
+            color: var(--danger);
+        }
+
+        .status-signal.disconnected .status-signal-light {
+            background: var(--danger);
+            box-shadow: 0 0 0 4px rgba(217, 88, 73, 0.18), 0 0 18px rgba(217, 88, 73, 0.22);
+        }
+
+        .connected {
+            color: var(--ok);
+        }
+
+        .disconnected,
+        .danger {
+            color: var(--danger);
+        }
+
+        .normal {
+            color: var(--accent);
+        }
+
+        .warning {
+            color: var(--warn);
         }
 
         @media (max-width: 1180px) {
-            .page-header,
-            .report-center-grid,
-            .timeline-grid {
+            .summary-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .detail-grid {
                 grid-template-columns: 1fr;
-            }
-
-            .topbar {
-                height: auto;
-                padding: 18px 22px;
-                align-items: stretch;
-                flex-direction: column;
-            }
-
-            .topbar-left,
-            .topbar-right {
-                width: 100%;
-                justify-content: space-between;
-            }
-
-            .topbar-search-shell {
-                min-width: 0;
-                width: 100%;
-            }
-
-            .board-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .board-card.full,
-            .board-card.wide {
-                grid-column: span 2;
-            }
-
-            .hero-meta {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
 
-        @media (max-width: 860px) {
-            .site-shell {
+        @media (max-width: 900px) {
+            .dashboard-shell {
                 grid-template-columns: 1fr;
             }
 
@@ -942,42 +1190,50 @@ def build_dashboard_styles() -> str:
                 display: none;
             }
 
-            .board-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .board-card.full,
-            .board-card.wide {
-                grid-column: span 1;
-            }
-
-            .hero-meta {
-                grid-template-columns: 1fr;
-            }
-
             .content {
-                padding: 18px 16px 22px;
-            }
-
-            .topbar {
                 padding: 16px;
             }
 
-            .topbar-left {
-                gap: 10px;
+            .control-strip,
+            .control-grid {
+                grid-template-columns: 1fr;
             }
 
-            .topbar-right {
-                justify-content: flex-end;
+            .page-header,
+            .summary-note {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .summary-grid {
+                grid-template-columns: 1fr;
             }
 
-            .topbar-status {
-                flex: 1;
-                min-width: 0;
+            .metric-card.composite,
+            .metric-card.composite.wide,
+            .metric-card.composite.status-group,
+            .composite-top,
+            .composite-bottom {
+                grid-column: auto;
+                grid-template-columns: 1fr;
             }
 
-            .topbar-search-shortcut {
-                display: none;
+            .utility-bar,
+            .surface-header,
+            .subpanel-header,
+            .header-top {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .subpanel-actions {
+                justify-content: flex-start;
+            }
+
+            .alert-item {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -988,131 +1244,254 @@ def build_sidebar() -> str:
     return """
         <aside class="sidebar">
             <div class="brand">
-                <div class="brand-title-row">
-                    <div class="brand-mark">OM</div>
-                    <div>
-                        <div class="brand-label">Operations Monitor</div>
-                        <div class="brand-title">Ops Monitor</div>
-                    </div>
-                </div>
+                <div class="brand-mark">Ops</div>
             </div>
             <div class="sidebar-body">
-                <div class="nav-group">
-                    <div class="nav-title">Overview</div>
-                    <button class="nav-item active" type="button" data-nav-view="overview"><span>운영 개요</span><span class="nav-badge">기본</span></button>
-                    <button class="nav-item" type="button" data-nav-view="reports"><span>분석 보고서</span><span id="nav-reports-badge" class="nav-badge">0</span></button>
-                    <button class="nav-item" type="button" data-nav-view="approvals"><span>확인 대기</span><span id="nav-approvals-badge" class="nav-badge">0</span></button>
+                <input id="menu-search" class="search-box" type="search" placeholder="운영 메뉴 검색" aria-label="운영 메뉴 검색" />
+
+                <div class="nav-section">
+                    <div class="nav-title">운영 개요</div>
+                    <button class="nav-item active" type="button" data-nav-view="overview"><span>대시보드</span><span class="nav-badge">전체</span></button>
+                    <button class="nav-item" type="button" data-nav-view="services"><span>서비스 상태</span><span id="nav-services-badge" class="nav-badge">확인 중</span></button>
+                    <button class="nav-item" type="button" data-nav-view="alerts"><span>장애 이력</span><span id="nav-alerts-badge" class="nav-badge">0</span></button>
+                    <button class="nav-item" type="button" data-nav-view="notification"><span>알림 채널</span><span id="nav-notification-badge" class="nav-badge">확인 중</span></button>
                 </div>
 
-                <div class="nav-group">
-                    <div class="nav-title">Operations</div>
-                    <button class="nav-item" type="button" data-nav-view="operations"><span>운영 보드</span><span id="nav-operations-badge" class="nav-badge">확인 중</span></button>
-                    <button class="nav-item" type="button" data-nav-view="timeline"><span>타임라인</span><span id="nav-timeline-badge" class="nav-badge">0</span></button>
-                    <button class="nav-item" type="button" data-nav-view="alerts"><span>이벤트 로그</span><span id="nav-alerts-badge" class="nav-badge">0</span></button>
+                <div class="nav-section">
+                    <div class="nav-title">모니터링 관리</div>
+                    <button class="nav-item" type="button" data-nav-view="monitoring"><span>모니터링 루프</span><span id="nav-monitoring-badge" class="nav-badge">확인 중</span></button>
+                    <button class="nav-item" type="button" data-nav-view="thresholds"><span>임계치 설정</span><span id="nav-thresholds-badge" class="nav-badge">정책</span></button>
+                    <button class="nav-item" type="button" data-nav-view="config"><span>환경 설정</span><span id="nav-config-badge" class="nav-badge">확인 중</span></button>
+                    <button class="nav-item" type="button" data-nav-view="logs"><span>로그 리포트</span><span id="nav-logs-badge" class="nav-badge">최근</span></button>
                 </div>
 
-                <div class="nav-group">
-                    <div class="nav-title">Control</div>
-                    <button class="nav-item" type="button" data-nav-view="actions"><span>운영 액션</span><span id="nav-actions-badge" class="nav-badge">0</span></button>
-                    <button class="nav-item" type="button" data-nav-view="config"><span>설정 경고</span><span id="nav-config-badge" class="nav-badge">0</span></button>
+                <div class="nav-section">
+                    <div class="nav-title">보호된 영역</div>
+                    <button class="nav-item" type="button" data-nav-view="auth"><span>인증 상태</span><span id="nav-auth-badge" class="nav-badge">확인 중</span></button>
+                    <button class="nav-item" type="button" data-nav-view="services"><span>인스턴스 점검</span><span id="nav-instance-badge" class="nav-badge">확인 중</span></button>
+                    <button class="nav-item" type="button" data-nav-view="actions"><span>운영 액션</span><span id="nav-actions-badge" class="nav-badge">확인 중</span></button>
+                    <button class="nav-item" type="button" data-nav-view="docs"><span>문서 노출 제어</span><span id="nav-docs-badge" class="nav-badge">확인 중</span></button>
                 </div>
 
                 <div class="sidebar-footer">
-                    <div class="sidebar-footer-title">Workspace</div>
-                    <div class="workspace-badge">MONITORING ACTIVE</div>
-                    <div class="sidebar-footer-row"><span>최근 집계</span><strong id="sidebar-generated-at">-</strong></div>
+                    <div class="sidebar-footer-title">운영 환경</div>
+                    <div class="sidebar-footer-row">
+                        <span>대상</span>
+                        <strong>Production</strong>
+                    </div>
+                    <div class="sidebar-footer-row">
+                        <span>보호 상태</span>
+                        <strong>Enabled</strong>
+                    </div>
                 </div>
             </div>
         </aside>
     """
 
 
-def build_topbar() -> str:
+def build_utility_bar() -> str:
     return """
-        <div class="topbar">
-            <div class="topbar-left">
+        <div class="utility-bar">
+            <div class="utility-left">
                 <button id="sidebar-toggle" class="icon-button" type="button" aria-label="사이드바 토글">☰</button>
-                <label class="topbar-search-shell" for="menu-search">
-                    <input id="menu-search" class="topbar-search" type="search" placeholder="메뉴 빠른 찾기" />
-                    <span class="topbar-search-shortcut">/</span>
-                </label>
+                <div class="icon-button">⌂</div>
+                <div class="utility-text">운영 콘솔</div>
             </div>
-            <div class="topbar-right">
-                <div class="topbar-status">
-                    <span class="status-dot"></span>
-                    <div id="workspace-generated-at" class="topbar-copy">마지막 집계 -</div>
-                </div>
+            <div class="utility-right">
+                <div class="utility-text">보호된 모니터링 환경</div>
                 <div class="avatar">OM</div>
             </div>
         </div>
     """
 
 
-def build_header() -> str:
+def build_page_header() -> str:
     return """
-        <div class="page-header" data-views="overview reports approvals">
-            <section class="hero-panel">
-                <div class="hero-kicker">System Overview</div>
-                <div id="overview-headline" class="hero-headline">운영 현황을 불러오는 중입니다.</div>
-                <div id="overview-summary" class="hero-summary">-</div>
-                <div class="hero-meta">
-                    <div class="hero-meta-card">
-                        <div class="hero-meta-label">확인 대기 보고서</div>
-                        <div id="overview-pending-count" class="hero-meta-value">-</div>
-                    </div>
-                    <div class="hero-meta-card">
-                        <div class="hero-meta-label">확인 완료 보고서</div>
-                        <div id="overview-confirmed-count" class="hero-meta-value">-</div>
-                    </div>
-                    <div class="hero-meta-card">
-                        <div class="hero-meta-label">최근 이벤트</div>
-                        <div id="overview-alert-count" class="hero-meta-value">-</div>
-                    </div>
-                    <div class="hero-meta-card">
-                        <div class="hero-meta-label">점검 주기</div>
-                        <div id="overview-interval" class="hero-meta-value">-</div>
-                    </div>
-                </div>
-            </section>
-
-            <aside class="quick-panel">
+        <div class="page-header">
+            <div class="header-top">
                 <div>
-                    <div class="panel-kicker">Action Center</div>
-                    <div class="panel-heading">운영 도구</div>
+                    <div class="header-kicker">Ops Monitor Console</div>
+                    <h1>대시보드</h1>
                 </div>
-                <div class="quick-actions">
-                    <button id="confirm-report-button" class="confirm-button primary" type="button">선택 보고서 확인 완료</button>
-                    <button id="open-timeline-button" class="action-button" type="button">타임라인 보기</button>
-                    <button id="open-config-button" class="action-button" type="button">설정 경고 보기</button>
+            </div>
+            <div class="control-strip">
+                <div class="control-panel">
+                    <div class="control-panel-title">운영 개요</div>
+                        <div class="control-grid">
+                            <div class="control-item">
+                                <div class="control-label">운영 환경</div>
+                                <div id="environment-label" class="control-value">확인 중...</div>
+                            </div>
+                            <div class="control-item">
+                                <div class="control-label">보호 상태</div>
+                                <div id="protection-status" class="control-value">확인 중...</div>
+                            </div>
+                            <div class="control-item">
+                                <div class="control-label">감시 대상</div>
+                                <div id="tracked-targets" class="control-value">확인 중...</div>
+                            </div>
+                        </div>
+                    </div>
+                <div class="control-panel">
+                    <div class="control-panel-title">빠른 실행</div>
+                    <div class="launch-list">
+                        <a class="launch-link" href="http://localhost:8010" target="_blank" rel="noreferrer">
+                            <strong>Demo Notes 열기</strong>
+                            <span>입력형 내부 서비스</span>
+                        </a>
+                        <a class="launch-link" href="http://localhost:8010/api/notes" target="_blank" rel="noreferrer">
+                            <strong>메모 API 보기</strong>
+                            <span>실제 감시 대상 API</span>
+                        </a>
+                    </div>
                 </div>
-                <div id="workspace-action-feedback" class="action-feedback">대기 중</div>
-                <div id="workspace-refresh-hint" class="quick-hint">자동 갱신: 대기 중</div>
-            </aside>
+            </div>
         </div>
     """
 
 
-def build_report_center_surface() -> str:
+def build_summary_surface() -> str:
     return """
-        <section class="surface" data-views="overview reports approvals">
+        <section class="surface">
             <div class="surface-header">
                 <div>
-                    <div class="surface-title">Reports</div>
-                    <div class="surface-heading">분석 보고서</div>
+                    <div class="surface-title">실시간 상태</div>
+                    <div class="surface-heading">운영 요약</div>
                 </div>
                 <div class="surface-tools">
-                    <div class="tool-chip">분석 보고서</div>
-                    <div class="tool-chip">확인 처리</div>
-                    <div class="tool-chip">운영 보기</div>
+                    <div class="tool-chip">운영 개요</div>
+                    <div class="tool-chip">실시간 점검</div>
+                    <div class="tool-chip">상호작용 지원</div>
                 </div>
             </div>
             <div class="surface-body">
-                <div class="report-center-grid">
-                    <div id="report-list" class="report-queue">
-                        <div class="empty-state">보고서 큐를 준비하는 중입니다.</div>
+                <div id="summary-grid" class="summary-grid">
+                    <div class="metric-card composite status-group" data-filter="all" data-views="overview services notification monitoring config auth docs">
+                        <div class="composite-top status-five no-divider">
+                            <div class="status-tile primary">
+                                <div class="status-tile-head">
+                                    <div>
+                                        <div class="metric-label">API 상태</div>
+                                        <div class="metric-status-chip">핵심</div>
+                                    </div>
+                                    <div class="metric-icon">A</div>
+                                </div>
+                                <div id="api-status" class="metric-value normal">확인 중...</div>
+                                <div class="metric-meta">
+                                    <div class="meta-chip">운영 진입점</div>
+                                </div>
+                            </div>
+
+                            <div class="status-tile primary">
+                                <div class="status-tile-head">
+                                    <div>
+                                        <div class="metric-label">데이터베이스 상태</div>
+                                        <div class="metric-status-chip">핵심</div>
+                                    </div>
+                                    <div class="metric-icon lime">DB</div>
+                                </div>
+                                <div id="db-status-signal" class="status-signal pending">
+                                    <span class="status-signal-light" aria-hidden="true"></span>
+                                    <span id="db-status-signal-text">DB 연결 확인 중</span>
+                                </div>
+                                <div id="db-status" class="metric-value normal">확인 중...</div>
+                                <div class="metric-meta">
+                                    <div class="meta-chip">핵심 의존성</div>
+                                </div>
+                                <div class="status-action-row">
+                                    <button id="db-restart-button" class="secondary-button" type="button">DB 재시작</button>
+                                    <div id="db-action-feedback" class="action-feedback">관리자 재시작만 지원</div>
+                                </div>
+                            </div>
+
+                            <div class="status-tile">
+                                <div class="status-tile-head">
+                                    <div>
+                                        <div class="metric-label">모니터링 상태</div>
+                                    </div>
+                                    <div class="metric-icon lime">↻</div>
+                                </div>
+                                <div id="monitoring-status" class="metric-value normal">확인 중...</div>
+                                <div id="monitoring-desc" class="metric-subvalue">-</div>
+                                <div class="metric-meta">
+                                    <div class="meta-chip">백그라운드 루프</div>
+                                </div>
+                            </div>
+
+                            <div class="status-tile">
+                                <div class="status-tile-head">
+                                    <div>
+                                        <div class="metric-label">디스코드 알림</div>
+                                    </div>
+                                    <div class="metric-icon">N</div>
+                                </div>
+                                <div id="discord-status" class="metric-value normal">확인 중...</div>
+                                <div id="discord-desc" class="metric-subvalue">웹훅 설정 상태</div>
+                                <div class="metric-meta">
+                                    <div class="meta-chip">알림 채널</div>
+                                </div>
+                            </div>
+
+                            <div class="status-tile">
+                                <div class="status-tile-head">
+                                    <div>
+                                        <div class="metric-label">설정 상태</div>
+                                    </div>
+                                    <div class="metric-icon danger">C</div>
+                                </div>
+                                <div id="config-status" class="metric-value warning">확인 중...</div>
+                                <div id="config-desc" class="metric-subvalue">환경 검증과 기능 설정 상태</div>
+                                <div class="metric-meta">
+                                    <div class="meta-chip">검증 경고</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div id="report-detail" class="report-detail">
-                        <div class="empty-state">보고서를 선택해 주세요.</div>
+
+                    <div class="metric-card composite wide" data-filter="resource" data-views="overview thresholds services">
+                        <div class="composite-bottom">
+                            <div class="mini-metric">
+                                <div class="mini-metric-title">메모리 사용량</div>
+                                <div class="metric-visual">
+                                    <div class="metric-visual-copy">
+                                        <div id="memory-status" class="metric-value normal">확인 중...</div>
+                                        <div id="memory-desc" class="metric-subvalue">-</div>
+                                    </div>
+                                    <div id="memory-donut" class="metric-donut normal">
+                                        <div id="memory-donut-value" class="metric-donut-value">0%</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mini-metric">
+                                <div class="mini-metric-title">디스크 사용량</div>
+                                <div class="metric-visual">
+                                    <div class="metric-visual-copy">
+                                        <div id="disk-status" class="metric-value normal">확인 중...</div>
+                                        <div id="disk-desc" class="metric-subvalue">-</div>
+                                    </div>
+                                    <div id="disk-donut" class="metric-donut normal">
+                                        <div id="disk-donut-value" class="metric-donut-value">0%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="summary-note">
+                    <div>
+                        <div class="summary-note-label">운영 브리핑</div>
+                        <div id="summary-status" class="summary-status">대시보드 상태를 확인하는 중입니다.</div>
+                        <div id="summary-copy" class="summary-copy">현재 운영 상태를 요약합니다.</div>
+                    </div>
+                    <div class="summary-note-meta">
+                        <div class="summary-note-row"><span>마지막 상태 확인</span><strong id="checked-time">-</strong></div>
+                        <div class="summary-note-row"><span>모니터링 마지막 점검</span><strong id="monitor-last-check">-</strong></div>
+                        <div class="summary-note-row"><span>데모 서비스</span><strong id="demo-notes-status">-</strong></div>
+                        <div class="summary-note-row"><span>설정 경고 수</span><strong id="config-warning-count">-</strong></div>
+                        <div class="summary-note-row"><span>활성 점검 대상</span><strong id="active-target-count">-</strong></div>
+                        <div class="summary-note-row"><span>제외 대상</span><strong id="excluded-target-count">-</strong></div>
+                        <div class="summary-note-row compact"><span>알림 기준</span><strong id="threshold-summary">-</strong></div>
                     </div>
                 </div>
             </div>
@@ -1120,68 +1499,129 @@ def build_report_center_surface() -> str:
     """
 
 
-def build_operations_surface() -> str:
+def build_detail_surface() -> str:
     return """
-        <section class="surface" data-views="overview operations config actions">
+        <section class="surface">
             <div class="surface-header">
                 <div>
-                    <div class="surface-title">Operations</div>
-                    <div class="surface-heading">서비스 / 자원 현황</div>
+                    <div class="surface-title">운영 이벤트</div>
+                    <div class="surface-heading">운영 세부 현황</div>
                 </div>
             </div>
             <div class="surface-body">
-                <div class="board-grid">
-                    <div class="board-card wide">
-                        <div class="board-card-title">서비스 상태</div>
-                        <div id="service-board" class="board-list">
-                            <div class="empty-state">서비스 보드를 준비하는 중입니다.</div>
+                <div class="detail-grid">
+                    <div class="subpanel" data-panel="warnings" data-views="overview config auth docs">
+                        <div class="subpanel-header">
+                            <div>
+                                <div class="subpanel-title">설정 경고</div>
+                            </div>
+                        </div>
+                        <div id="warning-list" class="warning-list">
+                            <div class="warning-item empty">설정 경고가 없습니다.</div>
                         </div>
                     </div>
-                    <div class="board-card">
-                        <div class="board-card-title">자원 사용량</div>
-                        <div id="resource-board" class="board-list">
-                            <div class="empty-state">자원 보드를 준비하는 중입니다.</div>
-                        </div>
-                    </div>
-                    <div class="board-card">
-                        <div class="board-card-title">설정 경고</div>
-                        <div id="config-warning-list" class="board-list">
-                            <div class="empty-state">설정 경고를 확인하는 중입니다.</div>
-                        </div>
-                    </div>
-                    <div class="board-card full">
-                        <div class="board-card-title">운영 액션 감사</div>
-                        <div id="action-feed" class="board-list">
-                            <div class="empty-state">최근 운영 액션 이력을 확인하는 중입니다.</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    """
 
-
-def build_timeline_surface() -> str:
-    return """
-        <section class="surface" data-views="overview timeline alerts actions">
-            <div class="surface-header">
-                <div>
-                    <div class="surface-title">Timeline</div>
-                    <div class="surface-heading">운영 기록</div>
-                </div>
-            </div>
-            <div class="surface-body">
-                <div class="timeline-grid">
-                    <div>
-                        <div class="board-card-title">운영 타임라인</div>
-                        <div id="timeline-list" class="timeline-list">
-                            <div class="empty-state">타임라인을 준비하는 중입니다.</div>
+                    <div class="subpanel" data-panel="targets" data-views="overview monitoring services config">
+                        <div class="subpanel-header">
+                            <div>
+                                <div class="subpanel-title">점검 대상</div>
+                                <div class="subpanel-copy">현재 루프에서 실제로 점검 중인 대상과 예외 규칙을 함께 보여줍니다.</div>
+                            </div>
+                        </div>
+                        <div class="target-grid">
+                            <div class="target-card">
+                                <div class="target-card-title">활성 대상</div>
+                                <div class="target-card-copy">이번 실행에서 상태를 수집하는 대상입니다.</div>
+                                <div id="active-target-list" class="target-chip-list">
+                                    <div class="target-chip empty">확인 중...</div>
+                                </div>
+                            </div>
+                            <div class="target-card">
+                                <div class="target-card-title">제외 대상</div>
+                                <div class="target-card-copy">설정으로 임시 제외된 대상입니다.</div>
+                                <div id="excluded-target-list" class="target-chip-list">
+                                    <div class="target-chip empty">확인 중...</div>
+                                </div>
+                            </div>
+                            <div class="target-card">
+                                <div class="target-card-title">대상 경고</div>
+                                <div class="target-card-copy">알 수 없는 제외 대상이나 전체 제외 같은 운영 경고를 표시합니다.</div>
+                                <div id="target-warning-list" class="target-chip-list">
+                                    <div class="target-chip empty">확인 중...</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <div class="board-card-title">최근 이벤트</div>
-                        <div id="alert-list" class="alert-list">
-                            <div class="empty-state">이벤트 로그를 준비하는 중입니다.</div>
+
+                    <div class="subpanel" data-panel="run-reports" data-views="overview logs monitoring services">
+                        <div class="subpanel-header">
+                            <div>
+                                <div class="subpanel-title">최근 실행 리포트</div>
+                                <div class="subpanel-copy">이벤트 이력과 별도로 최근 점검 실행 범위와 결과를 빠르게 복기할 수 있습니다.</div>
+                            </div>
+                        </div>
+                        <div id="run-report-list" class="run-report-list">
+                            <div class="run-report-item">
+                                <div class="run-report-head">
+                                    <div>
+                                        <div class="run-report-title">최근 실행 리포트를 불러오는 중입니다.</div>
+                                        <div class="run-report-copy">실행 범위와 결과를 확인할 수 있도록 준비 중입니다.</div>
+                                    </div>
+                                    <div class="run-report-status">loading</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subpanel" data-panel="admin-actions" data-views="overview actions services auth">
+                        <div class="subpanel-header">
+                            <div>
+                                <div class="subpanel-title">운영 액션 이력</div>
+                                <div class="subpanel-copy">보호된 조치 요청이 언제 누구에 의해 실행되었는지와 성공 여부를 분리해서 보여줍니다.</div>
+                            </div>
+                        </div>
+                        <div id="action-history-list" class="run-report-list">
+                            <div class="run-report-item">
+                                <div class="run-report-head">
+                                    <div>
+                                        <div class="run-report-title">운영 액션 이력을 불러오는 중입니다.</div>
+                                        <div class="run-report-copy">최근 보호된 조치와 결과를 정리하는 중입니다.</div>
+                                    </div>
+                                    <div class="run-report-status">loading</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subpanel" data-panel="alerts" data-views="overview alerts logs notification monitoring services thresholds">
+                        <div class="subpanel-header">
+                            <div>
+                                <div class="subpanel-title">최근 알림</div>
+                                <div class="interaction-state">
+                                    <div id="interaction-badge" class="interaction-badge">현재 필터: 전체</div>
+                                    <button id="interaction-reset" class="interaction-reset" type="button">필터 해제</button>
+                                </div>
+                            </div>
+                            <div class="subpanel-actions">
+                                <button class="filter-chip is-active" type="button" data-alert-filter="all">전체</button>
+                                <button class="filter-chip" type="button" data-alert-filter="incident">장애</button>
+                                <button class="filter-chip" type="button" data-alert-filter="recovery">복구</button>
+                                <button class="filter-chip" type="button" data-alert-filter="resource">자원</button>
+                                <button class="primary-button" type="button" onclick="loadDashboard()">로그 갱신</button>
+                                <div id="refresh-hint" class="helper-text">자동 갱신: 모니터링 상태를 확인하는 중...</div>
+                            </div>
+                        </div>
+                        <div id="alert-list" class="alerts-list">
+                            <div class="alert-item">
+                                <div class="alert-side">
+                                    <div class="alert-kind">loading</div>
+                                    <div class="alert-time">로그 준비 중</div>
+                                </div>
+                                <div class="alert-main">
+                                    <div class="alert-title">알림을 불러오는 중입니다.</div>
+                                    <div class="alert-message">최신 운영 이벤트를 시간순으로 정리해서 보여줍니다.</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1194,19 +1634,229 @@ def build_dashboard_script() -> str:
     return """
     <script>
         const dashboardState = {
-            workspace: null,
-            activeView: "overview",
-            selectedReportId: null,
             refreshTimer: null,
-            localReportConfirmations: {},
+            activeMetricFilter: "all",
+            activeAlertFilter: "all",
+            latestAlerts: [],
+            latestRunReports: [],
+            activeSidebarView: "overview",
         };
 
-        async function fetchJson(url, options) {
-            const response = await fetch(url, options);
+        async function fetchJson(url) {
+            const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(url + " 요청 실패");
             }
             return await response.json();
+        }
+
+        function setStatusValue(element, text, tone) {
+            if (!element) {
+                return;
+            }
+            element.textContent = text;
+            element.className = "metric-value " + tone;
+        }
+
+        function setStatusSignal(id, textId, tone, text) {
+            const signal = document.getElementById(id);
+            const label = document.getElementById(textId);
+
+            if (signal) {
+                signal.className = "status-signal " + tone;
+            }
+
+            if (label) {
+                label.textContent = text;
+            }
+        }
+
+        function setBarWidth(id, value) {
+            const element = document.getElementById(id);
+            if (!element) {
+                return;
+            }
+            const safeValue = Math.max(0, Math.min(Number(value) || 0, 100));
+            element.style.width = safeValue + "%";
+        }
+
+        function setDonutValue(donutId, valueId, percent, tone) {
+            const donut = document.getElementById(donutId);
+            const value = document.getElementById(valueId);
+            const safePercent = Math.max(0, Math.min(Number(percent) || 0, 100));
+
+            if (donut) {
+                donut.style.setProperty("--percent", safePercent);
+                donut.className = "metric-donut " + tone;
+            }
+
+            if (value) {
+                value.textContent = safePercent + "%";
+            }
+        }
+
+        function getUsageTone(percent, threshold) {
+            return Number(percent) >= Number(threshold) ? "warning" : "connected";
+        }
+
+        function matchesMetricFilter(alert, filter) {
+            if (filter === "all") {
+                return true;
+            }
+            if (filter === "resource") {
+                return String(alert.type || "").startsWith("resource") || ["memory", "disk"].includes(alert.target);
+            }
+            if (filter === "config") {
+                return alert.type === "notification_error";
+            }
+            if (filter === "monitoring") {
+                return alert.target === "monitoring" || alert.target === "healthcheck";
+            }
+            if (filter === "notification") {
+                return alert.target === "discord" || alert.type === "notification_error";
+            }
+            return alert.target === filter;
+        }
+
+        function matchesAlertFilter(alert, filter) {
+            if (filter === "all") {
+                return true;
+            }
+            if (filter === "resource") {
+                return String(alert.type || "").startsWith("resource");
+            }
+            return alert.type === filter;
+        }
+
+        function applyMetricFilter(filter) {
+            dashboardState.activeMetricFilter = filter;
+            document.querySelectorAll(".metric-card").forEach(card => {
+                card.classList.toggle("is-active", filter !== "all" && card.dataset.filter === filter);
+            });
+            updateInteractionBadge();
+            renderAlerts(dashboardState.latestAlerts);
+        }
+
+        function applyAlertFilter(filter) {
+            dashboardState.activeAlertFilter = filter;
+            document.querySelectorAll("[data-alert-filter]").forEach(button => {
+                button.classList.toggle("is-active", button.dataset.alertFilter === filter);
+            });
+            updateInteractionBadge();
+            renderAlerts(dashboardState.latestAlerts);
+        }
+
+        function getFilterLabel(filter) {
+            const labels = {
+                all: "전체",
+                api: "API",
+                database: "데이터베이스",
+                resource: "자원",
+                monitoring: "모니터링",
+                notification: "알림 채널",
+                config: "설정",
+                incident: "장애",
+                recovery: "복구",
+            };
+            return labels[filter] || filter;
+        }
+
+        function formatTargetSummary(targets, emptyText) {
+            if (!Array.isArray(targets) || targets.length === 0) {
+                return emptyText;
+            }
+
+            return targets.join(", ");
+        }
+
+        function getRunStatusTone(status) {
+            if (status === "error") {
+                return "error";
+            }
+
+            if (status === "warning") {
+                return "warning";
+            }
+
+            return "";
+        }
+
+        function getAdminActionTone(actionEvent) {
+            if (!actionEvent) {
+                return "";
+            }
+
+            if (actionEvent.type === "admin_action_error" || actionEvent.status === "failed") {
+                return "error";
+            }
+
+            if (actionEvent.type === "admin_action" || actionEvent.status === "completed") {
+                return "warning";
+            }
+
+            return "";
+        }
+
+        function updateInteractionBadge() {
+            const badge = document.getElementById("interaction-badge");
+            if (!badge) {
+                return;
+            }
+
+            const metricLabel = getFilterLabel(dashboardState.activeMetricFilter);
+            const alertLabel = getFilterLabel(dashboardState.activeAlertFilter);
+            const summary =
+                dashboardState.activeMetricFilter === "all" && dashboardState.activeAlertFilter === "all"
+                    ? "현재 필터: 전체"
+                    : "현재 필터: " + metricLabel + " / " + alertLabel;
+
+            badge.textContent = summary;
+        }
+
+        function resetInteractions() {
+            applyMetricFilter("all");
+            applyAlertFilter("all");
+        }
+
+        async function restartDatabase() {
+            const restartButton = document.getElementById("db-restart-button");
+            const feedback = document.getElementById("db-action-feedback");
+
+            if (!restartButton || !feedback) {
+                return;
+            }
+
+            const confirmed = window.confirm("데이터베이스를 재시작할까요?");
+            if (!confirmed) {
+                return;
+            }
+
+            restartButton.disabled = true;
+            feedback.textContent = "DB 재시작 요청 중...";
+
+            try {
+                const response = await fetch("/admin/database/restart", {
+                    method: "POST",
+                });
+                const result = await response.json();
+
+                feedback.textContent = result.message || "DB 재시작 요청을 처리했습니다.";
+
+                if (response.ok) {
+                    window.setTimeout(loadDashboard, 3000);
+                }
+            } catch (error) {
+                feedback.textContent = "DB 재시작 요청에 실패했습니다.";
+            } finally {
+                restartButton.disabled = false;
+            }
+        }
+
+        function setBadgeText(id, text) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = text;
+            }
         }
 
         function setText(id, text) {
@@ -1216,483 +1866,90 @@ def build_dashboard_script() -> str:
             }
         }
 
-        function formatPriorityLabel(priority) {
-            const labels = {
-                critical: "Critical",
-                high: "High",
-                medium: "Medium",
-                low: "Low",
-            };
-            return labels[priority] || priority;
-        }
+        function applySidebarView(view) {
+            dashboardState.activeSidebarView = view;
 
-        function buildEmptyState(message) {
-            const wrapper = document.createElement("div");
-            wrapper.className = "empty-state";
-            wrapper.textContent = message;
-            return wrapper;
-        }
-
-        function buildReportFingerprint(report) {
-            return JSON.stringify([
-                report.report_id || "",
-                report.title || "",
-                report.headline || "",
-                report.summary || "",
-                Array.isArray(report.facts) ? report.facts : [],
-                Array.isArray(report.recommended_actions) ? report.recommended_actions : [],
-            ]);
-        }
-
-        function loadLocalReportConfirmations() {
-            try {
-                const rawValue = window.localStorage.getItem("ops-monitor-report-confirmations");
-                return rawValue ? JSON.parse(rawValue) : {};
-            } catch (error) {
-                return {};
-            }
-        }
-
-        function saveLocalReportConfirmations(store) {
-            dashboardState.localReportConfirmations = store;
-
-            try {
-                window.localStorage.setItem(
-                    "ops-monitor-report-confirmations",
-                    JSON.stringify(store)
-                );
-            } catch (error) {
-                return;
-            }
-        }
-
-        function resolveReportConfirmation(report) {
-            const localEntry = dashboardState.localReportConfirmations[report.report_id];
-            const sameFingerprint = localEntry && localEntry.fingerprint === buildReportFingerprint(report);
-
-            if (report.confirmed) {
-                return {
-                    confirmed: true,
-                    confirmedAt: report.confirmed_at || null,
-                    confirmedBy: report.confirmed_by || null,
-                    source: "server",
-                };
-            }
-
-            if (sameFingerprint) {
-                return {
-                    confirmed: true,
-                    confirmedAt: localEntry.confirmedAt || null,
-                    confirmedBy: localEntry.confirmedBy || "local",
-                    source: "local",
-                };
-            }
-
-            return {
-                confirmed: false,
-                confirmedAt: null,
-                confirmedBy: null,
-                source: null,
-            };
-        }
-
-        function formatReportConfirmationLabel(report) {
-            if (!report.ui_confirmed) {
-                return "확인 대기";
-            }
-
-            const confirmedBy = report.ui_confirmed_by || "-";
-            if (report.ui_confirmation_source === "local") {
-                return "브라우저 확인 · " + confirmedBy;
-            }
-
-            return "확인 완료 · " + confirmedBy;
-        }
-
-        function applyLocalReportState(reports) {
-            if (!Array.isArray(reports)) {
-                return [];
-            }
-
-            return reports.map(report => {
-                const confirmation = resolveReportConfirmation(report);
-                return {
-                    ...report,
-                    ui_confirmed: confirmation.confirmed,
-                    ui_confirmed_at: confirmation.confirmedAt,
-                    ui_confirmed_by: confirmation.confirmedBy,
-                    ui_confirmation_source: confirmation.source,
-                };
+            document.querySelectorAll("[data-nav-view]").forEach(item => {
+                item.classList.toggle("active", item.dataset.navView === view);
             });
-        }
 
-        function captureScrollPosition() {
-            return {
-                x: window.scrollX,
-                y: window.scrollY,
-            };
-        }
-
-        function restoreScrollPosition(position) {
-            if (!position) {
-                return;
-            }
-
-            window.scrollTo({
-                left: position.x,
-                top: position.y,
-                behavior: "auto",
+            document.querySelectorAll(".metric-card").forEach(card => {
+                const views = String(card.dataset.views || "overview").split(" ");
+                const visible = view === "overview" || views.includes(view);
+                card.classList.toggle("is-hidden-view", !visible);
             });
-        }
 
-        function renderOverview(overview, generatedAt) {
-            setText("overview-headline", overview && overview.headline ? overview.headline : "운영 상태");
-            setText("overview-summary", overview && overview.summary ? overview.summary : "-");
-            setText("overview-pending-count", String(overview && overview.pending_reports != null ? overview.pending_reports : "-"));
-            setText("overview-confirmed-count", String(overview && overview.confirmed_reports != null ? overview.confirmed_reports : "-"));
-            setText("overview-alert-count", String(overview && overview.recent_alerts != null ? overview.recent_alerts : "-"));
-            setText("overview-interval", String(overview && overview.monitor_interval_seconds != null ? overview.monitor_interval_seconds : "-") + (overview && overview.monitor_interval_seconds != null ? "초" : ""));
-            setText("workspace-generated-at", "마지막 집계 " + generatedAt);
-            setText("sidebar-generated-at", generatedAt);
-        }
+            document.querySelectorAll(".subpanel").forEach(panel => {
+                const views = String(panel.dataset.views || "overview").split(" ");
+                const visible = view === "overview" || views.includes(view);
+                panel.classList.toggle("is-hidden-view", !visible);
+            });
 
-        function renderReportQueue(reports) {
-            const reportList = document.getElementById("report-list");
-            reportList.innerHTML = "";
-
-            if (!Array.isArray(reports) || reports.length === 0) {
-                reportList.appendChild(buildEmptyState("현재 생성된 분석 보고서가 없습니다."));
+            if (view === "overview") {
+                resetInteractions();
+                window.scrollTo({ top: 0, behavior: "smooth" });
                 return;
             }
 
-            reports.forEach(report => {
-                const item = document.createElement("button");
-                const top = document.createElement("div");
-                const titleWrap = document.createElement("div");
-                const title = document.createElement("div");
-                const summary = document.createElement("div");
-                const priority = document.createElement("div");
-                const meta = document.createElement("div");
-                const categoryChip = document.createElement("div");
-                const confirmationChip = document.createElement("div");
-
-                item.type = "button";
-                item.className = "report-list-item";
-                if (report.report_id === dashboardState.selectedReportId) {
-                    item.classList.add("active");
+            if (view === "alerts" || view === "logs") {
+                if (view === "alerts") {
+                    applyMetricFilter("all");
+                    applyAlertFilter("incident");
+                    document.getElementById("alert-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    return;
                 }
-                item.dataset.reportId = report.report_id;
 
-                top.className = "report-list-top";
-                title.className = "report-title";
-                summary.className = "report-summary";
-                priority.className = "status-pill " + report.priority;
-                meta.className = "report-meta";
-                categoryChip.className = "meta-pill";
-                confirmationChip.className = "status-pill " + (report.ui_confirmed ? "confirmed" : report.priority);
-
-                title.textContent = report.title;
-                summary.textContent = report.headline;
-                priority.textContent = formatPriorityLabel(report.priority);
-                categoryChip.textContent = report.category;
-                confirmationChip.textContent = report.ui_confirmed
-                    ? (report.ui_confirmation_source === "local" ? "브라우저 확인" : "확인 완료")
-                    : "확인 대기";
-
-                titleWrap.appendChild(title);
-                titleWrap.appendChild(summary);
-                top.appendChild(titleWrap);
-                top.appendChild(priority);
-                meta.appendChild(categoryChip);
-                meta.appendChild(confirmationChip);
-                item.appendChild(top);
-                item.appendChild(meta);
-                item.addEventListener("click", () => {
-                    dashboardState.selectedReportId = report.report_id;
-                    if (dashboardState.workspace) {
-                        renderReportQueue(dashboardState.workspace.reports || []);
-                        renderReportDetail(
-                            (dashboardState.workspace.reports || []).find(
-                                currentReport => currentReport.report_id === dashboardState.selectedReportId
-                            ) || null
-                        );
-                    }
-                });
-                reportList.appendChild(item);
-            });
-        }
-
-        function renderReportDetail(report) {
-            const detail = document.getElementById("report-detail");
-            const confirmButton = document.getElementById("confirm-report-button");
-            detail.innerHTML = "";
-
-            if (!report) {
-                detail.appendChild(buildEmptyState("선택 가능한 보고서가 없습니다."));
-                if (confirmButton) {
-                    confirmButton.disabled = true;
-                }
+                resetInteractions();
+                document.getElementById("run-report-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
                 return;
             }
 
-            if (confirmButton) {
-                confirmButton.disabled = Boolean(report.ui_confirmed);
-            }
-
-            const head = document.createElement("div");
-            const titleWrap = document.createElement("div");
-            const title = document.createElement("div");
-            const headline = document.createElement("div");
-            const confirmation = document.createElement("div");
-            const summary = document.createElement("div");
-            const factSection = document.createElement("div");
-            const actionSection = document.createElement("div");
-            const ownerSection = document.createElement("div");
-
-            head.className = "detail-head";
-            title.className = "detail-title";
-            headline.className = "detail-headline";
-            confirmation.className = "status-pill " + (report.ui_confirmed ? "confirmed" : report.priority);
-            summary.className = "detail-summary";
-
-            title.textContent = report.title;
-            headline.textContent = report.headline;
-            summary.textContent = report.summary;
-            confirmation.textContent = formatReportConfirmationLabel(report);
-
-            titleWrap.appendChild(title);
-            titleWrap.appendChild(headline);
-            head.appendChild(titleWrap);
-            head.appendChild(confirmation);
-
-            factSection.className = "detail-section";
-            factSection.innerHTML = '<div class="detail-section-title">주요 근거</div>';
-            const factList = document.createElement("ul");
-            factList.className = "detail-list";
-            report.facts.forEach(fact => {
-                const item = document.createElement("li");
-                item.textContent = fact;
-                factList.appendChild(item);
-            });
-            factSection.appendChild(factList);
-
-            actionSection.className = "detail-section";
-            actionSection.innerHTML = '<div class="detail-section-title">권장 조치</div>';
-            const actionList = document.createElement("ul");
-            actionList.className = "detail-list";
-            report.recommended_actions.forEach(actionText => {
-                const item = document.createElement("li");
-                item.textContent = actionText;
-                actionList.appendChild(item);
-            });
-            actionSection.appendChild(actionList);
-
-            ownerSection.className = "detail-section";
-            ownerSection.innerHTML =
-                '<div class="detail-section-title">담당 영역</div>' +
-                '<div class="detail-summary">' + (report.owner || "-") + '</div>';
-
-            detail.appendChild(head);
-            detail.appendChild(summary);
-            detail.appendChild(factSection);
-            detail.appendChild(actionSection);
-            detail.appendChild(ownerSection);
-        }
-
-        function renderServiceBoard(items) {
-            const container = document.getElementById("service-board");
-            container.innerHTML = "";
-
-            if (!Array.isArray(items) || items.length === 0) {
-                container.appendChild(buildEmptyState("서비스 상태 데이터가 없습니다."));
+            if (view === "notification") {
+                applyMetricFilter("notification");
+                applyAlertFilter("all");
+                document.getElementById("alert-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
                 return;
             }
 
-            items.forEach(item => {
-                const wrapper = document.createElement("div");
-                wrapper.className = "board-item";
-                wrapper.innerHTML =
-                    '<div class="board-item-top">' +
-                        '<div class="board-item-label">' + item.label + '</div>' +
-                        '<div class="board-item-value tone-' + item.tone + '">' + item.status + '</div>' +
-                    '</div>' +
-                    '<div class="board-item-detail">' + item.detail + '</div>';
-                container.appendChild(wrapper);
-            });
-        }
-
-        function renderResourceBoard(items) {
-            const container = document.getElementById("resource-board");
-            container.innerHTML = "";
-
-            if (!Array.isArray(items) || items.length === 0) {
-                container.appendChild(buildEmptyState("자원 상태 데이터가 없습니다."));
+            if (view === "actions") {
+                resetInteractions();
+                document.getElementById("action-history-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
                 return;
             }
 
-            items.forEach(item => {
-                const wrapper = document.createElement("div");
-                wrapper.className = "board-item";
-                wrapper.innerHTML =
-                    '<div class="board-item-top">' +
-                        '<div class="board-item-label">' + item.label + '</div>' +
-                        '<div class="board-item-value tone-' + item.tone + '">' + item.value + '</div>' +
-                    '</div>' +
-                    '<div class="board-item-detail">' + item.detail + '</div>';
-                container.appendChild(wrapper);
-            });
-        }
-
-        function renderConfigWarnings(warnings) {
-            const container = document.getElementById("config-warning-list");
-            container.innerHTML = "";
-
-            if (!Array.isArray(warnings) || warnings.length === 0) {
-                container.appendChild(buildEmptyState("설정 경고가 없습니다."));
+            if (view === "monitoring") {
+                applyMetricFilter("monitoring");
+                applyAlertFilter("all");
+                document.getElementById("summary-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
                 return;
             }
 
-            warnings.forEach(message => {
-                const wrapper = document.createElement("div");
-                wrapper.className = "board-item";
-                wrapper.innerHTML =
-                    '<div class="board-item-label tone-warning">보완 필요</div>' +
-                    '<div class="board-item-detail">' + message + '</div>';
-                container.appendChild(wrapper);
-            });
-        }
-
-        function renderActionFeed(actionFeed) {
-            const container = document.getElementById("action-feed");
-            container.innerHTML = "";
-
-            if (!Array.isArray(actionFeed) || actionFeed.length === 0) {
-                container.appendChild(buildEmptyState("최근 기록된 운영 액션이 없습니다."));
+            if (view === "thresholds") {
+                applyMetricFilter("resource");
+                applyAlertFilter("resource");
+                document.getElementById("summary-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
                 return;
             }
 
-            actionFeed.forEach(action => {
-                const tone = action.type === "admin_action_error" ? "critical" : "warning";
-                const wrapper = document.createElement("div");
-                wrapper.className = "board-item";
-                wrapper.innerHTML =
-                    '<div class="board-item-top">' +
-                        '<div class="board-item-label">' + (action.message || "운영 액션") + '</div>' +
-                        '<div class="meta-pill tone-' + tone + '">' + (action.status || "-") + '</div>' +
-                    '</div>' +
-                    '<div class="board-item-detail">' +
-                        (action.timestamp || "-") +
-                    '</div>';
-                container.appendChild(wrapper);
-            });
-        }
-
-        function renderTimeline(items) {
-            const container = document.getElementById("timeline-list");
-            container.innerHTML = "";
-
-            if (!Array.isArray(items) || items.length === 0) {
-                container.appendChild(buildEmptyState("운영 타임라인 항목이 없습니다."));
+            if (view === "config" || view === "auth" || view === "docs") {
+                applyMetricFilter("config");
+                applyAlertFilter("all");
+                document.getElementById("warning-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
                 return;
             }
 
-            items.forEach(item => {
-                const wrapper = document.createElement("div");
-                wrapper.className = "timeline-item";
-                wrapper.innerHTML =
-                    '<div class="timeline-item-top">' +
-                        '<div class="timeline-title">' + item.title + '</div>' +
-                        '<div class="timestamp">' + (item.timestamp || "-") + '</div>' +
-                    '</div>' +
-                    '<div class="timeline-summary">' + item.summary + '</div>';
-                container.appendChild(wrapper);
-            });
-        }
-
-        function renderAlerts(alerts) {
-            const container = document.getElementById("alert-list");
-            container.innerHTML = "";
-
-            if (!Array.isArray(alerts) || alerts.length === 0) {
-                container.appendChild(buildEmptyState("최근 이벤트가 없습니다."));
-                return;
+            if (view === "services") {
+                applyMetricFilter("all");
+                applyAlertFilter("all");
+                document.getElementById("summary-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
             }
-
-            alerts.forEach(alert => {
-                const wrapper = document.createElement("div");
-                wrapper.className = "alert-item";
-                wrapper.innerHTML =
-                    '<div class="alert-item-top">' +
-                        '<div class="alert-title">' + (alert.message || "이벤트 메시지 없음") + '</div>' +
-                        '<div class="timestamp">' + (alert.timestamp || "-") + '</div>' +
-                    '</div>' +
-                    '<div class="alert-summary">' +
-                        (alert.type || "event") + ' · ' + (alert.target || "-") + ' · ' + (alert.status || "-") +
-                    '</div>';
-                container.appendChild(wrapper);
-            });
-        }
-
-        function updateSidebarMeta(workspace) {
-            const reports = workspace.reports || [];
-            const pendingReports = reports.filter(report => !report.ui_confirmed);
-            const actionFeed = workspace.action_feed || [];
-
-            setText("nav-reports-badge", String(reports.length));
-            setText("nav-approvals-badge", String(pendingReports.length));
-            setText("nav-operations-badge", workspace.overview.operational_state === "stable" ? "양호" : "점검");
-            setText("nav-timeline-badge", String((workspace.timeline || []).length));
-            setText("nav-alerts-badge", String((workspace.alerts || []).length));
-            setText("nav-actions-badge", String(actionFeed.length));
-            setText("nav-config-badge", String((workspace.config_warnings || []).length));
-        }
-
-        function renderWorkspace(workspace) {
-            dashboardState.localReportConfirmations = loadLocalReportConfirmations();
-
-            const normalizedReports = applyLocalReportState(workspace.reports || []);
-            dashboardState.workspace = {
-                ...workspace,
-                reports: normalizedReports,
-            };
-
-            const reports = normalizedReports;
-            const reportExists = reports.some(report => report.report_id === dashboardState.selectedReportId);
-            if (!reportExists) {
-                dashboardState.selectedReportId = reports.length > 0 ? reports[0].report_id : null;
-            }
-
-            renderOverview(workspace.overview, workspace.generated_at || "-");
-            renderReportQueue(reports);
-            renderReportDetail(
-                reports.find(report => report.report_id === dashboardState.selectedReportId) || null
-            );
-            renderServiceBoard(workspace.service_board || []);
-            renderResourceBoard(workspace.resource_board || []);
-            renderConfigWarnings(workspace.config_warnings || []);
-            renderActionFeed(workspace.action_feed || []);
-            renderTimeline(workspace.timeline || []);
-            renderAlerts(workspace.alerts || []);
-            updateSidebarMeta(dashboardState.workspace);
-            scheduleAutoRefresh(workspace.monitoring ? workspace.monitoring.interval_seconds : 30);
-            bindDashboardInteractions();
-        }
-
-        function scheduleAutoRefresh(intervalSeconds) {
-            if (dashboardState.refreshTimer) {
-                window.clearTimeout(dashboardState.refreshTimer);
-            }
-
-            const safeIntervalSeconds = Math.max(Number(intervalSeconds) || 30, 15);
-            setText("workspace-refresh-hint", "자동 갱신: " + safeIntervalSeconds + "초마다");
-            dashboardState.refreshTimer = window.setTimeout(loadWorkspace, safeIntervalSeconds * 1000);
         }
 
         function filterSidebarMenu(query) {
             const normalizedQuery = String(query || "").trim().toLowerCase();
 
-            document.querySelectorAll(".nav-group").forEach(group => {
-                const items = Array.from(group.querySelectorAll(".nav-item"));
+            document.querySelectorAll(".nav-section").forEach(section => {
+                const items = Array.from(section.querySelectorAll(".nav-item"));
                 let visibleCount = 0;
 
                 items.forEach(item => {
@@ -1704,99 +1961,16 @@ def build_dashboard_script() -> str:
                     }
                 });
 
-                group.classList.toggle("is-hidden", visibleCount === 0);
+                section.classList.toggle("is-hidden", visibleCount === 0);
             });
-        }
-
-        function applySidebarView(view) {
-            dashboardState.activeView = view;
-
-            document.querySelectorAll("[data-nav-view]").forEach(item => {
-                item.classList.toggle("active", item.dataset.navView === view);
-            });
-
-            document.querySelectorAll("[data-views]").forEach(section => {
-                const views = String(section.dataset.views || "").split(" ");
-                const visible = view === "overview" || views.includes(view);
-                section.classList.toggle("is-hidden-view", !visible);
-            });
-        }
-
-        async function confirmSelectedReport() {
-            const feedback = document.getElementById("workspace-action-feedback");
-            const confirmButton = document.getElementById("confirm-report-button");
-            const reportId = dashboardState.selectedReportId;
-            const currentReport = dashboardState.workspace
-                ? (dashboardState.workspace.reports || []).find(report => report.report_id === reportId)
-                : null;
-
-            if (!reportId || !confirmButton || !currentReport) {
-                return;
-            }
-
-            confirmButton.disabled = true;
-            if (feedback) {
-                feedback.textContent = "보고서 확인 상태를 기록하는 중입니다.";
-            }
-
-            try {
-                const result = await fetchJson("/dashboard/reports/" + encodeURIComponent(reportId) + "/confirm", {
-                    method: "POST",
-                });
-                if (feedback) {
-                    feedback.textContent = "보고서 확인 완료: " + (result.title || reportId);
-                }
-                await loadWorkspace();
-            } catch (error) {
-                const nextLocalStore = {
-                    ...dashboardState.localReportConfirmations,
-                    [reportId]: {
-                        fingerprint: buildReportFingerprint(currentReport),
-                        confirmedAt: new Date().toISOString(),
-                        confirmedBy: "local-browser",
-                    },
-                };
-                saveLocalReportConfirmations(nextLocalStore);
-
-                if (feedback) {
-                    feedback.textContent = "서버 저장은 실패해 브라우저에 임시 확인으로 남겼습니다.";
-                }
-                renderWorkspace(dashboardState.workspace);
-            } finally {
-                confirmButton.disabled = false;
-            }
-        }
-
-        function moveToView(view, feedbackMessage) {
-            applySidebarView(view);
-
-            if (view === "timeline" || view === "alerts" || view === "actions") {
-                document.querySelector('[data-views*="' + view + '"]')?.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start",
-                });
-            }
-
-            if (view === "config") {
-                document.getElementById("config-warning-list")?.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start",
-                });
-            }
-
-            const feedback = document.getElementById("workspace-action-feedback");
-            if (feedback && feedbackMessage) {
-                feedback.textContent = feedbackMessage;
-            }
         }
 
         function bindDashboardInteractions() {
-            const shell = document.querySelector(".site-shell");
+            const shell = document.querySelector(".dashboard-shell");
             const sidebarToggle = document.getElementById("sidebar-toggle");
+            const resetButton = document.getElementById("interaction-reset");
             const menuSearch = document.getElementById("menu-search");
-            const confirmButton = document.getElementById("confirm-report-button");
-            const timelineButton = document.getElementById("open-timeline-button");
-            const configButton = document.getElementById("open-config-button");
+            const dbRestartButton = document.getElementById("db-restart-button");
 
             if (sidebarToggle && !sidebarToggle.dataset.bound) {
                 sidebarToggle.dataset.bound = "true";
@@ -1805,29 +1979,53 @@ def build_dashboard_script() -> str:
                 });
             }
 
+            document.querySelectorAll(".metric-card").forEach(card => {
+                if (card.dataset.bound) {
+                    return;
+                }
+                card.dataset.bound = "true";
+                card.setAttribute("tabindex", "0");
+                card.setAttribute("role", "button");
+                card.addEventListener("click", () => {
+                    const nextFilter = dashboardState.activeMetricFilter === card.dataset.filter ? "all" : card.dataset.filter;
+                    applyMetricFilter(nextFilter);
+                });
+                card.addEventListener("keydown", event => {
+                    if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        const nextFilter = dashboardState.activeMetricFilter === card.dataset.filter ? "all" : card.dataset.filter;
+                        applyMetricFilter(nextFilter);
+                    }
+                });
+            });
+
+            document.querySelectorAll("[data-alert-filter]").forEach(button => {
+                if (button.dataset.bound) {
+                    return;
+                }
+                button.dataset.bound = "true";
+                button.addEventListener("click", () => {
+                    applyAlertFilter(button.dataset.alertFilter);
+                });
+            });
+
+            if (resetButton && !resetButton.dataset.bound) {
+                resetButton.dataset.bound = "true";
+                resetButton.addEventListener("click", resetInteractions);
+            }
+
+            if (dbRestartButton && !dbRestartButton.dataset.bound) {
+                dbRestartButton.dataset.bound = "true";
+                dbRestartButton.addEventListener("click", restartDatabase);
+            }
+
             if (menuSearch && !menuSearch.dataset.bound) {
                 menuSearch.dataset.bound = "true";
                 menuSearch.addEventListener("input", event => {
                     filterSidebarMenu(event.target.value);
                 });
-            }
-
-            if (confirmButton && !confirmButton.dataset.bound) {
-                confirmButton.dataset.bound = "true";
-                confirmButton.addEventListener("click", confirmSelectedReport);
-            }
-
-            if (timelineButton && !timelineButton.dataset.bound) {
-                timelineButton.dataset.bound = "true";
-                timelineButton.addEventListener("click", () => {
-                    moveToView("timeline", "운영 타임라인으로 이동했습니다.");
-                });
-            }
-
-            if (configButton && !configButton.dataset.bound) {
-                configButton.dataset.bound = "true";
-                configButton.addEventListener("click", () => {
-                    moveToView("config", "설정 경고 영역으로 이동했습니다.");
+                menuSearch.addEventListener("search", event => {
+                    filterSidebarMenu(event.target.value);
                 });
             }
 
@@ -1842,32 +2040,523 @@ def build_dashboard_script() -> str:
                 });
             });
 
-            applySidebarView(dashboardState.activeView);
+            updateInteractionBadge();
             filterSidebarMenu(menuSearch ? menuSearch.value : "");
+            applySidebarView(dashboardState.activeSidebarView);
         }
 
-        async function loadWorkspace() {
-            bindDashboardInteractions();
-            const scrollPosition = captureScrollPosition();
+        function updateSidebarMeta(health, monitoring, alerts, runReports) {
+            const alertCount = Array.isArray(alerts) ? alerts.length : 0;
+            const adminActionCount = Array.isArray(alerts)
+                ? alerts.filter(alert => alert.type === "admin_action" || alert.type === "admin_action_error").length
+                : 0;
+            const runReportCount = Array.isArray(runReports) ? runReports.length : 0;
+            const databaseConnected = health && health.database && health.database.status === "connected";
+            const demoNotesConnected = health && health.demo_notes && health.demo_notes.status === "connected";
+            const servicesHealthy = health && health.api === "ok" && databaseConnected && demoNotesConnected;
+            const warnings = monitoring && monitoring.config_warnings ? monitoring.config_warnings.length : 0;
 
-            try {
-                const workspace = await fetchJson("/dashboard/workspace");
-                renderWorkspace(workspace);
-                restoreScrollPosition(scrollPosition);
-            } catch (error) {
-                const feedback = document.getElementById("workspace-action-feedback");
-                setText("overview-headline", "운영 워크스페이스를 불러오지 못했습니다.");
-                setText("overview-summary", "보호된 운영 API 응답과 인증 상태를 먼저 확인해 주세요.");
-                setText("workspace-refresh-hint", "자동 갱신: 30초마다");
-                if (feedback) {
-                    feedback.textContent = "워크스페이스 집계 요청이 실패했습니다.";
-                }
-                scheduleAutoRefresh(30);
-                restoreScrollPosition(scrollPosition);
+            setBadgeText("nav-services-badge", servicesHealthy ? "정상" : "주의");
+            setBadgeText("nav-alerts-badge", String(alertCount));
+            setBadgeText("nav-notification-badge", monitoring && monitoring.discord_webhook_configured ? "활성" : "대기");
+            setBadgeText("nav-monitoring-badge", monitoring && monitoring.enabled ? "실행" : "중지");
+            setBadgeText(
+                "nav-thresholds-badge",
+                monitoring && monitoring.thresholds
+                    ? monitoring.thresholds.memory_percent + "/" + monitoring.thresholds.disk_percent
+                    : "-"
+            );
+            setBadgeText("nav-config-badge", warnings > 0 ? "경고 " + warnings : "정상");
+            setBadgeText("nav-logs-badge", runReportCount > 0 ? "최근 " + runReportCount + "회" : "비어 있음");
+            setBadgeText("nav-auth-badge", monitoring && monitoring.monitor_auth_configured ? "설정됨" : "누락");
+            setBadgeText("nav-instance-badge", servicesHealthy ? "활성" : "점검");
+            setBadgeText("nav-actions-badge", adminActionCount > 0 ? "최근 " + adminActionCount : "없음");
+            setBadgeText("nav-docs-badge", monitoring && monitoring.api_docs_enabled ? "허용" : "차단");
+        }
+
+        function renderWarnings(warnings) {
+            const warningList = document.getElementById("warning-list");
+            warningList.innerHTML = "";
+
+            if (!warnings || warnings.length === 0) {
+                const emptyState = document.createElement("div");
+                emptyState.className = "warning-item empty";
+                emptyState.textContent = "설정 경고가 없습니다.";
+                warningList.appendChild(emptyState);
+                return;
             }
+
+            warnings.forEach(message => {
+                const item = document.createElement("div");
+                item.className = "warning-item";
+                item.textContent = message;
+                warningList.appendChild(item);
+            });
         }
 
-        loadWorkspace();
+        function renderTargetChips(containerId, items, emptyMessage, tone) {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                return;
+            }
+
+            container.innerHTML = "";
+
+            if (!items || items.length === 0) {
+                const emptyChip = document.createElement("div");
+                emptyChip.className = "target-chip empty";
+                emptyChip.textContent = emptyMessage;
+                container.appendChild(emptyChip);
+                return;
+            }
+
+            items.forEach(itemText => {
+                const chip = document.createElement("div");
+                chip.className = "target-chip" + (tone ? " " + tone : "");
+                chip.textContent = itemText;
+                container.appendChild(chip);
+            });
+        }
+
+        function renderTargetMetadata(monitoring) {
+            const activeTargets = monitoring && Array.isArray(monitoring.active_targets)
+                ? monitoring.active_targets
+                : [];
+            const excludedTargets = monitoring && Array.isArray(monitoring.excluded_targets)
+                ? monitoring.excluded_targets
+                : [];
+            const targetWarnings = monitoring && Array.isArray(monitoring.target_warnings)
+                ? monitoring.target_warnings
+                : [];
+
+            setText("environment-label", window.location.host || "로컬 실행");
+            setText(
+                "protection-status",
+                monitoring && monitoring.monitor_auth_configured
+                    ? "Basic Auth 적용"
+                    : "인증 보완 필요"
+            );
+            setText(
+                "tracked-targets",
+                "활성 " + activeTargets.length + "개 / 제외 " + excludedTargets.length + "개"
+            );
+            setText("active-target-count", String(activeTargets.length));
+            setText("excluded-target-count", String(excludedTargets.length));
+
+            renderTargetChips(
+                "active-target-list",
+                activeTargets,
+                "현재 활성 점검 대상이 없습니다.",
+                ""
+            );
+            renderTargetChips(
+                "excluded-target-list",
+                excludedTargets,
+                "제외된 점검 대상이 없습니다.",
+                ""
+            );
+            renderTargetChips(
+                "target-warning-list",
+                targetWarnings,
+                "대상 관련 경고가 없습니다.",
+                "warning"
+            );
+        }
+
+        function renderRunReports(runReports) {
+            const runReportList = document.getElementById("run-report-list");
+            if (!runReportList) {
+                return;
+            }
+
+            dashboardState.latestRunReports = Array.isArray(runReports) ? runReports : [];
+            runReportList.innerHTML = "";
+
+            if (dashboardState.latestRunReports.length === 0) {
+                const emptyState = document.createElement("div");
+                emptyState.className = "run-report-item";
+                emptyState.innerHTML =
+                    '<div class="run-report-head">' +
+                        '<div>' +
+                            '<div class="run-report-title">최근 실행 리포트가 없습니다.</div>' +
+                            '<div class="run-report-copy">모니터링 루프가 한 번 이상 실행되면 최근 점검 범위와 결과가 이 영역에 표시됩니다.</div>' +
+                        '</div>' +
+                        '<div class="run-report-status">empty</div>' +
+                    '</div>';
+                runReportList.appendChild(emptyState);
+                return;
+            }
+
+            dashboardState.latestRunReports.forEach(report => {
+                const item = document.createElement("div");
+                const head = document.createElement("div");
+                const titleWrap = document.createElement("div");
+                const title = document.createElement("div");
+                const copy = document.createElement("div");
+                const status = document.createElement("div");
+                const meta = document.createElement("div");
+                const metaItems = [
+                    "이벤트 " + String(Array.isArray(report.events) ? report.events.length : 0) + "건",
+                    "활성: " + formatTargetSummary(report.active_targets, "-"),
+                    "제외: " + formatTargetSummary(report.excluded_targets, "없음"),
+                    "경고: " + formatTargetSummary(report.target_warnings, "없음"),
+                ];
+
+                item.className = "run-report-item " + getRunStatusTone(report.overall_status);
+                head.className = "run-report-head";
+                title.className = "run-report-title";
+                copy.className = "run-report-copy";
+                status.className = "run-report-status";
+                meta.className = "alert-meta";
+
+                title.textContent = report.run_id || "run id 없음";
+                copy.textContent = (report.completed_at || "-") + " 완료";
+                status.textContent = report.overall_status || "unknown";
+
+                metaItems.forEach(itemText => {
+                    const chip = document.createElement("div");
+                    chip.className = "alert-meta-chip";
+                    chip.textContent = itemText;
+                    meta.appendChild(chip);
+                });
+
+                titleWrap.appendChild(title);
+                titleWrap.appendChild(copy);
+                head.appendChild(titleWrap);
+                head.appendChild(status);
+                item.appendChild(head);
+                item.appendChild(meta);
+                runReportList.appendChild(item);
+            });
+        }
+
+        function renderAdminActions(alerts) {
+            const actionHistoryList = document.getElementById("action-history-list");
+            if (!actionHistoryList) {
+                return;
+            }
+
+            const adminActions = Array.isArray(alerts)
+                ? alerts.filter(alert => alert.type === "admin_action" || alert.type === "admin_action_error")
+                : [];
+
+            actionHistoryList.innerHTML = "";
+
+            if (adminActions.length === 0) {
+                const emptyState = document.createElement("div");
+                emptyState.className = "run-report-item";
+                emptyState.innerHTML =
+                    '<div class="run-report-head">' +
+                        '<div>' +
+                            '<div class="run-report-title">최근 운영 액션 이력이 없습니다.</div>' +
+                            '<div class="run-report-copy">보호된 관리자 조치가 실행되면 요청자와 결과가 이 영역에 표시됩니다.</div>' +
+                        '</div>' +
+                        '<div class="run-report-status">empty</div>' +
+                    '</div>';
+                actionHistoryList.appendChild(emptyState);
+                return;
+            }
+
+            adminActions.forEach(actionEvent => {
+                const item = document.createElement("div");
+                const head = document.createElement("div");
+                const titleWrap = document.createElement("div");
+                const title = document.createElement("div");
+                const copy = document.createElement("div");
+                const status = document.createElement("div");
+                const meta = document.createElement("div");
+                const metaItems = [
+                    "요청자: " + (actionEvent.requested_by || "-"),
+                    "대상: " + (actionEvent.target || "-"),
+                    "시각: " + (actionEvent.timestamp || "-"),
+                ];
+
+                item.className = "run-report-item " + getAdminActionTone(actionEvent);
+                head.className = "run-report-head";
+                title.className = "run-report-title";
+                copy.className = "run-report-copy";
+                status.className = "run-report-status";
+                meta.className = "alert-meta";
+
+                title.textContent = actionEvent.message || "운영 액션 메시지 없음";
+                copy.textContent = actionEvent.type === "admin_action_error"
+                    ? "보호된 조치가 실패로 기록되었습니다."
+                    : "보호된 조치가 성공으로 기록되었습니다.";
+                status.textContent = actionEvent.status || actionEvent.type || "unknown";
+
+                metaItems.forEach(itemText => {
+                    const chip = document.createElement("div");
+                    chip.className = "alert-meta-chip";
+                    chip.textContent = itemText;
+                    meta.appendChild(chip);
+                });
+
+                titleWrap.appendChild(title);
+                titleWrap.appendChild(copy);
+                head.appendChild(titleWrap);
+                head.appendChild(status);
+                item.appendChild(head);
+                item.appendChild(meta);
+                actionHistoryList.appendChild(item);
+            });
+        }
+
+        function renderAlerts(alerts) {
+            const alertList = document.getElementById("alert-list");
+            dashboardState.latestAlerts = Array.isArray(alerts) ? alerts : [];
+            alertList.innerHTML = "";
+
+            const filteredAlerts = dashboardState.latestAlerts
+                .filter(alert => matchesMetricFilter(alert, dashboardState.activeMetricFilter))
+                .filter(alert => matchesAlertFilter(alert, dashboardState.activeAlertFilter));
+
+            if (filteredAlerts.length === 0) {
+                const emptyState = document.createElement("div");
+                emptyState.className = "alert-item";
+                emptyState.innerHTML =
+                    '<div class="alert-side">' +
+                        '<div class="alert-kind">clear</div>' +
+                        '<div class="alert-time">최근 이벤트 없음</div>' +
+                    '</div>' +
+                    '<div class="alert-main">' +
+                        '<div class="alert-title">선택한 조건에 맞는 알림이 없습니다.</div>' +
+                        '<div class="alert-message">상단 카드나 필터 버튼을 다시 눌러 다른 영역의 로그를 확인해 보세요.</div>' +
+                    '</div>';
+                alertList.appendChild(emptyState);
+                return;
+            }
+
+            filteredAlerts.slice(0, 6).forEach(alert => {
+                const item = document.createElement("div");
+                const side = document.createElement("div");
+                const kind = document.createElement("div");
+                const time = document.createElement("div");
+                const main = document.createElement("div");
+                const title = document.createElement("div");
+                const message = document.createElement("div");
+                const meta = document.createElement("div");
+                const targetChip = document.createElement("div");
+                const statusChip = document.createElement("div");
+
+                item.className = "alert-item " + (alert.type || "");
+                side.className = "alert-side";
+                kind.className = "alert-kind";
+                time.className = "alert-time";
+                main.className = "alert-main";
+                title.className = "alert-title";
+                message.className = "alert-message";
+                meta.className = "alert-meta";
+                targetChip.className = "alert-meta-chip";
+                statusChip.className = "alert-meta-chip";
+
+                kind.textContent = alert.type || "event";
+                time.textContent = alert.timestamp || "-";
+                title.textContent = alert.message || "이벤트 메시지 없음";
+                message.textContent = "대상과 상태를 함께 보고 후속 대응이 필요한지 빠르게 판단할 수 있습니다.";
+                targetChip.textContent = "대상: " + (alert.target || "-");
+                statusChip.textContent = "상태: " + (alert.status || "-");
+
+                side.appendChild(kind);
+                side.appendChild(time);
+                meta.appendChild(targetChip);
+                meta.appendChild(statusChip);
+                main.appendChild(title);
+                main.appendChild(message);
+                main.appendChild(meta);
+                item.appendChild(side);
+                item.appendChild(main);
+                alertList.appendChild(item);
+            });
+        }
+
+        function renderSummary(health, monitoring) {
+            const summaryStatus = document.getElementById("summary-status");
+            const summaryCopy = document.getElementById("summary-copy");
+            const databaseConnected = health && health.database && health.database.status === "connected";
+            const warningCount = (monitoring && monitoring.config_warnings ? monitoring.config_warnings.length : 0);
+
+            if (!health) {
+                summaryStatus.textContent = "상태 점검 실패";
+                summaryStatus.className = "summary-status danger";
+                summaryCopy.textContent = "핵심 상태 데이터를 가져오지 못했습니다. 인증 정보나 백엔드 응답을 먼저 확인해 주세요.";
+                return;
+            }
+
+            if (!databaseConnected) {
+                summaryStatus.textContent = "데이터베이스 점검 필요";
+                summaryStatus.className = "summary-status danger";
+                summaryCopy.textContent = "API는 열려 있어도 데이터베이스 연결이 끊기면 운영 흐름이 불안정해집니다. 최근 알림에서 관련 이력을 확인해 주세요.";
+                return;
+            }
+
+            if (warningCount > 0) {
+                summaryStatus.textContent = "설정 보완 필요";
+                summaryStatus.className = "summary-status warning";
+                summaryCopy.textContent = "서비스는 응답하지만 일부 보호 설정이나 환경 변수가 기본값으로 동작 중입니다. 설정 경고를 먼저 정리하는 편이 안전합니다.";
+                return;
+            }
+
+            summaryStatus.textContent = "운영 상태 양호";
+            summaryStatus.className = "summary-status connected";
+            summaryCopy.textContent = "API, 데이터베이스, 모니터링 루프가 모두 응답 중이며 설정 경고도 없습니다.";
+        }
+
+        function scheduleAutoRefresh(intervalSeconds) {
+            if (dashboardState.refreshTimer) {
+                window.clearTimeout(dashboardState.refreshTimer);
+            }
+
+            const safeIntervalSeconds = Math.max(Number(intervalSeconds) || 30, 15);
+            document.getElementById("refresh-hint").textContent = "자동 갱신: " + safeIntervalSeconds + "초마다";
+            dashboardState.refreshTimer = window.setTimeout(loadDashboard, safeIntervalSeconds * 1000);
+        }
+
+        function fillUnavailableState() {
+            setStatusValue(document.getElementById("api-status"), "알 수 없음", "disconnected");
+            setStatusValue(document.getElementById("db-status"), "알 수 없음", "disconnected");
+            setStatusSignal("db-status-signal", "db-status-signal-text", "disconnected", "DB 상태 확인 실패");
+            setStatusValue(document.getElementById("memory-status"), "알 수 없음", "disconnected");
+            setStatusValue(document.getElementById("disk-status"), "알 수 없음", "disconnected");
+            setStatusValue(document.getElementById("monitoring-status"), "알 수 없음", "disconnected");
+            setStatusValue(document.getElementById("discord-status"), "알 수 없음", "disconnected");
+            setStatusValue(document.getElementById("config-status"), "알 수 없음", "disconnected");
+            document.getElementById("demo-notes-status").textContent = "-";
+            document.getElementById("threshold-summary").textContent = "-";
+            document.getElementById("memory-desc").textContent = "-";
+            document.getElementById("disk-desc").textContent = "-";
+            document.getElementById("monitoring-desc").textContent = "-";
+            document.getElementById("discord-desc").textContent = "-";
+            document.getElementById("config-desc").textContent = "환경 검증 상태를 확인하지 못했습니다.";
+            document.getElementById("checked-time").textContent = "-";
+            document.getElementById("monitor-last-check").textContent = "-";
+            document.getElementById("config-warning-count").textContent = "-";
+            document.getElementById("active-target-count").textContent = "-";
+            document.getElementById("excluded-target-count").textContent = "-";
+            setBarWidth("api-bar", 20);
+            setBarWidth("db-bar", 20);
+            setDonutValue("memory-donut", "memory-donut-value", 0, "disconnected");
+            setDonutValue("disk-donut", "disk-donut-value", 0, "disconnected");
+            renderTargetMetadata(null);
+            renderRunReports([]);
+            renderAdminActions([]);
+        }
+
+        async function loadDashboard() {
+            bindDashboardInteractions();
+
+            const [healthResult, systemResult, alertsResult, monitoringResult, runReportsResult] = await Promise.allSettled([
+                fetchJson("/health"),
+                fetchJson("/system"),
+                fetchJson("/alerts"),
+                fetchJson("/monitoring/status"),
+                fetchJson("/monitoring/runs/recent"),
+            ]);
+
+            const health = healthResult.status === "fulfilled" ? healthResult.value : null;
+            const system = systemResult.status === "fulfilled" ? systemResult.value : null;
+            const alerts = alertsResult.status === "fulfilled" ? alertsResult.value : [];
+            const monitoring = monitoringResult.status === "fulfilled" ? monitoringResult.value : null;
+            const runReports = runReportsResult.status === "fulfilled" ? runReportsResult.value : [];
+
+            if (!health && !system && !monitoring) {
+                fillUnavailableState();
+                updateSidebarMeta(null, null, alerts, runReports);
+                document.getElementById("summary-status").textContent = "대시보드 요청 실패";
+                document.getElementById("summary-status").className = "summary-status danger";
+                document.getElementById("summary-copy").textContent = "상태 데이터를 전혀 가져오지 못했습니다. 인증 정보와 백엔드 연결을 먼저 확인해 주세요.";
+                renderWarnings(["대시보드 상태 데이터를 불러오지 못했습니다."]);
+                renderRunReports(runReports);
+                renderAdminActions(alerts);
+                renderAlerts(alerts);
+                scheduleAutoRefresh(30);
+                return;
+            }
+
+            if (health) {
+                const apiHealthy = health.api === "ok";
+                const databaseConnected = health.database && health.database.status === "connected";
+                const demoNotesConnected = health.demo_notes && health.demo_notes.status === "connected";
+                setStatusValue(document.getElementById("api-status"), apiHealthy ? "정상" : String(health.api || "오류"), apiHealthy ? "connected" : "warning");
+                setStatusValue(document.getElementById("db-status"), databaseConnected ? "연결됨" : "연결 안 됨", databaseConnected ? "connected" : "disconnected");
+                setStatusSignal(
+                    "db-status-signal",
+                    "db-status-signal-text",
+                    databaseConnected ? "connected" : "disconnected",
+                    databaseConnected ? "DB 연결 정상" : "DB 연결 실패"
+                );
+                document.getElementById("demo-notes-status").textContent = demoNotesConnected ? "연결됨" : "점검 필요";
+                document.getElementById("checked-time").textContent = health.timestamp || "-";
+                setBarWidth("api-bar", apiHealthy ? 100 : 28);
+                setBarWidth("db-bar", databaseConnected ? 100 : 30);
+            } else {
+                setStatusValue(document.getElementById("api-status"), "알 수 없음", "disconnected");
+                setStatusValue(document.getElementById("db-status"), "알 수 없음", "disconnected");
+                setStatusSignal("db-status-signal", "db-status-signal-text", "disconnected", "DB 상태 확인 실패");
+                document.getElementById("demo-notes-status").textContent = "-";
+                document.getElementById("checked-time").textContent = "-";
+                setBarWidth("api-bar", 20);
+                setBarWidth("db-bar", 20);
+            }
+
+            if (system) {
+                const monitoringThresholds = monitoring && monitoring.thresholds ? monitoring.thresholds : { memory_percent: 80, disk_percent: 80 };
+                const memoryTone = getUsageTone(system.memory.percent, monitoringThresholds.memory_percent);
+                const diskTone = getUsageTone(system.disk.percent, monitoringThresholds.disk_percent);
+                setStatusValue(document.getElementById("memory-status"), system.memory.percent + "%", memoryTone);
+                setStatusValue(document.getElementById("disk-status"), system.disk.percent + "%", diskTone);
+                document.getElementById("memory-desc").textContent = system.memory.used_gb + "GB / " + system.memory.total_gb + "GB 사용 중 (임계치 " + monitoringThresholds.memory_percent + "%)";
+                document.getElementById("disk-desc").textContent = system.disk.used_gb + "GB / " + system.disk.total_gb + "GB 사용 중 (임계치 " + monitoringThresholds.disk_percent + "%)";
+                setDonutValue("memory-donut", "memory-donut-value", system.memory.percent, memoryTone);
+                setDonutValue("disk-donut", "disk-donut-value", system.disk.percent, diskTone);
+            } else {
+                setStatusValue(document.getElementById("memory-status"), "알 수 없음", "disconnected");
+                setStatusValue(document.getElementById("disk-status"), "알 수 없음", "disconnected");
+                document.getElementById("memory-desc").textContent = "시스템 자원 데이터를 가져오지 못했습니다.";
+                document.getElementById("disk-desc").textContent = "시스템 자원 데이터를 가져오지 못했습니다.";
+                setDonutValue("memory-donut", "memory-donut-value", 0, "disconnected");
+                setDonutValue("disk-donut", "disk-donut-value", 0, "disconnected");
+            }
+
+            if (monitoring) {
+                const warningMessages = monitoring.config_warnings || [];
+                const warningCount = warningMessages.length;
+                setStatusValue(document.getElementById("monitoring-status"), monitoring.enabled ? "실행 중" : "중지됨", monitoring.enabled ? "connected" : "disconnected");
+                setStatusValue(document.getElementById("discord-status"), monitoring.discord_webhook_configured ? "활성화" : "비활성화", monitoring.discord_webhook_configured ? "connected" : "warning");
+                setStatusValue(document.getElementById("config-status"), warningCount === 0 ? "정상" : "보완 필요", warningCount === 0 ? "connected" : "warning");
+                document.getElementById("monitoring-desc").textContent = "주기 " + monitoring.interval_seconds + "초" + (monitoring.api_docs_enabled ? " | 문서 노출 허용" : " | 문서 노출 비활성화");
+                document.getElementById("discord-desc").textContent = monitoring.monitor_auth_configured ? "인증 및 알림 채널 구성이 확인되었습니다." : "보호용 인증 설정을 확인해 주세요.";
+                document.getElementById("threshold-summary").textContent = "메모리 " + monitoring.thresholds.memory_percent + "% / 디스크 " + monitoring.thresholds.disk_percent + "%";
+                document.getElementById("config-desc").textContent = "인증 " + (monitoring.monitor_auth_configured ? "설정됨" : "누락") + " | 검증 경고 " + warningCount + "건";
+                document.getElementById("monitor-last-check").textContent = monitoring.last_check || "-";
+                document.getElementById("config-warning-count").textContent = String(warningCount);
+                renderTargetMetadata(monitoring);
+                renderWarnings(warningMessages);
+                renderSummary(health, monitoring);
+                updateSidebarMeta(health, monitoring, alerts, runReports);
+                scheduleAutoRefresh(monitoring.interval_seconds);
+            } else {
+                setStatusValue(document.getElementById("monitoring-status"), "알 수 없음", "disconnected");
+                setStatusValue(document.getElementById("discord-status"), "알 수 없음", "disconnected");
+                setStatusValue(document.getElementById("config-status"), "알 수 없음", "disconnected");
+                document.getElementById("monitoring-desc").textContent = "모니터링 상태 데이터를 가져오지 못했습니다.";
+                document.getElementById("discord-desc").textContent = "알림 채널 상태를 가져오지 못했습니다.";
+                document.getElementById("threshold-summary").textContent = "-";
+                document.getElementById("config-desc").textContent = "설정 검증 상태를 가져오지 못했습니다.";
+                document.getElementById("monitor-last-check").textContent = "-";
+                document.getElementById("config-warning-count").textContent = "-";
+                renderTargetMetadata(null);
+                renderWarnings(["모니터링 설정 상태를 불러오지 못했습니다."]);
+                renderSummary(health, null);
+                updateSidebarMeta(health, null, alerts, runReports);
+                scheduleAutoRefresh(30);
+            }
+
+            renderRunReports(runReports);
+            renderAdminActions(alerts);
+            renderAlerts(alerts);
+        }
+
+        loadDashboard();
     </script>
     """
 
@@ -1878,21 +2567,18 @@ def get_dashboard_html() -> str:
         '<html lang="ko">'
         "<head>"
         '<meta charset="UTF-8" />'
-        "<title>Ops Monitor 운영 워크스페이스</title>"
+        "<title>Ops Monitor 대시보드</title>"
         f"{build_dashboard_styles()}"
         "</head>"
         "<body>"
-        '<div class="site-shell">'
+        '<div class="dashboard-shell">'
         f"{build_sidebar()}"
         '<main class="main">'
-        f"{build_topbar()}"
+        f"{build_utility_bar()}"
         '<div class="content">'
-        f"{build_header()}"
-        '<div class="section-stack">'
-        f"{build_report_center_surface()}"
-        f"{build_operations_surface()}"
-        f"{build_timeline_surface()}"
-        "</div>"
+        f"{build_page_header()}"
+        f"{build_summary_surface()}"
+        f"{build_detail_surface()}"
         "</div>"
         "</main>"
         "</div>"

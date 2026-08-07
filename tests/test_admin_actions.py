@@ -9,24 +9,25 @@ class AdminActionTests(unittest.TestCase):
     def test_restart_database_service_returns_success(self) -> None:
         completed = Mock(stdout="restarted", stderr="")
 
-        with patch("app.services.admin_actions.subprocess.run", return_value=completed), patch(
-            "app.services.admin_actions.add_alert_history"
-        ) as add_alert_history:
-            result = restart_database_service(requested_by="ops-admin")
+        with patch("app.services.admin_actions.subprocess.run", return_value=completed):
+            with patch("app.services.admin_actions.add_alert_history") as add_alert_history_mock:
+                result = restart_database_service(requested_by="ops-admin")
 
         self.assertEqual(result["status"], "ok")
         self.assertIn("restarted", result["message"])
-        add_alert_history.assert_called_once()
+        self.assertEqual(result["requested_by"], "ops-admin")
+        self.assertEqual(result["action"], "restart_database")
+        add_alert_history_mock.assert_called_once()
 
     def test_restart_database_service_handles_missing_docker(self) -> None:
-        with patch("app.services.admin_actions.subprocess.run", side_effect=FileNotFoundError), patch(
-            "app.services.admin_actions.add_alert_history"
-        ) as add_alert_history:
-            result = restart_database_service(requested_by="ops-admin")
+        with patch("app.services.admin_actions.subprocess.run", side_effect=FileNotFoundError):
+            with patch("app.services.admin_actions.add_alert_history") as add_alert_history_mock:
+                result = restart_database_service(requested_by="ops-admin")
 
         self.assertEqual(result["status"], "error")
         self.assertIn("Docker CLI", result["message"])
-        add_alert_history.assert_called_once()
+        self.assertEqual(result["requested_by"], "ops-admin")
+        add_alert_history_mock.assert_called_once()
 
     def test_restart_database_service_handles_command_failure(self) -> None:
         error = subprocess.CalledProcessError(
@@ -35,14 +36,14 @@ class AdminActionTests(unittest.TestCase):
             stderr="compose failed",
         )
 
-        with patch("app.services.admin_actions.subprocess.run", side_effect=error), patch(
-            "app.services.admin_actions.add_alert_history"
-        ) as add_alert_history:
-            result = restart_database_service(requested_by="ops-admin")
+        with patch("app.services.admin_actions.subprocess.run", side_effect=error):
+            with patch("app.services.admin_actions.add_alert_history") as add_alert_history_mock:
+                result = restart_database_service(requested_by="ops-admin")
 
         self.assertEqual(result["status"], "error")
         self.assertIn("compose failed", result["message"])
-        add_alert_history.assert_called_once()
+        self.assertEqual(result["requested_by"], "ops-admin")
+        add_alert_history_mock.assert_called_once()
 
 
 if __name__ == "__main__":

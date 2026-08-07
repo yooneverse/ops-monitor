@@ -11,22 +11,29 @@ class DashboardApiTests(unittest.TestCase):
     def test_dashboard_page_contains_expected_sections(self) -> None:
         html = dashboard.dashboard()
 
-        self.assertIn("<title>Ops Monitor", html)
-        self.assertIn('class="surface-title">Reports', html)
-        self.assertIn('class="surface-title">Operations', html)
-        self.assertIn('class="surface-title">Timeline', html)
-        self.assertIn("loadWorkspace()", html)
+        self.assertIn("Ops Monitor 대시보드", html)
+        self.assertIn("최근 알림", html)
+        self.assertIn("설정 경고", html)
+        self.assertIn("자동 갱신:", html)
+        self.assertIn("loadDashboard()", html)
+        self.assertIn("data-alert-filter", html)
         self.assertIn("sidebar-toggle", html)
         self.assertIn("menu-search", html)
         self.assertIn("data-nav-view", html)
-        self.assertIn("confirm-report-button", html)
-        self.assertIn("open-timeline-button", html)
-        self.assertIn("open-config-button", html)
-        self.assertIn("report-list", html)
-        self.assertIn("report-detail", html)
-        self.assertIn("resolveReportConfirmation", html)
-        self.assertIn("captureScrollPosition", html)
-        self.assertIn("restoreScrollPosition", html)
+        self.assertIn("db-restart-button", html)
+        self.assertIn("db-status-signal", html)
+        self.assertIn("점검 대상", html)
+        self.assertIn("active-target-list", html)
+        self.assertIn("excluded-target-list", html)
+        self.assertIn("target-warning-list", html)
+        self.assertIn("renderTargetMetadata", html)
+        self.assertIn("최근 실행 리포트", html)
+        self.assertIn("run-report-list", html)
+        self.assertIn("renderRunReports", html)
+        self.assertIn("운영 액션 이력", html)
+        self.assertIn("action-history-list", html)
+        self.assertIn("renderAdminActions", html)
+        self.assertIn("nav-actions-badge", html)
 
     def test_dashboard_route_uses_shared_page_builder(self) -> None:
         self.assertEqual(dashboard.dashboard(), get_dashboard_html())
@@ -56,33 +63,28 @@ class DashboardApiTests(unittest.TestCase):
         with patch("app.api.dashboard.get_monitoring_status", return_value=monitoring_status):
             self.assertEqual(dashboard.monitoring_status(), monitoring_status)
 
-    def test_dashboard_workspace_returns_aggregated_service_data(self) -> None:
-        payload = {
-            "generated_at": "2026-08-07T10:00:00",
-            "overview": {"headline": "확인 필요"},
-            "reports": [],
-        }
+    def test_recent_monitoring_runs_returns_runtime_log_data(self) -> None:
+        run_reports = [
+            {
+                "run_id": "20260804-101500",
+                "completed_at": "2026-08-04T10:15:02",
+                "overall_status": "warning",
+                "active_targets": ["database"],
+                "excluded_targets": ["demo_notes"],
+                "events": [{"type": "incident"}],
+            }
+        ]
 
-        with patch("app.api.dashboard.build_dashboard_workspace", return_value=payload):
-            self.assertEqual(dashboard.dashboard_workspace(), payload)
-
-    def test_confirm_report_returns_confirmed_payload(self) -> None:
-        payload = {
-            "report_id": "service-availability",
-            "confirmed": True,
-            "confirmed_by": "ops-admin",
-        }
-
-        with patch("app.api.dashboard.confirm_dashboard_report", return_value=payload):
-            self.assertEqual(
-                dashboard.confirm_report("service-availability", username="ops-admin"),
-                payload,
-            )
+        with patch("app.api.dashboard.read_recent_monitoring_runs", return_value=run_reports):
+            self.assertEqual(dashboard.recent_monitoring_runs(), run_reports)
 
     def test_restart_database_returns_success_payload(self) -> None:
         payload = {
             "status": "ok",
             "message": "DB restarted",
+            "requested_by": "ops-admin",
+            "action": "restart_database",
+            "timestamp": "2026-08-04T10:00:00",
         }
 
         with patch("app.api.dashboard.restart_database_service", return_value=payload):
@@ -92,6 +94,9 @@ class DashboardApiTests(unittest.TestCase):
         payload = {
             "status": "error",
             "message": "restart failed",
+            "requested_by": "ops-admin",
+            "action": "restart_database",
+            "timestamp": "2026-08-04T10:00:00",
         }
 
         with patch("app.api.dashboard.restart_database_service", return_value=payload):
