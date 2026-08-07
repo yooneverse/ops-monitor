@@ -3,24 +3,26 @@ def build_dashboard_styles() -> str:
     <style>
         :root {
             color-scheme: light;
-            --bg: #eef3f9;
+            --bg: #f4f9ff;
+            --bg-strong: #e8f3ff;
             --panel: #ffffff;
-            --panel-soft: #f7fafc;
-            --panel-strong: #f3f8ff;
-            --sidebar: #f8fbff;
-            --line: #d8e1ec;
-            --line-strong: #c6d3e2;
-            --text: #1d2a3a;
-            --muted: #61748b;
-            --accent: #0f5fa8;
-            --accent-soft: #e8f3ff;
-            --ok: #2c8b57;
+            --panel-soft: #f6fbff;
+            --panel-strong: #eef7ff;
+            --sidebar: #eff7ff;
+            --line: #d4e4f4;
+            --line-strong: #bdd7ee;
+            --text: #17324d;
+            --muted: #5f7894;
+            --accent: #1a74d8;
+            --accent-strong: #0f5fc0;
+            --accent-soft: #e8f4ff;
+            --ok: #258f63;
             --ok-soft: #edf8f1;
-            --warn: #be7a19;
-            --warn-soft: #fff7e8;
-            --danger: #c95344;
-            --danger-soft: #fff2ef;
-            --shadow: 0 24px 60px rgba(30, 52, 80, 0.08);
+            --warn: #c48218;
+            --warn-soft: #fff7e6;
+            --danger: #d25b4b;
+            --danger-soft: #fff1ee;
+            --shadow: 0 28px 60px rgba(40, 95, 151, 0.10);
         }
 
         * {
@@ -32,8 +34,9 @@ def build_dashboard_styles() -> str:
             font-family: "Segoe UI", "Noto Sans KR", sans-serif;
             color: var(--text);
             background:
-                radial-gradient(circle at top right, rgba(15, 95, 168, 0.08), transparent 28%),
-                linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+                radial-gradient(circle at top right, rgba(26, 116, 216, 0.14), transparent 30%),
+                radial-gradient(circle at left top, rgba(111, 195, 255, 0.20), transparent 26%),
+                linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);
             word-break: keep-all;
             overflow-wrap: anywhere;
         }
@@ -60,15 +63,40 @@ def build_dashboard_styles() -> str:
         .sidebar {
             display: flex;
             flex-direction: column;
-            background: var(--sidebar);
-            border-right: 1px solid var(--line);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(239, 247, 255, 0.94)),
+                var(--sidebar);
+            border-right: 1px solid rgba(189, 215, 238, 0.9);
             min-width: 0;
+            box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.6);
         }
 
         .brand {
-            padding: 22px;
-            background: linear-gradient(135deg, #0d4d89, #1782bc);
+            padding: 22px 20px 18px;
+            background: linear-gradient(180deg, rgba(248, 252, 255, 0.95), rgba(231, 243, 255, 0.96));
+            color: var(--text);
+            border-bottom: 1px solid rgba(189, 215, 238, 0.78);
+        }
+
+        .brand-title-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-mark {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a74d8, #66c2ff);
             color: white;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            box-shadow: 0 14px 26px rgba(26, 116, 216, 0.20);
         }
 
         .brand-label {
@@ -76,12 +104,12 @@ def build_dashboard_styles() -> str:
             font-weight: 800;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            opacity: 0.82;
+            color: #7391af;
         }
 
         .brand-title {
-            margin-top: 10px;
-            font-size: 30px;
+            margin-top: 6px;
+            font-size: 28px;
             font-weight: 800;
             letter-spacing: -0.04em;
         }
@@ -94,7 +122,7 @@ def build_dashboard_styles() -> str:
         }
 
         .sidebar-body {
-            padding: 16px 14px 24px;
+            padding: 20px 14px 24px;
             overflow: auto;
         }
 
@@ -126,21 +154,29 @@ def build_dashboard_styles() -> str:
             justify-content: space-between;
             align-items: center;
             gap: 10px;
-            margin-top: 4px;
-            padding: 11px 10px;
+            margin-top: 6px;
+            padding: 12px 12px;
             border: 0;
-            border-radius: 12px;
-            background: transparent;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.52);
             color: var(--text);
             font-size: 14px;
             text-align: left;
             cursor: pointer;
+            transition: background 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: 0 10px 24px rgba(54, 112, 176, 0.08);
+            transform: translateY(-1px);
         }
 
         .nav-item.active {
-            background: linear-gradient(90deg, var(--accent-soft), rgba(255, 255, 255, 0.94));
-            color: var(--accent);
+            background: linear-gradient(135deg, rgba(232, 244, 255, 0.96), rgba(255, 255, 255, 0.98));
+            color: var(--accent-strong);
             font-weight: 700;
+            box-shadow: 0 12px 30px rgba(26, 116, 216, 0.12);
         }
 
         .nav-item.is-hidden,
@@ -156,23 +192,37 @@ def build_dashboard_styles() -> str:
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: #eaf0f7;
-            color: #6c8097;
+            background: #e7f2ff;
+            color: #5d84ae;
             font-size: 11px;
             font-weight: 800;
         }
 
         .nav-item.active .nav-badge {
-            background: var(--accent);
+            background: linear-gradient(135deg, var(--accent), #4db7ff);
             color: white;
         }
 
         .sidebar-footer {
             margin-top: 20px;
-            padding: 14px 12px;
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            background: white;
+            padding: 16px 14px;
+            border: 1px solid rgba(189, 215, 238, 0.9);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.82);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .workspace-badge {
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 7px 10px;
+            border-radius: 999px;
+            background: rgba(26, 116, 216, 0.10);
+            color: var(--accent-strong);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.06em;
         }
 
         .sidebar-footer-title {
@@ -221,32 +271,93 @@ def build_dashboard_styles() -> str:
         }
 
         .topbar {
-            height: 64px;
-            padding: 0 24px;
+            height: 76px;
+            padding: 0 28px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 16px;
-            border-bottom: 1px solid var(--line);
-            background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(189, 215, 238, 0.72);
+            background: rgba(255, 255, 255, 0.74);
+            backdrop-filter: blur(18px);
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .topbar-left,
         .topbar-right {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 16px;
         }
 
         .icon-button {
-            width: 38px;
-            height: 38px;
-            border: 1px solid var(--line);
-            border-radius: 10px;
-            background: white;
-            color: var(--accent);
+            width: 42px;
+            height: 42px;
+            border: 1px solid rgba(189, 215, 238, 0.9);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.88);
+            color: var(--accent-strong);
             cursor: pointer;
+            box-shadow: 0 12px 24px rgba(54, 112, 176, 0.08);
+        }
+
+        .topbar-search-shell {
+            min-width: min(460px, 58vw);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 14px 0 16px;
+            height: 46px;
+            border: 1px solid rgba(189, 215, 238, 0.96);
+            border-radius: 16px;
+            background: rgba(248, 252, 255, 0.96);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .topbar-search {
+            flex: 1;
+            border: 0;
+            outline: none;
+            background: transparent;
+            color: var(--text);
+        }
+
+        .topbar-search::placeholder {
+            color: #8ca3bc;
+        }
+
+        .topbar-search-shortcut {
+            min-width: 24px;
+            height: 24px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #e8f3ff;
+            color: #6c8eb4;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .topbar-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 14px;
+            height: 42px;
+            border: 1px solid rgba(189, 215, 238, 0.92);
+            border-radius: 14px;
+            background: rgba(248, 252, 255, 0.92);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #35c777, #2a8fdd);
+            box-shadow: 0 0 0 5px rgba(53, 199, 119, 0.12);
         }
 
         .topbar-copy {
@@ -255,20 +366,21 @@ def build_dashboard_styles() -> str:
         }
 
         .avatar {
-            width: 34px;
-            height: 34px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #0f5fa8, #46a7d7);
+            background: linear-gradient(135deg, #1a74d8, #73d3ff);
             color: white;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 800;
+            box-shadow: 0 16px 26px rgba(26, 116, 216, 0.18);
         }
 
         .content {
-            padding: 22px;
+            padding: 24px 26px 28px;
         }
 
         .page-header {
@@ -289,9 +401,10 @@ def build_dashboard_styles() -> str:
         }
 
         .hero-panel {
-            padding: 22px;
+            padding: 26px;
             background:
-                linear-gradient(135deg, rgba(15, 95, 168, 0.05), rgba(255, 255, 255, 0.95)),
+                radial-gradient(circle at top right, rgba(115, 211, 255, 0.18), transparent 24%),
+                linear-gradient(135deg, rgba(26, 116, 216, 0.08), rgba(255, 255, 255, 0.96)),
                 white;
         }
 
@@ -328,10 +441,11 @@ def build_dashboard_styles() -> str:
         }
 
         .hero-meta-card {
-            padding: 14px;
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.86);
+            padding: 16px;
+            border: 1px solid rgba(189, 215, 238, 0.9);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.88);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
         }
 
         .hero-meta-label {
@@ -347,10 +461,12 @@ def build_dashboard_styles() -> str:
         }
 
         .quick-panel {
-            padding: 18px;
+            padding: 20px;
             display: grid;
             gap: 14px;
-            background: linear-gradient(180deg, #fcfdff, #f6faff);
+            background:
+                radial-gradient(circle at top left, rgba(115, 211, 255, 0.14), transparent 26%),
+                linear-gradient(180deg, #fbfdff, #f1f8ff);
             min-width: 0;
         }
 
@@ -373,18 +489,19 @@ def build_dashboard_styles() -> str:
 
         .action-button,
         .confirm-button {
-            padding: 10px 14px;
-            border: 1px solid var(--line-strong);
-            border-radius: 12px;
-            background: white;
+            padding: 12px 14px;
+            border: 1px solid rgba(189, 215, 238, 0.94);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.92);
             color: var(--text);
             cursor: pointer;
+            box-shadow: 0 10px 20px rgba(54, 112, 176, 0.06);
         }
 
         .action-button.primary,
         .confirm-button.primary {
-            border-color: #0f5fa8;
-            background: linear-gradient(135deg, #0f5fa8, #2a8cc6);
+            border-color: var(--accent);
+            background: linear-gradient(135deg, var(--accent-strong), #42a9f4);
             color: white;
         }
 
@@ -402,11 +519,13 @@ def build_dashboard_styles() -> str:
 
         .surface {
             overflow: hidden;
+            border-color: rgba(189, 215, 238, 0.92);
+            box-shadow: 0 22px 54px rgba(45, 100, 156, 0.08);
         }
 
         .surface-header {
-            padding: 18px 20px;
-            border-bottom: 1px solid #ebf0f5;
+            padding: 20px 22px;
+            border-bottom: 1px solid rgba(212, 228, 244, 0.92);
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
@@ -438,15 +557,15 @@ def build_dashboard_styles() -> str:
         .tool-chip {
             padding: 8px 12px;
             border-radius: 999px;
-            border: 1px solid var(--line);
-            background: var(--panel-soft);
-            color: #6b7f95;
+            border: 1px solid rgba(189, 215, 238, 0.9);
+            background: #f3f9ff;
+            color: #6488ad;
             font-size: 12px;
             font-weight: 700;
         }
 
         .surface-body {
-            padding: 18px;
+            padding: 20px;
         }
 
         .report-center-grid {
@@ -465,9 +584,9 @@ def build_dashboard_styles() -> str:
         .report-list-item {
             width: 100%;
             padding: 16px;
-            border: 1px solid var(--line);
-            border-radius: 16px;
-            background: var(--panel-soft);
+            border: 1px solid rgba(189, 215, 238, 0.88);
+            border-radius: 18px;
+            background: linear-gradient(180deg, #fbfdff, #f3f9ff);
             cursor: pointer;
             text-align: left;
             transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
@@ -479,8 +598,8 @@ def build_dashboard_styles() -> str:
         }
 
         .report-list-item.active {
-            border-color: #8dbce0;
-            background: var(--accent-soft);
+            border-color: #87beee;
+            background: linear-gradient(135deg, #edf7ff, #fafdff);
         }
 
         .report-list-top {
@@ -558,10 +677,12 @@ def build_dashboard_styles() -> str:
         .report-detail {
             display: grid;
             gap: 16px;
-            padding: 18px;
-            border: 1px solid var(--line);
-            border-radius: 18px;
-            background: linear-gradient(180deg, #ffffff, #fbfdff);
+            padding: 22px;
+            border: 1px solid rgba(189, 215, 238, 0.92);
+            border-radius: 22px;
+            background:
+                radial-gradient(circle at top right, rgba(115, 211, 255, 0.12), transparent 24%),
+                linear-gradient(180deg, #ffffff, #f8fcff);
             min-height: 100%;
             min-width: 0;
         }
@@ -636,9 +757,9 @@ def build_dashboard_styles() -> str:
 
         .board-card {
             padding: 16px;
-            border: 1px solid var(--line);
-            border-radius: 16px;
-            background: var(--panel-soft);
+            border: 1px solid rgba(189, 215, 238, 0.9);
+            border-radius: 18px;
+            background: linear-gradient(180deg, #fbfdff, #f5faff);
             min-width: 0;
         }
 
@@ -666,8 +787,8 @@ def build_dashboard_styles() -> str:
 
         .board-item {
             padding: 12px 14px;
-            border: 1px solid var(--line);
-            border-radius: 12px;
+            border: 1px solid rgba(212, 228, 244, 0.94);
+            border-radius: 14px;
             background: white;
         }
 
@@ -725,8 +846,8 @@ def build_dashboard_styles() -> str:
         .timeline-item,
         .alert-item {
             padding: 14px 15px;
-            border: 1px solid var(--line);
-            border-radius: 14px;
+            border: 1px solid rgba(212, 228, 244, 0.94);
+            border-radius: 16px;
             background: white;
         }
 
@@ -761,9 +882,9 @@ def build_dashboard_styles() -> str:
 
         .empty-state {
             padding: 18px;
-            border: 1px dashed var(--line-strong);
-            border-radius: 14px;
-            background: #fcfdff;
+            border: 1px dashed rgba(157, 199, 235, 0.96);
+            border-radius: 16px;
+            background: #f7fbff;
             color: var(--muted);
             font-size: 13px;
             line-height: 1.7;
@@ -778,6 +899,24 @@ def build_dashboard_styles() -> str:
             .report-center-grid,
             .timeline-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .topbar {
+                height: auto;
+                padding: 18px 22px;
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .topbar-left,
+            .topbar-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .topbar-search-shell {
+                min-width: 0;
+                width: 100%;
             }
 
             .board-grid {
@@ -815,6 +954,31 @@ def build_dashboard_styles() -> str:
             .hero-meta {
                 grid-template-columns: 1fr;
             }
+
+            .content {
+                padding: 18px 16px 22px;
+            }
+
+            .topbar {
+                padding: 16px;
+            }
+
+            .topbar-left {
+                gap: 10px;
+            }
+
+            .topbar-right {
+                justify-content: flex-end;
+            }
+
+            .topbar-status {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .topbar-search-shortcut {
+                display: none;
+            }
         }
     </style>
     """
@@ -824,37 +988,39 @@ def build_sidebar() -> str:
     return """
         <aside class="sidebar">
             <div class="brand">
-                <div>
-                    <div class="brand-label">Operations Workspace</div>
-                    <div class="brand-title">Ops Monitor</div>
+                <div class="brand-title-row">
+                    <div class="brand-mark">OM</div>
+                    <div>
+                        <div class="brand-label">Operations Monitor</div>
+                        <div class="brand-title">Ops Monitor</div>
+                    </div>
                 </div>
             </div>
             <div class="sidebar-body">
-                <input id="menu-search" class="search-box" type="search" placeholder="메뉴 검색" />
-
                 <div class="nav-group">
-                    <div class="nav-title">보고서</div>
+                    <div class="nav-title">Overview</div>
                     <button class="nav-item active" type="button" data-nav-view="overview"><span>운영 개요</span><span class="nav-badge">기본</span></button>
                     <button class="nav-item" type="button" data-nav-view="reports"><span>분석 보고서</span><span id="nav-reports-badge" class="nav-badge">0</span></button>
                     <button class="nav-item" type="button" data-nav-view="approvals"><span>확인 대기</span><span id="nav-approvals-badge" class="nav-badge">0</span></button>
                 </div>
 
                 <div class="nav-group">
-                    <div class="nav-title">운영 현황</div>
+                    <div class="nav-title">Operations</div>
                     <button class="nav-item" type="button" data-nav-view="operations"><span>운영 보드</span><span id="nav-operations-badge" class="nav-badge">확인 중</span></button>
                     <button class="nav-item" type="button" data-nav-view="timeline"><span>타임라인</span><span id="nav-timeline-badge" class="nav-badge">0</span></button>
                     <button class="nav-item" type="button" data-nav-view="alerts"><span>이벤트 로그</span><span id="nav-alerts-badge" class="nav-badge">0</span></button>
                 </div>
 
                 <div class="nav-group">
-                    <div class="nav-title">관리</div>
+                    <div class="nav-title">Control</div>
                     <button class="nav-item" type="button" data-nav-view="actions"><span>운영 액션</span><span id="nav-actions-badge" class="nav-badge">0</span></button>
                     <button class="nav-item" type="button" data-nav-view="config"><span>설정 경고</span><span id="nav-config-badge" class="nav-badge">0</span></button>
                 </div>
 
                 <div class="sidebar-footer">
                     <div class="sidebar-footer-title">Workspace</div>
-                    <div class="sidebar-footer-row"><span>최근 갱신</span><strong id="sidebar-generated-at">-</strong></div>
+                    <div class="workspace-badge">MONITORING ACTIVE</div>
+                    <div class="sidebar-footer-row"><span>최근 집계</span><strong id="sidebar-generated-at">-</strong></div>
                 </div>
             </div>
         </aside>
@@ -866,10 +1032,16 @@ def build_topbar() -> str:
         <div class="topbar">
             <div class="topbar-left">
                 <button id="sidebar-toggle" class="icon-button" type="button" aria-label="사이드바 토글">☰</button>
-                <div class="topbar-copy">운영 대시보드</div>
+                <label class="topbar-search-shell" for="menu-search">
+                    <input id="menu-search" class="topbar-search" type="search" placeholder="메뉴 빠른 찾기" />
+                    <span class="topbar-search-shortcut">/</span>
+                </label>
             </div>
             <div class="topbar-right">
-                <div id="workspace-generated-at" class="topbar-copy">마지막 집계 -</div>
+                <div class="topbar-status">
+                    <span class="status-dot"></span>
+                    <div id="workspace-generated-at" class="topbar-copy">마지막 집계 -</div>
+                </div>
                 <div class="avatar">OM</div>
             </div>
         </div>
@@ -880,8 +1052,8 @@ def build_header() -> str:
     return """
         <div class="page-header" data-views="overview reports approvals">
             <section class="hero-panel">
-                <div class="hero-kicker">Overview</div>
-                <div id="overview-headline" class="hero-headline">운영 상태를 불러오는 중입니다.</div>
+                <div class="hero-kicker">System Overview</div>
+                <div id="overview-headline" class="hero-headline">운영 현황을 불러오는 중입니다.</div>
                 <div id="overview-summary" class="hero-summary">-</div>
                 <div class="hero-meta">
                     <div class="hero-meta-card">
@@ -905,8 +1077,8 @@ def build_header() -> str:
 
             <aside class="quick-panel">
                 <div>
-                    <div class="panel-kicker">Control</div>
-                    <div class="panel-heading">바로가기</div>
+                    <div class="panel-kicker">Action Center</div>
+                    <div class="panel-heading">운영 도구</div>
                 </div>
                 <div class="quick-actions">
                     <button id="confirm-report-button" class="confirm-button primary" type="button">선택 보고서 확인 완료</button>
@@ -926,12 +1098,12 @@ def build_report_center_surface() -> str:
             <div class="surface-header">
                 <div>
                     <div class="surface-title">Reports</div>
-                    <div class="surface-heading">운영 보고서 센터</div>
+                    <div class="surface-heading">분석 보고서</div>
                 </div>
                 <div class="surface-tools">
                     <div class="tool-chip">분석 보고서</div>
                     <div class="tool-chip">확인 처리</div>
-                    <div class="tool-chip">운영 복기</div>
+                    <div class="tool-chip">운영 보기</div>
                 </div>
             </div>
             <div class="surface-body">
@@ -954,7 +1126,7 @@ def build_operations_surface() -> str:
             <div class="surface-header">
                 <div>
                     <div class="surface-title">Operations</div>
-                    <div class="surface-heading">운영 보드</div>
+                    <div class="surface-heading">서비스 / 자원 현황</div>
                 </div>
             </div>
             <div class="surface-body">
@@ -995,7 +1167,7 @@ def build_timeline_surface() -> str:
             <div class="surface-header">
                 <div>
                     <div class="surface-title">Timeline</div>
-                    <div class="surface-heading">운영 타임라인과 이벤트 로그</div>
+                    <div class="surface-heading">운영 기록</div>
                 </div>
             </div>
             <div class="surface-body">
