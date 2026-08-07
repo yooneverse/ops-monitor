@@ -23,6 +23,8 @@ class DashboardApiTests(unittest.TestCase):
         self.assertIn("confirm-report-button", html)
         self.assertIn("report-list", html)
         self.assertIn("report-detail", html)
+        self.assertIn("captureScrollPosition", html)
+        self.assertIn("restoreScrollPosition", html)
 
     def test_dashboard_route_uses_shared_page_builder(self) -> None:
         self.assertEqual(dashboard.dashboard(), get_dashboard_html())

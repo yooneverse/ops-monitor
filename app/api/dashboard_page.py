@@ -1050,6 +1050,25 @@ def build_dashboard_script() -> str:
             return wrapper;
         }
 
+        function captureScrollPosition() {
+            return {
+                x: window.scrollX,
+                y: window.scrollY,
+            };
+        }
+
+        function restoreScrollPosition(position) {
+            if (!position) {
+                return;
+            }
+
+            window.scrollTo({
+                left: position.x,
+                top: position.y,
+                behavior: "auto",
+            });
+        }
+
         function renderOverview(overview, generatedAt) {
             setText("overview-headline", overview.headline);
             setText("overview-summary", overview.summary);
@@ -1546,10 +1565,12 @@ def build_dashboard_script() -> str:
 
         async function loadWorkspace() {
             bindDashboardInteractions();
+            const scrollPosition = captureScrollPosition();
 
             try {
                 const workspace = await fetchJson("/dashboard/workspace");
                 renderWorkspace(workspace);
+                restoreScrollPosition(scrollPosition);
             } catch (error) {
                 const feedback = document.getElementById("workspace-action-feedback");
                 setText("overview-headline", "운영 워크스페이스를 불러오지 못했습니다.");
@@ -1559,6 +1580,7 @@ def build_dashboard_script() -> str:
                     feedback.textContent = "워크스페이스 집계 요청이 실패했습니다.";
                 }
                 scheduleAutoRefresh(30);
+                restoreScrollPosition(scrollPosition);
             }
         }
 
