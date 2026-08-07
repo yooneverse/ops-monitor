@@ -43,6 +43,10 @@ def build_dashboard_styles() -> str:
             font: inherit;
         }
 
+        button {
+            appearance: none;
+        }
+
         .site-shell {
             display: grid;
             grid-template-columns: 268px minmax(0, 1fr);
@@ -272,6 +276,7 @@ def build_dashboard_styles() -> str:
             grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
             gap: 16px;
             margin-bottom: 18px;
+            min-width: 0;
         }
 
         .hero-panel,
@@ -346,6 +351,7 @@ def build_dashboard_styles() -> str:
             display: grid;
             gap: 14px;
             background: linear-gradient(180deg, #fcfdff, #f6faff);
+            min-width: 0;
         }
 
         .panel-heading {
@@ -447,19 +453,23 @@ def build_dashboard_styles() -> str:
             display: grid;
             grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr);
             gap: 18px;
+            min-width: 0;
         }
 
         .report-queue {
             display: grid;
             gap: 10px;
+            min-width: 0;
         }
 
         .report-list-item {
+            width: 100%;
             padding: 16px;
             border: 1px solid var(--line);
             border-radius: 16px;
             background: var(--panel-soft);
             cursor: pointer;
+            text-align: left;
             transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
         }
 
@@ -553,6 +563,7 @@ def build_dashboard_styles() -> str:
             border-radius: 18px;
             background: linear-gradient(180deg, #ffffff, #fbfdff);
             min-height: 100%;
+            min-width: 0;
         }
 
         .detail-head {
@@ -620,6 +631,7 @@ def build_dashboard_styles() -> str:
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 14px;
+            min-width: 0;
         }
 
         .board-card {
@@ -627,6 +639,7 @@ def build_dashboard_styles() -> str:
             border: 1px solid var(--line);
             border-radius: 16px;
             background: var(--panel-soft);
+            min-width: 0;
         }
 
         .board-card.wide {
@@ -699,12 +712,14 @@ def build_dashboard_styles() -> str:
             display: grid;
             grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             gap: 16px;
+            min-width: 0;
         }
 
         .timeline-list,
         .alert-list {
             display: grid;
             gap: 10px;
+            min-width: 0;
         }
 
         .timeline-item,
@@ -812,7 +827,6 @@ def build_sidebar() -> str:
                 <div>
                     <div class="brand-label">Operations Workspace</div>
                     <div class="brand-title">Ops Monitor</div>
-                    <div class="brand-copy">분석 보고서가 작성되고 확인되는 운영 사이트</div>
                 </div>
             </div>
             <div class="sidebar-body">
@@ -852,7 +866,7 @@ def build_topbar() -> str:
         <div class="topbar">
             <div class="topbar-left">
                 <button id="sidebar-toggle" class="icon-button" type="button" aria-label="사이드바 토글">☰</button>
-                <div class="topbar-copy">운영 보고서와 확인 이력을 다루는 사이트형 대시보드</div>
+                <div class="topbar-copy">운영 대시보드</div>
             </div>
             <div class="topbar-right">
                 <div id="workspace-generated-at" class="topbar-copy">마지막 집계 -</div>
@@ -866,9 +880,9 @@ def build_header() -> str:
     return """
         <div class="page-header" data-views="overview reports approvals">
             <section class="hero-panel">
-                <div class="hero-kicker">Daily Briefing</div>
-                <div id="overview-headline" class="hero-headline">운영 워크스페이스를 불러오는 중입니다.</div>
-                <div id="overview-summary" class="hero-summary">현재 운영 상태와 분석 보고서 큐를 집계하고 있습니다.</div>
+                <div class="hero-kicker">Overview</div>
+                <div id="overview-headline" class="hero-headline">운영 상태를 불러오는 중입니다.</div>
+                <div id="overview-summary" class="hero-summary">-</div>
                 <div class="hero-meta">
                     <div class="hero-meta-card">
                         <div class="hero-meta-label">확인 대기 보고서</div>
@@ -891,16 +905,15 @@ def build_header() -> str:
 
             <aside class="quick-panel">
                 <div>
-                    <div class="panel-kicker">Quick Control</div>
-                    <div class="panel-heading">운영 액션</div>
-                    <div class="panel-copy">보고서 확인과 보호된 조치를 같은 사이트 안에서 이어서 처리할 수 있습니다.</div>
+                    <div class="panel-kicker">Control</div>
+                    <div class="panel-heading">바로가기</div>
                 </div>
                 <div class="quick-actions">
                     <button id="confirm-report-button" class="confirm-button primary" type="button">선택 보고서 확인 완료</button>
-                    <button id="db-restart-button" class="action-button" type="button">데이터베이스 재시작</button>
-                    <button id="workspace-refresh-button" class="action-button" type="button">워크스페이스 새로고침</button>
+                    <button id="open-timeline-button" class="action-button" type="button">타임라인 보기</button>
+                    <button id="open-config-button" class="action-button" type="button">설정 경고 보기</button>
                 </div>
-                <div id="workspace-action-feedback" class="action-feedback">운영 워크스페이스가 준비되면 보고서 확인과 조치를 진행할 수 있습니다.</div>
+                <div id="workspace-action-feedback" class="action-feedback">대기 중</div>
                 <div id="workspace-refresh-hint" class="quick-hint">자동 갱신: 대기 중</div>
             </aside>
         </div>
@@ -912,9 +925,8 @@ def build_report_center_surface() -> str:
         <section class="surface" data-views="overview reports approvals">
             <div class="surface-header">
                 <div>
-                    <div class="surface-title">Report Center</div>
+                    <div class="surface-title">Reports</div>
                     <div class="surface-heading">운영 보고서 센터</div>
-                    <div class="surface-copy">상태값을 나열하는 대신, 운영자가 확인해야 할 분석 보고서를 큐와 상세 검토 화면으로 분리했습니다.</div>
                 </div>
                 <div class="surface-tools">
                     <div class="tool-chip">분석 보고서</div>
@@ -928,7 +940,7 @@ def build_report_center_surface() -> str:
                         <div class="empty-state">보고서 큐를 준비하는 중입니다.</div>
                     </div>
                     <div id="report-detail" class="report-detail">
-                        <div class="empty-state">왼쪽 보고서를 선택하면 상세 분석과 권장 조치를 확인할 수 있습니다.</div>
+                        <div class="empty-state">보고서를 선택해 주세요.</div>
                     </div>
                 </div>
             </div>
@@ -941,9 +953,8 @@ def build_operations_surface() -> str:
         <section class="surface" data-views="overview operations config actions">
             <div class="surface-header">
                 <div>
-                    <div class="surface-title">Operations Board</div>
+                    <div class="surface-title">Operations</div>
                     <div class="surface-heading">운영 보드</div>
-                    <div class="surface-copy">서비스 상태, 자원 사용량, 설정 경고, 최근 운영 액션을 각각 독립된 보드로 정리합니다.</div>
                 </div>
             </div>
             <div class="surface-body">
@@ -985,7 +996,6 @@ def build_timeline_surface() -> str:
                 <div>
                     <div class="surface-title">Timeline</div>
                     <div class="surface-heading">운영 타임라인과 이벤트 로그</div>
-                    <div class="surface-copy">보고서 작성 근거가 되는 운영 타임라인과 최근 이벤트를 함께 확인할 수 있습니다.</div>
                 </div>
             </div>
             <div class="surface-body">
@@ -1016,6 +1026,7 @@ def build_dashboard_script() -> str:
             activeView: "overview",
             selectedReportId: null,
             refreshTimer: null,
+            localReportConfirmations: {},
         };
 
         async function fetchJson(url, options) {
@@ -1050,6 +1061,99 @@ def build_dashboard_script() -> str:
             return wrapper;
         }
 
+        function buildReportFingerprint(report) {
+            return JSON.stringify([
+                report.report_id || "",
+                report.title || "",
+                report.headline || "",
+                report.summary || "",
+                Array.isArray(report.facts) ? report.facts : [],
+                Array.isArray(report.recommended_actions) ? report.recommended_actions : [],
+            ]);
+        }
+
+        function loadLocalReportConfirmations() {
+            try {
+                const rawValue = window.localStorage.getItem("ops-monitor-report-confirmations");
+                return rawValue ? JSON.parse(rawValue) : {};
+            } catch (error) {
+                return {};
+            }
+        }
+
+        function saveLocalReportConfirmations(store) {
+            dashboardState.localReportConfirmations = store;
+
+            try {
+                window.localStorage.setItem(
+                    "ops-monitor-report-confirmations",
+                    JSON.stringify(store)
+                );
+            } catch (error) {
+                return;
+            }
+        }
+
+        function resolveReportConfirmation(report) {
+            const localEntry = dashboardState.localReportConfirmations[report.report_id];
+            const sameFingerprint = localEntry && localEntry.fingerprint === buildReportFingerprint(report);
+
+            if (report.confirmed) {
+                return {
+                    confirmed: true,
+                    confirmedAt: report.confirmed_at || null,
+                    confirmedBy: report.confirmed_by || null,
+                    source: "server",
+                };
+            }
+
+            if (sameFingerprint) {
+                return {
+                    confirmed: true,
+                    confirmedAt: localEntry.confirmedAt || null,
+                    confirmedBy: localEntry.confirmedBy || "local",
+                    source: "local",
+                };
+            }
+
+            return {
+                confirmed: false,
+                confirmedAt: null,
+                confirmedBy: null,
+                source: null,
+            };
+        }
+
+        function formatReportConfirmationLabel(report) {
+            if (!report.ui_confirmed) {
+                return "확인 대기";
+            }
+
+            const confirmedBy = report.ui_confirmed_by || "-";
+            if (report.ui_confirmation_source === "local") {
+                return "브라우저 확인 · " + confirmedBy;
+            }
+
+            return "확인 완료 · " + confirmedBy;
+        }
+
+        function applyLocalReportState(reports) {
+            if (!Array.isArray(reports)) {
+                return [];
+            }
+
+            return reports.map(report => {
+                const confirmation = resolveReportConfirmation(report);
+                return {
+                    ...report,
+                    ui_confirmed: confirmation.confirmed,
+                    ui_confirmed_at: confirmation.confirmedAt,
+                    ui_confirmed_by: confirmation.confirmedBy,
+                    ui_confirmation_source: confirmation.source,
+                };
+            });
+        }
+
         function captureScrollPosition() {
             return {
                 x: window.scrollX,
@@ -1070,12 +1174,12 @@ def build_dashboard_script() -> str:
         }
 
         function renderOverview(overview, generatedAt) {
-            setText("overview-headline", overview.headline);
-            setText("overview-summary", overview.summary);
-            setText("overview-pending-count", String(overview.pending_reports));
-            setText("overview-confirmed-count", String(overview.confirmed_reports));
-            setText("overview-alert-count", String(overview.recent_alerts));
-            setText("overview-interval", String(overview.monitor_interval_seconds) + "초");
+            setText("overview-headline", overview && overview.headline ? overview.headline : "운영 상태");
+            setText("overview-summary", overview && overview.summary ? overview.summary : "-");
+            setText("overview-pending-count", String(overview && overview.pending_reports != null ? overview.pending_reports : "-"));
+            setText("overview-confirmed-count", String(overview && overview.confirmed_reports != null ? overview.confirmed_reports : "-"));
+            setText("overview-alert-count", String(overview && overview.recent_alerts != null ? overview.recent_alerts : "-"));
+            setText("overview-interval", String(overview && overview.monitor_interval_seconds != null ? overview.monitor_interval_seconds : "-") + (overview && overview.monitor_interval_seconds != null ? "초" : ""));
             setText("workspace-generated-at", "마지막 집계 " + generatedAt);
             setText("sidebar-generated-at", generatedAt);
         }
@@ -1113,13 +1217,15 @@ def build_dashboard_script() -> str:
                 priority.className = "status-pill " + report.priority;
                 meta.className = "report-meta";
                 categoryChip.className = "meta-pill";
-                confirmationChip.className = "status-pill " + (report.confirmed ? "confirmed" : report.priority);
+                confirmationChip.className = "status-pill " + (report.ui_confirmed ? "confirmed" : report.priority);
 
                 title.textContent = report.title;
                 summary.textContent = report.headline;
                 priority.textContent = formatPriorityLabel(report.priority);
                 categoryChip.textContent = report.category;
-                confirmationChip.textContent = report.confirmed ? "확인 완료" : "확인 대기";
+                confirmationChip.textContent = report.ui_confirmed
+                    ? (report.ui_confirmation_source === "local" ? "브라우저 확인" : "확인 완료")
+                    : "확인 대기";
 
                 titleWrap.appendChild(title);
                 titleWrap.appendChild(summary);
@@ -1129,6 +1235,17 @@ def build_dashboard_script() -> str:
                 meta.appendChild(confirmationChip);
                 item.appendChild(top);
                 item.appendChild(meta);
+                item.addEventListener("click", () => {
+                    dashboardState.selectedReportId = report.report_id;
+                    if (dashboardState.workspace) {
+                        renderReportQueue(dashboardState.workspace.reports || []);
+                        renderReportDetail(
+                            (dashboardState.workspace.reports || []).find(
+                                currentReport => currentReport.report_id === dashboardState.selectedReportId
+                            ) || null
+                        );
+                    }
+                });
                 reportList.appendChild(item);
             });
         }
@@ -1147,7 +1264,7 @@ def build_dashboard_script() -> str:
             }
 
             if (confirmButton) {
-                confirmButton.disabled = Boolean(report.confirmed);
+                confirmButton.disabled = Boolean(report.ui_confirmed);
             }
 
             const head = document.createElement("div");
@@ -1163,15 +1280,13 @@ def build_dashboard_script() -> str:
             head.className = "detail-head";
             title.className = "detail-title";
             headline.className = "detail-headline";
-            confirmation.className = "status-pill " + (report.confirmed ? "confirmed" : report.priority);
+            confirmation.className = "status-pill " + (report.ui_confirmed ? "confirmed" : report.priority);
             summary.className = "detail-summary";
 
             title.textContent = report.title;
             headline.textContent = report.headline;
-            confirmation.textContent = report.confirmed
-                ? "확인 완료 · " + (report.confirmed_by || "-")
-                : "확인 대기";
             summary.textContent = report.summary;
+            confirmation.textContent = formatReportConfirmationLabel(report);
 
             titleWrap.appendChild(title);
             titleWrap.appendChild(headline);
@@ -1348,7 +1463,7 @@ def build_dashboard_script() -> str:
 
         function updateSidebarMeta(workspace) {
             const reports = workspace.reports || [];
-            const pendingReports = reports.filter(report => !report.confirmed);
+            const pendingReports = reports.filter(report => !report.ui_confirmed);
             const actionFeed = workspace.action_feed || [];
 
             setText("nav-reports-badge", String(reports.length));
@@ -1361,9 +1476,15 @@ def build_dashboard_script() -> str:
         }
 
         function renderWorkspace(workspace) {
-            dashboardState.workspace = workspace;
+            dashboardState.localReportConfirmations = loadLocalReportConfirmations();
 
-            const reports = Array.isArray(workspace.reports) ? workspace.reports : [];
+            const normalizedReports = applyLocalReportState(workspace.reports || []);
+            dashboardState.workspace = {
+                ...workspace,
+                reports: normalizedReports,
+            };
+
+            const reports = normalizedReports;
             const reportExists = reports.some(report => report.report_id === dashboardState.selectedReportId);
             if (!reportExists) {
                 dashboardState.selectedReportId = reports.length > 0 ? reports[0].report_id : null;
@@ -1380,8 +1501,9 @@ def build_dashboard_script() -> str:
             renderActionFeed(workspace.action_feed || []);
             renderTimeline(workspace.timeline || []);
             renderAlerts(workspace.alerts || []);
-            updateSidebarMeta(workspace);
+            updateSidebarMeta(dashboardState.workspace);
             scheduleAutoRefresh(workspace.monitoring ? workspace.monitoring.interval_seconds : 30);
+            bindDashboardInteractions();
         }
 
         function scheduleAutoRefresh(intervalSeconds) {
@@ -1432,8 +1554,11 @@ def build_dashboard_script() -> str:
             const feedback = document.getElementById("workspace-action-feedback");
             const confirmButton = document.getElementById("confirm-report-button");
             const reportId = dashboardState.selectedReportId;
+            const currentReport = dashboardState.workspace
+                ? (dashboardState.workspace.reports || []).find(report => report.report_id === reportId)
+                : null;
 
-            if (!reportId || !confirmButton) {
+            if (!reportId || !confirmButton || !currentReport) {
                 return;
             }
 
@@ -1451,46 +1576,45 @@ def build_dashboard_script() -> str:
                 }
                 await loadWorkspace();
             } catch (error) {
+                const nextLocalStore = {
+                    ...dashboardState.localReportConfirmations,
+                    [reportId]: {
+                        fingerprint: buildReportFingerprint(currentReport),
+                        confirmedAt: new Date().toISOString(),
+                        confirmedBy: "local-browser",
+                    },
+                };
+                saveLocalReportConfirmations(nextLocalStore);
+
                 if (feedback) {
-                    feedback.textContent = "보고서 확인 처리에 실패했습니다.";
+                    feedback.textContent = "서버 저장은 실패해 브라우저에 임시 확인으로 남겼습니다.";
                 }
+                renderWorkspace(dashboardState.workspace);
             } finally {
                 confirmButton.disabled = false;
             }
         }
 
-        async function restartDatabase() {
-            const feedback = document.getElementById("workspace-action-feedback");
-            const restartButton = document.getElementById("db-restart-button");
+        function moveToView(view, feedbackMessage) {
+            applySidebarView(view);
 
-            if (!restartButton) {
-                return;
-            }
-
-            const confirmed = window.confirm("데이터베이스를 재시작할까요?");
-            if (!confirmed) {
-                return;
-            }
-
-            restartButton.disabled = true;
-            if (feedback) {
-                feedback.textContent = "데이터베이스 재시작 요청을 전송하는 중입니다.";
-            }
-
-            try {
-                const result = await fetchJson("/admin/database/restart", {
-                    method: "POST",
+            if (view === "timeline" || view === "alerts" || view === "actions") {
+                document.querySelector('[data-views*="' + view + '"]')?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
                 });
-                if (feedback) {
-                    feedback.textContent = result.message || "DB 재시작 요청을 처리했습니다.";
-                }
-                window.setTimeout(loadWorkspace, 3000);
-            } catch (error) {
-                if (feedback) {
-                    feedback.textContent = "DB 재시작 요청에 실패했습니다.";
-                }
-            } finally {
-                restartButton.disabled = false;
+            }
+
+            if (view === "config") {
+                document.getElementById("config-warning-list")?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                });
+            }
+
+            const feedback = document.getElementById("workspace-action-feedback");
+            if (feedback && feedbackMessage) {
+                feedback.textContent = feedbackMessage;
             }
         }
 
@@ -1498,9 +1622,9 @@ def build_dashboard_script() -> str:
             const shell = document.querySelector(".site-shell");
             const sidebarToggle = document.getElementById("sidebar-toggle");
             const menuSearch = document.getElementById("menu-search");
-            const refreshButton = document.getElementById("workspace-refresh-button");
             const confirmButton = document.getElementById("confirm-report-button");
-            const restartButton = document.getElementById("db-restart-button");
+            const timelineButton = document.getElementById("open-timeline-button");
+            const configButton = document.getElementById("open-config-button");
 
             if (sidebarToggle && !sidebarToggle.dataset.bound) {
                 sidebarToggle.dataset.bound = "true";
@@ -1516,19 +1640,23 @@ def build_dashboard_script() -> str:
                 });
             }
 
-            if (refreshButton && !refreshButton.dataset.bound) {
-                refreshButton.dataset.bound = "true";
-                refreshButton.addEventListener("click", loadWorkspace);
-            }
-
             if (confirmButton && !confirmButton.dataset.bound) {
                 confirmButton.dataset.bound = "true";
                 confirmButton.addEventListener("click", confirmSelectedReport);
             }
 
-            if (restartButton && !restartButton.dataset.bound) {
-                restartButton.dataset.bound = "true";
-                restartButton.addEventListener("click", restartDatabase);
+            if (timelineButton && !timelineButton.dataset.bound) {
+                timelineButton.dataset.bound = "true";
+                timelineButton.addEventListener("click", () => {
+                    moveToView("timeline", "운영 타임라인으로 이동했습니다.");
+                });
+            }
+
+            if (configButton && !configButton.dataset.bound) {
+                configButton.dataset.bound = "true";
+                configButton.addEventListener("click", () => {
+                    moveToView("config", "설정 경고 영역으로 이동했습니다.");
+                });
             }
 
             document.querySelectorAll("[data-nav-view]").forEach(item => {
@@ -1540,23 +1668,6 @@ def build_dashboard_script() -> str:
                 item.addEventListener("click", () => {
                     applySidebarView(item.dataset.navView);
                 });
-            });
-
-            document.addEventListener("click", event => {
-                const reportItem = event.target.closest("[data-report-id]");
-                if (!reportItem) {
-                    return;
-                }
-
-                dashboardState.selectedReportId = reportItem.dataset.reportId;
-                if (dashboardState.workspace) {
-                    renderReportQueue(dashboardState.workspace.reports || []);
-                    renderReportDetail(
-                        (dashboardState.workspace.reports || []).find(
-                            report => report.report_id === dashboardState.selectedReportId
-                        ) || null
-                    );
-                }
             });
 
             applySidebarView(dashboardState.activeView);
