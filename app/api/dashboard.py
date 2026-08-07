@@ -51,8 +51,9 @@ def confirm_report(
 
 @router.post("/admin/database/restart", response_model=None)
 def restart_database(
+    username: str = Depends(require_monitor_auth),
 ):
-    result = restart_database_service()
+    result = restart_database_service(requested_by=username)
 
     if result["status"] != "ok":
         return JSONResponse(status_code=503, content=result)
