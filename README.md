@@ -32,10 +32,10 @@ FastAPI, PostgreSQL, Docker Compose, Nginx로 구성했으며, 점검, 장애 �
 
 ## 핵심 구현 포인트
 
-### 1. WEB/WAS 운영에 맞춘 상태 분리
+### 1. 상태 분리
 
 `/livez`와 `/readyz`를 나누어 프로세스 생존과 실제 서비스 가능 상태를 구분합니다.  
-운영자는 단순히 "앱이 떠 있다"가 아니라 "지금 트래픽을 받아도 되는가"를 기준으로 판단할 수 있습니다.
+운영자는 단순히 "앱이 떠 있다"가 아니라 "지금 트래픽을 받아도 되는가"를 기준으로, WEB/WAS 관점에서 판단할 수 있습니다.
 
 ### 2. 전이 기반 장애 감지
 
@@ -107,24 +107,26 @@ Nginx
   ->
 FastAPI
   ->
-Protected Ops APIs
+Public Health APIs (/ /livez /readyz)
+  ->
+Protected Ops APIs (/health /system /alerts /monitoring/status /dashboard)
   ->
 Monitoring Loop
   ->
-PostgreSQL / Demo Service / System Resource Checks
+Monitoring Targets (database, demo_notes, system resource)
   ->
-Run Report + Alert History + Discord Webhook
+Alert History / Run Report / Discord Webhook
 ```
 
 ### 구성 요소
 
 | 구성 요소 | 선택 이유 |
 |---|---|
-| FastAPI | 운영 API와 헬스 체크를 빠르게 분리하고 테스트하기 쉬움 |
-| PostgreSQL | 서비스 준비 상태 판단과 저장소 연결 시나리오를 분명하게 검증 가능 |
-| Docker Compose | 운영 환경과 로컬 검증 환경의 차이를 줄이기 쉬움 |
-| Nginx | 리버스 프록시, 기본 보안 헤더, 헬스 체크 진입점 구성에 적합 |
-| Daily Logs | 날짜 기준 운영 추적성과 복기 용이성 확보 |
+| FastAPI | 공개 헬스 체크와 보호된 운영 API를 같은 서비스 안에서 분리하기 쉬움 |
+| PostgreSQL | 준비 상태 판단과 저장소 연결 시나리오를 함께 검증할 수 있음 |
+| Docker Compose | Nginx, app, db, demo-notes 구성을 한 번에 실행하고 재현하기 쉬움 |
+| Nginx | 진입점, 프록시, 기본 보안 헤더 구성을 분리할 수 있음 |
+| Run Report / Alert History | 이벤트와 점검 실행 기록을 나누어 남길 수 있음 |
 
 ---
 
@@ -285,20 +287,16 @@ POST /admin/database/restart
 | [docs/02_architecture.md](docs/02_architecture.md) | 현재/목표 아키텍처와 설계 이유 |
 | [docs/03_api_spec.md](docs/03_api_spec.md) | 보호 API와 운영 응답 명세 |
 | [docs/06_troubleshooting.md](docs/06_troubleshooting.md) | 실제 문제와 해결 기록 |
-| [docs/07_security.md](docs/07_security.md) | 기본 보안 정책 |
-| [docs/08_runtime_security.md](docs/08_runtime_security.md) | 런타임 보안 강화 이유 |
-| [docs/10_runtime_configuration.md](docs/10_runtime_configuration.md) | 런타임 설정과 대시보드 반영 기준 |
-| [docs/13_encoding_policy.md](docs/13_encoding_policy.md) | 인코딩과 문서 작성 기준 |
-| [docs/14_web_was_operations_view.md](docs/14_web_was_operations_view.md) | WEB/WAS 운영 관점 설명 |
-| [docs/15_monitoring_run_report_design.md](docs/15_monitoring_run_report_design.md) | 체크 대상 추상화와 실행 리포트 설계 이유 |
+| [docs/16_aws_single_host_deployment.md](docs/16_aws_single_host_deployment.md) | AWS 배포 메모 |
+| [docs/17_deployment_checklist.md](docs/17_deployment_checklist.md) | 배포 전후 점검 체크리스트 |
 
 ---
 
-## Insight
+## 정리
 
-Ops Monitor는 WEB/WAS 운영자가 실제로 고민하는 아래 문제를 작은 범위에서 명확하게 풀어내는 데 집중합니다.
+Ops Monitor는 서비스 상태를 조회하는 것에서 끝나지 않고, 준비 상태 판단, 장애 감지, 복구 확인, 운영 조치 기록까지 한 흐름으로 다루는 데 초점을 맞춥니다.
 
-- 준비 상태를 어떻게 신뢰성 있게 구분할 것인가
+- 준비 상태를 어떻게 구분할 것인가
 - 장애와 복구를 어떤 기준으로 판단할 것인가
 - 점검 대상을 어떻게 확장 가능하게 설계할 것인가
 - 운영 이력을 어떤 단위로 남길 것인가
