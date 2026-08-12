@@ -1643,9 +1643,17 @@ def build_dashboard_script() -> str:
         };
 
         async function fetchJson(url) {
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                credentials: "same-origin",
+                cache: "no-store",
+                headers: {
+                    "Accept": "application/json",
+                },
+            });
             if (!response.ok) {
-                throw new Error(url + " 요청 실패");
+                const responseBody = await response.text();
+                const detail = responseBody ? " | " + responseBody.slice(0, 160) : "";
+                throw new Error(url + " 요청 실패 (" + response.status + ")" + detail);
             }
             return await response.json();
         }
@@ -2457,6 +2465,18 @@ def build_dashboard_script() -> str:
             const alerts = alertsResult.status === "fulfilled" ? alertsResult.value : [];
             const monitoring = monitoringResult.status === "fulfilled" ? monitoringResult.value : null;
             const runReports = runReportsResult.status === "fulfilled" ? runReportsResult.value : [];
+            const endpointFailures = [
+                ["/health", healthResult],
+                ["/system", systemResult],
+                ["/alerts", alertsResult],
+                ["/monitoring/status", monitoringResult],
+                ["/monitoring/runs/recent", runReportsResult],
+            ]
+                .filter(([, result]) => result.status === "rejected")
+                .map(([label, result]) => {
+                    console.error("Dashboard fetch failed:", label, result.reason);
+                    return label + " 요청 실패";
+                });
 
             if (!health && !system && !monitoring) {
                 fillUnavailableState();
@@ -2464,7 +2484,7 @@ def build_dashboard_script() -> str:
                 document.getElementById("summary-status").textContent = "대시보드 요청 실패";
                 document.getElementById("summary-status").className = "summary-status danger";
                 document.getElementById("summary-copy").textContent = "상태 데이터를 전혀 가져오지 못했습니다. 인증 정보와 백엔드 연결을 먼저 확인해 주세요.";
-                renderWarnings(["대시보드 상태 데이터를 불러오지 못했습니다."]);
+                renderWarnings(endpointFailures.length > 0 ? endpointFailures : ["대시보드 상태 데이터를 불러오지 못했습니다."]);
                 renderRunReports(runReports);
                 renderAdminActions(alerts);
                 renderAlerts(alerts);
@@ -2545,7 +2565,7 @@ def build_dashboard_script() -> str:
                 document.getElementById("monitor-last-check").textContent = "-";
                 document.getElementById("config-warning-count").textContent = "-";
                 renderTargetMetadata(null);
-                renderWarnings(["모니터링 설정 상태를 불러오지 못했습니다."]);
+                renderWarnings(endpointFailures.length > 0 ? endpointFailures : ["모니터링 설정 상태를 불러오지 못했습니다."]);
                 renderSummary(health, null);
                 updateSidebarMeta(health, null, alerts, runReports);
                 scheduleAutoRefresh(30);
