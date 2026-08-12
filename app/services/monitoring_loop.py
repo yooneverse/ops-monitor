@@ -52,8 +52,6 @@ class MonitoringStatusView:
         }
         self.config_warnings = list(settings.config_warnings)
         self.excluded_targets = list(settings.monitoring_excluded_targets)
-        self.active_targets = []
-        self.target_warnings = []
 
     def apply_target_metadata(
         self,

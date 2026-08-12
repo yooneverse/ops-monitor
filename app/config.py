@@ -31,6 +31,32 @@ def normalize_optional_str(value: str | None) -> str | None:
     return normalized or None
 
 
+def is_placeholder_value(value: str | None) -> bool:
+    if value is None:
+        return False
+
+    normalized = value.strip()
+    return normalized.startswith("<") and normalized.endswith(">") and len(normalized) > 2
+
+
+def read_optional_setting(
+    env_name: str,
+    warnings: list[str],
+) -> str | None:
+    normalized = normalize_optional_str(os.getenv(env_name))
+
+    if normalized is None:
+        return None
+
+    if is_placeholder_value(normalized):
+        warnings.append(
+            f"{env_name} is still using a placeholder value. Update the setting before deployment."
+        )
+        return None
+
+    return normalized
+
+
 def read_int_setting(
     env_name: str,
     default: int,
@@ -95,11 +121,11 @@ def get_settings() -> Settings:
     config_warnings: list[str] = []
 
     return Settings(
-        database_url=normalize_optional_str(os.getenv("DATABASE_URL")),
-        demo_notes_url=normalize_optional_str(os.getenv("DEMO_NOTES_URL")),
-        discord_webhook_url=normalize_optional_str(os.getenv("DISCORD_WEBHOOK_URL")),
-        monitor_username=normalize_optional_str(os.getenv("MONITOR_USERNAME")),
-        monitor_password=normalize_optional_str(os.getenv("MONITOR_PASSWORD")),
+        database_url=read_optional_setting("DATABASE_URL", config_warnings),
+        demo_notes_url=read_optional_setting("DEMO_NOTES_URL", config_warnings),
+        discord_webhook_url=read_optional_setting("DISCORD_WEBHOOK_URL", config_warnings),
+        monitor_username=read_optional_setting("MONITOR_USERNAME", config_warnings),
+        monitor_password=read_optional_setting("MONITOR_PASSWORD", config_warnings),
         allowed_hosts=parse_csv(
             os.getenv("ALLOWED_HOSTS"),
             default=("localhost", "127.0.0.1", "testserver"),

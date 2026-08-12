@@ -3,7 +3,11 @@ import unittest
 from unittest.mock import patch
 
 from app.config import reset_settings_cache
-from app.services.monitoring_loop import get_monitoring_status, reset_monitoring_state
+from app.services.monitoring_loop import (
+    get_monitoring_status,
+    reset_monitoring_state,
+    runtime_state,
+)
 
 
 class MonitoringStatusTests(unittest.TestCase):
@@ -77,6 +81,17 @@ class MonitoringStatusTests(unittest.TestCase):
     def test_reset_monitoring_state_clears_last_check(self) -> None:
         status = get_monitoring_status()
         self.assertIsNone(status["last_check"])
+
+    def test_monitoring_status_preserves_target_metadata_after_refresh(self) -> None:
+        runtime_state.apply_target_metadata(
+            active_targets=["database", "demo_notes"],
+            target_warnings=["demo_notes is restarting"],
+        )
+
+        status = get_monitoring_status()
+
+        self.assertEqual(status["active_targets"], ["database", "demo_notes"])
+        self.assertEqual(status["target_warnings"], ["demo_notes is restarting"])
 
 
 if __name__ == "__main__":

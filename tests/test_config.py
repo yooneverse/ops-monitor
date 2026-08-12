@@ -81,6 +81,26 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(settings.log_dir, Path("logs"))
         self.assertEqual(len(settings.config_warnings), 3)
 
+    def test_placeholder_settings_are_treated_as_unconfigured(self) -> None:
+        with patch.dict(
+            os.environ,
+            {
+                "DATABASE_URL": "<DATABASE_URL>",
+                "DISCORD_WEBHOOK_URL": "<DISCORD_WEBHOOK_URL>",
+                "MONITOR_USERNAME": "<MONITOR_USERNAME>",
+                "MONITOR_PASSWORD": "<MONITOR_PASSWORD>",
+            },
+            clear=False,
+        ):
+            reset_settings_cache()
+            settings = get_settings()
+
+        self.assertIsNone(settings.database_url)
+        self.assertIsNone(settings.discord_webhook_url)
+        self.assertIsNone(settings.monitor_username)
+        self.assertIsNone(settings.monitor_password)
+        self.assertEqual(len(settings.config_warnings), 4)
+
 
 if __name__ == "__main__":
     unittest.main()
