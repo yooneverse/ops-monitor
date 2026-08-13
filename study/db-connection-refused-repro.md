@@ -60,7 +60,7 @@ Is the server running on that host and accepting TCP/IP connections?
 sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "db" (172.18.0.2), port 5432 failed: Connection refused
 ```
 
-Artifacts saved in `docs/`:
+Artifacts saved in `docs/assets/db-connection-refused/`:
 
 - `db-error-log-capture-refused.png`
 - `db-error-log-capture-refused.txt`
