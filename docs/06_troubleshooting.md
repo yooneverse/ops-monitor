@@ -40,6 +40,7 @@
 | 2026-07-21 | APP | 로컬 실행 시 `db` host 해석 실패로 메모 서비스 연결 오류 | 해결 |
 | 2026-07-21 | DOCKER | `demo-notes` 컨테이너 환경변수 치환 오류로 재시작 반복 | 해결 |
 | 2026-07-21 | UI | `demo-notes` 빈 데이터 상태와 연결 실패 상태가 구분되지 않음 | 해결 |
+| 2026-08-12 | ENV | `.env` placeholder 값이 남아 DB 연결과 대시보드 인증이 실패함 | 해결 |
 
 ---
 
@@ -378,6 +379,54 @@ docker logs ops-monitor-notes
 #### 결과
 
 이후에는 "빈 메모 상태"와 "저장소 연결 실패 상태"가 화면에서 분리되었고, 운영자가 브라우저 화면만 보고도 상황을 더 정확히 판단할 수 있게 되었다.
+
+---
+
+### 4.9 `.env` placeholder 값이 남아 배포 후 인증과 DB 연결 실패
+
+| 항목 | 내용 |
+|---|---|
+| 발생일 | 2026-08-12 |
+| 구분 | ENV |
+| 상태 | 해결 |
+
+#### 문제 상황
+
+AWS EC2에 첫 배포 후 `/readyz`가 `not_ready`로 응답했고, `/dashboard` 로그인도 실패했다.
+
+DB 로그에는 아래와 같은 오류가 반복되었다.
+
+```text
+FATAL: role "<DB_USER>" does not exist
+password authentication failed for user "<DB_USER>"
+```
+
+#### 원인
+
+`.env`를 작성하는 과정에서 아래 예시 placeholder 값이 실제 값으로 교체되지 않은 채 남아 있었다.
+
+- `DATABASE_URL=postgresql://<DB_USER>:<DB_PASSWORD>@db:/<DB_NAME>`
+- `MONITOR_USERNAME=<MONITOR_USERNAME>`
+- `MONITOR_PASSWORD=<MONITOR_PASSWORD>`
+
+이 때문에 애플리케이션은 존재하지 않는 DB 계정으로 연결을 시도했고, 대시보드 Basic Auth도 실제 계정값이 아닌 placeholder를 기준으로 동작했다.
+
+#### 조치
+
+`.env`의 DB 계정과 모니터링 계정을 실제 값으로 다시 작성하고, 기존 DB 볼륨까지 내린 뒤 컨테이너를 재생성했다.
+
+```bash
+docker compose down -v
+docker compose up --build -d
+```
+
+또한 코드에서 placeholder 값을 그대로 유효한 설정으로 받아들이지 않도록 설정 로더를 보강했다.
+
+#### 결과
+
+- `/readyz`가 `ready`로 복구되었다.
+- `/dashboard` 인증과 상태 패널이 정상 동작했다.
+- 이후에는 placeholder 값이 남아 있어도 경고와 함께 미설정으로 처리되도록 보완했다.
 
 ---
 
