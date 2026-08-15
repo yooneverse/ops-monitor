@@ -1,5 +1,5 @@
 import os
-from contextlib import contextmanager
+from contextlib import asynccontextmanager, contextmanager
 from pathlib import Path
 from typing import Iterator
 
@@ -11,7 +11,14 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
-app = FastAPI(title="Demo Notes Service")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    init_database()
+    yield
+
+
+app = FastAPI(title="Demo Notes Service", lifespan=lifespan)
 
 
 class Base(DeclarativeBase):
@@ -542,12 +549,6 @@ def get_notes_page() -> str:
     </body>
     </html>
     """
-
-
-@app.on_event("startup")
-def startup() -> None:
-    init_database()
-
 
 @app.get("/", response_class=HTMLResponse)
 def root() -> str:

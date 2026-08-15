@@ -1,3 +1,4 @@
+import asyncio
 import importlib.util
 import os
 import tempfile
@@ -69,6 +70,16 @@ class DemoNotesAppTests(unittest.TestCase):
         deleted = self.module.delete_note(note_id)
         self.assertEqual(deleted["note"]["id"], note_id)
         self.assertEqual(self.module.list_notes()["notes"], [])
+
+    def test_lifespan_initializes_database_for_http_requests(self) -> None:
+        self.module._database_initialized = False
+
+        async def run_lifespan() -> None:
+            async with self.module.lifespan(self.module.app):
+                self.assertTrue(self.module._database_initialized)
+
+        asyncio.run(run_lifespan())
+        self.assertTrue(self.module._database_initialized)
 
     def test_database_url_falls_back_to_database_url_and_localhost(self) -> None:
         previous_demo = os.environ.pop("DEMO_NOTES_DATABASE_URL", None)
