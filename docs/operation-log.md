@@ -428,3 +428,66 @@ logs/run-reports/YYYY-MM-DD.md
 - 대시보드에서 최근 실행 단위 리포트 조회 기능 검토
 - 제외 규칙을 시간대 또는 대상별 세분화하는 방안 검토
 - 운영 액션 종류가 늘어날 경우 감사 로그 분리 설계 검토
+
+---
+
+## 2026-08-16
+
+### Type
+
+`CHECK`, `DOCS`
+
+### Summary
+
+제출 전 기준으로 로컬 검증 가능한 항목을 다시 실행했다.
+`demo-notes`, 설정 로딩, 모니터링 상태, 대시보드 API 관련 테스트를 묶어서 확인하고 Compose 설정 해석 가능 여부를 함께 점검했다.
+
+### Commands
+
+```bash
+.venv\Scripts\python.exe -m unittest tests.test_demo_notes_app tests.test_config tests.test_monitoring_status tests.test_dashboard_api
+docker compose config
+docker-compose config
+git status --short
+```
+
+### Check
+
+```text
+tests.test_demo_notes_app
+tests.test_config
+tests.test_monitoring_status
+tests.test_dashboard_api
+docker compose config
+docker-compose config
+```
+
+### Result
+
+- 총 19개 테스트 통과
+- `demo-notes` 수명주기 초기화 흐름 포함 로컬 테스트 정상 확인
+- 설정 로딩, 모니터링 상태, 대시보드 상태 조회 테스트 정상 확인
+- `docker compose config`는 현재 PC의 Docker CLI 환경 문제로 실패
+- `docker-compose config`는 경고와 함께 Compose 설정 출력 확인
+- 작업 트리는 로그 작성 전 기준으로 추가 변경 사항 없음 확인
+
+### Issue
+
+Windows 로컬 환경에서 `docker compose` 명령이 인식되지 않았고, Docker 설정 파일 접근 경고가 함께 출력되었다.
+
+```text
+WARNING: Error loading config file: open C:\Users\User\.docker\config.json: Access is denied.
+docker: unknown command: docker compose
+```
+
+### Resolution
+
+동일 검증을 `docker-compose config`로 다시 수행해 Compose 파일이 실제로 해석되는지 확인했다.
+
+로그에는 민감한 환경변수 값 대신 검증 성공 여부만 남기도록 정리했다.
+
+### Next
+
+- EC2에서 `DB 중단` 또는 `demo-notes 중단` 장애 재현 1회 수행
+- 장애 화면, 복구 화면, 컨테이너 상태 화면 캡처 정리
+- 제출 전 인스턴스 `Stop`
